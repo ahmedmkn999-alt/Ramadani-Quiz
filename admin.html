@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة الإدارة - كويز الرمضاني</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8 text-gray-800">
+
+    <h1 class="text-3xl font-bold mb-8 text-center text-blue-900">غرفة التحكم (Admin Panel)</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">تحديث آية / دعاء اليوم</h2>
+            <textarea id="msg-input" class="w-full p-2 border rounded mb-4" rows="3"></textarea>
+            <button id="save-msg-btn" class="bg-blue-600 text-white px-4 py-2 rounded">حفظ الرسالة</button>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">إضافة مشترك جديد</h2>
+            <input type="text" id="u-name" placeholder="اسم المشترك" class="w-full p-2 border rounded mb-2">
+            <input type="text" id="u-pass" placeholder="كلمة السر (كود الدخول)" class="w-full p-2 border rounded mb-2">
+            <select id="u-group" class="w-full p-2 border rounded mb-4">
+                <option value="A">المجموعة أ</option>
+                <option value="B">المجموعة ب</option>
+                <option value="C">المجموعة ج</option>
+            </select>
+            <button id="add-user-btn" class="bg-green-600 text-white px-4 py-2 rounded">إضافة اللاعب</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = { /* انسخ إعداداتك هنا */ 
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            projectId: "ramadan-87817",
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // حفظ الرسالة
+        document.getElementById('save-msg-btn').addEventListener('click', async () => {
+            const msg = document.getElementById('msg-input').value;
+            await setDoc(doc(db, "settings", "dailyData"), { message: msg });
+            alert("تم تحديث الرسالة بنجاح!");
+        });
+
+        // إضافة مستخدم
+        document.getElementById('add-user-btn').addEventListener('click', async () => {
+            const name = document.getElementById('u-name').value;
+            const pass = document.getElementById('u-pass').value;
+            const group = document.getElementById('u-group').value;
+            
+            await addDoc(collection(db, "users"), {
+                name: name,
+                password: pass,
+                group: group,
+                isQuizActive: false, // الكويز مقفول في البداية
+                hasCompletedToday: false,
+                score: 0
+            });
+            alert("تم إضافة المشترك بنجاح!");
+        });
+    </script>
+</body>
+</html>
