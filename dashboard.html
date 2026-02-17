@@ -2,63 +2,195 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة اللاعب</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المشترك | كويز الرمضاني</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>body { background-color: #0d1b2a; color: white; }</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #050a15; 
+            color: white;
+            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); /* نقش إسلامي خفيف */
+            background-attachment: fixed;
+        }
+
+        /* الهيدر الأفقي */
+        .top-nav {
+            background: rgba(13, 27, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #b8860b;
+        }
+
+        .tab-btn.active {
+            background-color: #b8860b;
+            color: white;
+            box-shadow: 0 0 15px rgba(184, 134, 11, 0.5);
+        }
+
+        .ramadan-card {
+            background: rgba(27, 38, 59, 0.8);
+            border: 1px solid rgba(184, 134, 11, 0.3);
+            border-radius: 15px;
+        }
+
+        /* أنيميشن بسيط */
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
-<body class="p-6 max-w-2xl mx-auto mt-10">
+<body class="min-h-screen pb-10">
 
-    <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center border-t-4 border-yellow-500">
-        <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-24 h-24 mx-auto mb-4 rounded-full">
-        <h1 class="text-3xl font-bold mb-2" id="user-name">أهلاً بك</h1>
-        <p class="text-gray-400 mb-6" id="user-group">المجموعة: -</p>
-
-        <div id="quiz-status-area" class="p-4 bg-gray-900 rounded-lg">
-            <h3 class="text-xl mb-4 text-yellow-500">حالة الكويز اليوم</h3>
-            <p id="status-msg" class="mb-4">جاري التحقق من حالتك...</p>
-            <button id="start-quiz-btn" class="hidden bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-bold text-white w-full">بدء الكويز الآن</button>
+    <header class="top-nav sticky top-0 z-50 px-4 py-2 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-10 h-10 rounded-full border border-yellow-500 shadow-lg">
+            <h1 class="text-lg font-bold text-yellow-500 hidden md:block">كويز الرمضاني</h1>
         </div>
+
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchSection('profile')">
+            <div class="text-left md:text-right">
+                <p class="text-xs text-gray-400">مرحباً بك،</p>
+                <p id="nav-user-name" class="text-sm font-bold">جاري التحميل..</p>
+            </div>
+            <div class="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center border-2 border-yellow-400">
+                <i class="fas fa-user text-white"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex justify-center gap-2 my-6 px-4">
+        <button id="btn-quizzes" onclick="switchSection('quizzes')" class="tab-btn active px-6 py-2 rounded-full font-bold transition-all border border-yellow-600">
+            <i class="fas fa-play-circle ml-2"></i>الكويزات
+        </button>
+        <button id="btn-rankings" onclick="switchSection('rankings')" class="tab-btn px-6 py-2 rounded-full font-bold transition-all border border-yellow-600">
+            <i class="fas fa-list-ol ml-2"></i>الترتيب
+        </button>
+    </div>
+
+    <main class="px-4 max-w-md mx-auto">
+
+        <section id="sec-quizzes" class="fade-in">
+            <div class="ramadan-card p-6 text-center shadow-2xl">
+                <h3 class="text-xl font-bold mb-4 text-yellow-500">تحدي اليوم ⚽</h3>
+                <p id="quiz-status-text" class="text-gray-300 mb-6 text-sm">جاري التحقق من التفعيل...</p>
+                
+                <button id="start-btn" onclick="startQuiz()" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                    بدء الكويز الآن
+                </button>
+                
+                <div id="locked-state" class="text-gray-500">
+                    <i class="fas fa-lock text-4xl mb-2"></i>
+                    <p>الكويز مغلق حالياً</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-rankings" class="hidden fade-in">
+            <div class="ramadan-card p-4">
+                <h3 class="text-center text-lg font-bold mb-4 border-b border-yellow-600 pb-2">متصَدري المجموعات 🏆</h3>
+                <div id="leaderboard-list" class="space-y-3">
+                    <p class="text-center text-gray-400 py-4">جاري تجهيز جدول الترتيب...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-profile" class="hidden fade-in">
+            <div class="ramadan-card p-6 text-center">
+                <div class="w-20 h-20 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-yellow-400 shadow-xl">
+                    <i class="fas fa-user text-3xl text-white"></i>
+                </div>
+                <h2 id="prof-name" class="text-2xl font-bold mb-1">-</h2>
+                <p id="prof-group" class="text-yellow-500 mb-4 font-bold">-</p>
+                
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="bg-gray-900 p-3 rounded-lg">
+                        <p class="text-xs text-gray-400">إجمالي النقاط</p>
+                        <p id="prof-score" class="text-xl font-bold">0</p>
+                    </div>
+                    <div class="bg-gray-900 p-3 rounded-lg">
+                        <p class="text-xs text-gray-400">ترتيبك</p>
+                        <p class="text-xl font-bold">--</p>
+                    </div>
+                </div>
+                
+                <button onclick="logout()" class="mt-8 text-red-400 text-sm font-bold"><i class="fas fa-sign-out-alt ml-1"></i>تسجيل الخروج</button>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="fixed bottom-4 left-0 right-0 flex justify-center gap-6">
+        <a href="https://www.facebook.com/share/1GmFwuYWZv/" class="text-blue-500 text-3xl drop-shadow-lg"><i class="fab fa-facebook"></i></a>
+        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" class="text-green-500 text-3xl drop-shadow-lg"><i class="fab fa-whatsapp"></i></a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // نفس إعدادات الفايربيز توضع هنا
-        const firebaseConfig = { /* انسخ نفس الاعدادات من الملف الأول */ 
+        const firebaseConfig = {
             apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
             projectId: "ramadan-87817",
+            appId: "1:343525703258:web:6776b4857425df8bcca263"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // جلب بيانات المستخدم من localStorage
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if(!user) window.location.href = "index.html";
 
-        document.getElementById('user-name').innerText = "أهلاً، " + user.name;
-        document.getElementById('user-group').innerText = "المجموعة: " + user.group;
+        // تحديث البيانات في الواجهة
+        document.getElementById('nav-user-name').innerText = user.name;
+        document.getElementById('prof-name').innerText = user.name;
+        document.getElementById('prof-group').innerText = user.group;
 
-        // التحقق المباشر من حالة اللاعب
-        async function checkStatus() {
-            const docRef = doc(db, "users", user.id);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.isQuizActive && !data.hasCompletedToday) {
-                    document.getElementById('status-msg').innerText = "كويز اليوم جاهز! تذكر: مدة السؤال 40 ثانية ويمنع الخروج من الصفحة.";
-                    document.getElementById('start-quiz-btn').classList.remove('hidden');
-                } else if (data.hasCompletedToday) {
-                    document.getElementById('status-msg').innerText = "لقد أنهيت كويز اليوم، نتيجتك محفوظة.";
-                } else {
-                    document.getElementById('status-msg').innerText = "الكويز مغلق حالياً، في انتظار تفعيل الإدمن.";
-                }
+        // مراقبة حالة الكويز بشكل لحظي (Real-time)
+        onSnapshot(doc(db, "users", user.id), (docSnap) => {
+            const data = docSnap.data();
+            const startBtn = document.getElementById('start-btn');
+            const lockedState = document.getElementById('locked-state');
+            const statusText = document.getElementById('quiz-status-text');
+
+            if(data.isQuizActive && !data.hasCompletedToday) {
+                startBtn.classList.remove('hidden');
+                lockedState.classList.add('hidden');
+                statusText.innerText = "كويز اليوم جاهز يا حريف! اضغط للبدء (40 ثانية لكل سؤال).";
+            } else if (data.hasCompletedToday) {
+                startBtn.classList.add('hidden');
+                lockedState.classList.remove('hidden');
+                lockedState.innerHTML = '<i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i><p>أحسنت! انتهيت من كويز اليوم</p>';
+                statusText.innerText = "تم تسجيل نتيجتك بنجاح.";
+                document.getElementById('prof-score').innerText = data.score || 0;
+            } else {
+                startBtn.classList.add('hidden');
+                lockedState.classList.remove('hidden');
+                statusText.innerText = "في انتظار تفعيل الكويز من الإدارة..";
             }
-        }
-        checkStatus();
-
-        document.getElementById('start-quiz-btn').addEventListener('click', () => {
-            window.location.href = "quiz.html";
         });
+
+        // نظام التبديل بين الأقسام
+        window.switchSection = function(sec) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('sec-' + sec).classList.remove('hidden');
+            if(sec !== 'profile') {
+                document.getElementById('btn-' + sec).classList.add('active');
+            }
+        };
+
+        window.startQuiz = function() {
+            window.location.href = "quiz.html";
+        };
+
+        window.logout = function() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        };
     </script>
 </body>
-</html>
+    </html>
+                                                                                                               
