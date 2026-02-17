@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كويز الرمضاني - دخول</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0d1b2a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .ramadan-card { background: rgba(27, 38, 59, 0.9); border: 1px solid #e0e1dd; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-48 h-48 object-contain mb-6 shadow-2xl rounded-full border-4 border-yellow-500">
+
+    <div class="ramadan-card p-6 rounded-xl text-center mb-8 max-w-md w-full border-r-4 border-yellow-500">
+        <p class="text-yellow-400 text-sm mb-2 italic">رسالة اليوم ✨</p>
+        <p class="text-lg font-bold" id="daily-message">جاري التحميل...</p>
+    </div>
+
+    <div class="ramadan-card p-8 rounded-2xl shadow-lg w-full max-w-sm text-center">
+        <h2 class="text-2xl font-bold mb-6 text-yellow-500">تسجيل الدخول</h2>
+        <input type="password" id="password-input" placeholder="أدخل كود الدخول" class="w-full p-3 rounded bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500">
+        <button id="login-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-lg transition">دخول للمسابقة</button>
+        <p id="error-msg" class="text-red-500 mt-3 hidden">كود الدخول غير صحيح!</p>
+    </div>
+
+    <div class="flex mt-8 gap-6">
+        <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-10 h-10"></a>
+        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-10 h-10"></a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            authDomain: "ramadan-87817.firebaseapp.com",
+            projectId: "ramadan-87817",
+            storageBucket: "ramadan-87817.firebasestorage.app",
+            messagingSenderId: "343525703258",
+            appId: "1:343525703258:web:6776b4857425df8bcca263"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // جلب رسالة اليوم
+        async function fetchMessage() {
+            try {
+                const docRef = doc(db, "settings", "dailyData");
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    document.getElementById('daily-message').innerText = docSnap.data().message;
+                } else {
+                    document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني";
+                }
+            } catch(e) { console.log(e); }
+        }
+        fetchMessage();
+
+        // تسجيل الدخول
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const pass = document.getElementById('password-input').value;
+            const btn = document.getElementById('login-btn');
+            btn.innerText = "جاري التحقق...";
+            
+            const q = query(collection(db, "users"), where("password", "==", pass));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                let userData = null;
+                let userId = null;
+                querySnapshot.forEach((doc) => { userData = doc.data(); userId = doc.id; });
+                
+                // حفظ بيانات المستخدم في المتصفح
+                localStorage.setItem('currentUser', JSON.stringify({id: userId, ...userData}));
+                window.location.href = "dashboard.html";
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+                btn.innerText = "دخول للمسابقة";
+            }
+        });
+    </script>
+</body>
+</html>
