@@ -8,40 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background-color: #050a15; 
-            color: white;
-            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png');
-            background-attachment: fixed;
-        }
-
-        /* الهيدر الأفقي */
-        .top-nav {
-            background: rgba(13, 27, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid #b8860b;
-        }
-
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(184, 134, 11, 0.4);
-            color: #b8860b;
-        }
-
-        .tab-btn.active {
-            background-color: #b8860b;
-            color: white;
-            box-shadow: 0 0 15px rgba(184, 134, 11, 0.5);
-        }
-
-        .ramadan-card {
-            background: rgba(27, 38, 59, 0.85);
-            border: 1px solid rgba(184, 134, 11, 0.3);
-            border-radius: 20px;
-        }
-
+        body { font-family: 'Cairo', sans-serif; background-color: #050a15; color: white; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); }
+        .top-nav { background: rgba(13, 27, 42, 0.95); border-bottom: 2px solid #b8860b; backdrop-filter: blur(10px); }
+        .tab-btn { border: 1px solid rgba(184, 134, 11, 0.4); color: #b8860b; }
+        .tab-btn.active { background-color: #b8860b; color: white; box-shadow: 0 0 15px rgba(184, 134, 11, 0.5); }
+        .ramadan-card { background: rgba(27, 38, 59, 0.85); border: 1px solid rgba(184, 134, 11, 0.3); border-radius: 20px; }
         .fade-in { animation: fadeIn 0.4s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -51,213 +22,120 @@
     <header class="top-nav sticky top-0 z-50 px-4 py-2 flex justify-between items-center shadow-lg">
         <div class="flex items-center gap-3">
             <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-10 h-10 rounded-full border border-yellow-500 shadow-md">
-            <h1 class="text-lg font-bold text-yellow-500">كويز الرمضاني</h1>
+            <h1 class="text-sm font-bold text-yellow-500">كويز الرمضاني</h1>
         </div>
-
-        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition" onclick="switchSection('profile')">
-            <div class="text-left md:text-right hidden xs:block">
-                <p class="text-[10px] text-gray-400 leading-none">مرحباً بك،</p>
-                <p id="nav-user-name" class="text-sm font-bold">--</p>
-            </div>
-            <div class="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center border-2 border-yellow-400 shadow-inner">
-                <i class="fas fa-user text-white"></i>
-            </div>
+        <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition" onclick="switchSection('profile')">
+            <div class="text-left"><p class="text-[10px] text-gray-400 leading-none">مرحباً بك،</p><p id="nav-user-name" class="text-xs font-bold">--</p></div>
+            <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center border border-yellow-400 shadow-inner"><i class="fas fa-user text-white text-xs"></i></div>
         </div>
     </header>
 
-    <div class="flex justify-center gap-3 my-8 px-4">
-        <button id="btn-quizzes" onclick="switchSection('quizzes')" class="tab-btn active flex-1 max-w-[150px] py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-            <i class="fas fa-play-circle"></i> الكويزات
-        </button>
-        <button id="btn-rankings" onclick="switchSection('rankings')" class="tab-btn flex-1 max-w-[150px] py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-            <i class="fas fa-chart-line"></i> الترتيب
-        </button>
+    <div class="flex justify-center gap-3 my-6 px-4">
+        <button id="btn-quizzes" onclick="switchSection('quizzes')" class="tab-btn active flex-1 max-w-[150px] py-2 rounded-xl font-bold transition-all"><i class="fas fa-play-circle ml-1"></i> التحديات</button>
+        <button id="btn-rankings" onclick="switchSection('rankings')" class="tab-btn flex-1 max-w-[150px] py-2 rounded-xl font-bold transition-all"><i class="fas fa-trophy ml-1"></i> الترتيب</button>
     </div>
 
     <main class="px-4 max-w-md mx-auto">
-
         <section id="sec-quizzes" class="fade-in">
-            <div class="ramadan-card p-8 text-center shadow-2xl">
-                <div class="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-600">
-                    <i class="fas fa-futbol text-3xl text-yellow-500"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-2 text-white">تحدي اليوم</h3>
-                <p id="quiz-status-text" class="text-gray-400 mb-8 text-sm leading-relaxed">جاري التحقق من التفعيل...</p>
+            <div class="ramadan-card p-6 text-center shadow-2xl">
+                <div class="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-600"><i class="fas fa-futbol text-2xl text-yellow-500"></i></div>
+                <h3 class="text-xl font-bold mb-2 text-white">تحدي اليوم</h3>
+                <p id="quiz-status-text" class="text-gray-400 mb-6 text-xs leading-relaxed">جاري تحميل الملعب...</p>
                 
-                <div id="quiz-action-area">
-                    <button id="start-btn" onclick="startQuiz()" class="hidden w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-2xl shadow-xl transition-transform active:scale-95">
-                        بدء الكويز الآن
-                    </button>
-                    
-                    <div id="locked-state" class="p-4 bg-gray-900/50 rounded-xl border border-gray-700">
-                        <i class="fas fa-lock text-gray-600 text-3xl mb-2"></i>
-                        <p class="text-gray-500 text-sm">انتظر تفعيل الكويز من الإدارة</p>
-                    </div>
-                </div>
+                <button id="start-btn" onclick="location.href='quiz.html'" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 rounded-xl shadow-xl transition-transform active:scale-95 text-lg"><i class="fas fa-bolt ml-2"></i>بدء الكويز الآن</button>
+                <div id="locked-state" class="p-4 bg-gray-900/50 rounded-xl border border-gray-700"></div>
             </div>
         </section>
 
         <section id="sec-rankings" class="hidden fade-in">
-            <div class="ramadan-card p-5">
-                <div class="flex items-center justify-between mb-6 border-b border-yellow-600/30 pb-3">
-                    <h3 class="text-xl font-bold text-yellow-500"><i class="fas fa-users ml-2"></i>عيلة المجموعة</h3>
-                    <span id="group-tag" class="text-xs bg-yellow-900/50 text-yellow-400 px-3 py-1 rounded-full border border-yellow-600">جاري التحميل..</span>
-                </div>
-                
-                <div id="leaderboard-list" class="space-y-3">
-                    </div>
+            <div class="ramadan-card p-4">
+                <div class="flex items-center justify-between mb-4 border-b border-yellow-600/30 pb-2"><h3 class="text-lg font-bold text-yellow-500"><i class="fas fa-users ml-2"></i>عيلة المجموعة</h3><span id="group-tag" class="text-[10px] bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded border border-yellow-600">--</span></div>
+                <div id="leaderboard-list" class="space-y-2"></div>
             </div>
         </section>
 
         <section id="sec-profile" class="hidden fade-in">
-            <div class="ramadan-card p-8 text-center">
-                <div class="relative w-24 h-24 mx-auto mb-4">
-                    <div class="w-full h-full bg-gradient-to-tr from-yellow-700 to-yellow-400 rounded-full flex items-center justify-center shadow-2xl border-4 border-gray-900">
-                        <i class="fas fa-user text-4xl text-white"></i>
-                    </div>
-                    <div class="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-gray-900"></div>
+            <div class="ramadan-card p-6 text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-yellow-700 to-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-gray-900 shadow-xl"><i class="fas fa-user text-3xl text-white"></i></div>
+                <h2 id="prof-name" class="text-xl font-bold mb-1 text-white">-</h2>
+                <p id="prof-group" class="text-yellow-500 mb-6 font-bold text-xs">-</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800"><p class="text-[10px] text-gray-500 mb-1">النقاط</p><p id="prof-score" class="text-2xl font-bold text-yellow-500">0</p></div>
+                    <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800"><p class="text-[10px] text-gray-500 mb-1">لعبت</p><p id="prof-rounds" class="text-2xl font-bold text-green-400">0 <span class="text-xs">جولة</span></p></div>
                 </div>
-                
-                <h2 id="prof-name" class="text-2xl font-bold mb-1 text-white">-</h2>
-                <p id="prof-group" class="text-yellow-500 mb-6 font-bold text-sm tracking-widest uppercase">-</p>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">إجمالي النقاط</p>
-                        <p id="prof-score" class="text-2xl font-bold text-yellow-500">0</p>
-                    </div>
-                    <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">الحالة</p>
-                        <p class="text-sm font-bold text-green-400">نشط</p>
-                    </div>
-                </div>
-                
-                <button onclick="logout()" class="mt-10 text-red-400 text-sm font-bold hover:text-red-300 transition flex items-center justify-center gap-2 mx-auto">
-                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-                </button>
+                <button onclick="localStorage.clear(); location.href='index.html'" class="mt-8 text-red-400 text-xs font-bold hover:text-red-300 transition"><i class="fas fa-sign-out-alt ml-1"></i>تسجيل الخروج</button>
             </div>
         </section>
-
     </main>
-
-    <footer class="fixed bottom-6 left-0 right-0 flex justify-center gap-8 pointer-events-none">
-        <a href="https://www.facebook.com/share/1GmFwuYWZv/" class="pointer-events-auto bg-white/10 p-3 rounded-full backdrop-blur-md border border-white/20 hover:scale-110 transition">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-6 h-6">
-        </a>
-        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" class="pointer-events-auto bg-white/10 p-3 rounded-full backdrop-blur-md border border-white/20 hover:scale-110 transition">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-6 h-6">
-        </a>
-    </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
-            authDomain: "ramadan-87817.firebaseapp.com",
-            projectId: "ramadan-87817",
-            storageBucket: "ramadan-87817.firebasestorage.app",
-            messagingSenderId: "343525703258",
-            appId: "1:343525703258:web:6776b4857425df8bcca263",
-            measurementId: "G-YM18TG6ZGR"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
         const user = JSON.parse(localStorage.getItem('currentUser'));
-        if(!user) window.location.href = "index.html";
+        if(!user) location.href = "index.html";
 
-        // تحديث البيانات الأولية
-        document.getElementById('nav-user-name').innerText = user.name;
-        document.getElementById('prof-name').innerText = user.name;
-        document.getElementById('prof-group').innerText = user.group;
-        document.getElementById('group-tag').innerText = user.group;
+        document.getElementById('nav-user-name').innerText = user.name; document.getElementById('prof-name').innerText = user.name;
+        document.getElementById('prof-group').innerText = user.group; document.getElementById('group-tag').innerText = user.group;
 
-        // مراقبة حالة المستخدم والدرجات لحظياً
-        onSnapshot(doc(db, "users", user.id), (docSnap) => {
-            if(docSnap.exists()){
-                const data = docSnap.data();
-                document.getElementById('prof-score').innerText = data.score || 0;
-                
-                const startBtn = document.getElementById('start-btn');
-                const lockedState = document.getElementById('locked-state');
-                const statusText = document.getElementById('quiz-status-text');
-
-                if(data.isQuizActive && !data.hasCompletedToday) {
-                    startBtn.classList.remove('hidden');
-                    lockedState.classList.add('hidden');
-                    statusText.innerText = "كويز اليوم جاهز يا حريف! اضغط للبدء (40 ثانية لكل سؤال).";
-                } else if (data.hasCompletedToday) {
-                    startBtn.classList.add('hidden');
-                    lockedState.classList.remove('hidden');
-                    lockedState.innerHTML = '<i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i><p class="text-green-500 font-bold">تم إنهاء تحدي اليوم</p>';
-                    statusText.innerText = "لقد شاركت في مسابقة اليوم، انتظر النتائج وتحدي الغد.";
-                } else {
-                    startBtn.classList.add('hidden');
-                    lockedState.classList.remove('hidden');
-                    statusText.innerText = "الإدارة لم تفتح الكويز لمجموعتك بعد.. خليك مستعد!";
-                }
+        let userData = null;
+        onSnapshot(doc(db, "users", user.id), (snap) => {
+            if(snap.exists()){
+                userData = snap.data();
+                document.getElementById('prof-score').innerText = userData.score || 0;
+                document.getElementById('prof-rounds').innerText = userData.rounds || 0;
+                updateUI();
             }
         });
 
-        // دالة جلب الترتيب للمجموعة
-        window.loadLeaderboard = async function() {
-            const listContainer = document.getElementById('leaderboard-list');
-            listContainer.innerHTML = '<p class="text-center text-gray-500 py-6 text-sm">جاري تحديث ترتيب العيلة...</p>';
+        onSnapshot(collection(db, "quizzes"), (snap) => {
+            let hasActive = false, hasUpcoming = false;
+            snap.forEach(d => { if(d.data().isActive) hasActive = true; else hasUpcoming = true; });
+            window.quizStatus = { hasActive, hasUpcoming };
+            updateUI();
+        });
+
+        function updateUI() {
+            if(!userData || !window.quizStatus) return;
+            const sb = document.getElementById('start-btn'), ls = document.getElementById('locked-state'), st = document.getElementById('quiz-status-text');
             
-            try {
-                const q = query(
-                    collection(db, "users"), 
-                    where("group", "==", user.group),
-                    orderBy("score", "desc")
-                );
-                const querySnapshot = await getDocs(q);
-                listContainer.innerHTML = '';
-                
-                let rank = 1;
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const isMe = data.name === user.name;
-                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-                    
-                    listContainer.innerHTML += `
-                        <div class="flex justify-between items-center p-4 rounded-2xl ${isMe ? 'bg-yellow-600/20 border border-yellow-500' : 'bg-gray-900/40 border border-gray-800'}">
-                            <div class="flex items-center gap-4">
-                                <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-yellow-500">${medal}</span>
-                                <span class="font-bold text-sm ${isMe ? 'text-yellow-400' : 'text-gray-200'}">${data.name} ${isMe ? '(أنت)' : ''}</span>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-lg font-black text-yellow-500 leading-none">${data.score || 0}</p>
-                                <p class="text-[10px] text-gray-500 uppercase">نقطة</p>
-                            </div>
-                        </div>
-                    `;
-                    rank++;
-                });
-            } catch (e) {
-                console.error(e);
-                listContainer.innerHTML = '<p class="text-center text-red-400 text-xs">تحتاج الإدارة لتفعيل خاصية الترتيب (Index) من لوحة Firebase.</p>';
+            if (userData.hasCompletedToday) {
+                sb.classList.add('hidden'); ls.classList.remove('hidden');
+                ls.innerHTML = '<i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i><p class="text-green-500 font-bold">بطل! خلصت الماتش بنجاح</p>'; st.innerText = "انتظر تحدي اليوم القادم.";
+            } else if (window.quizStatus.hasActive) {
+                sb.classList.remove('hidden'); ls.classList.add('hidden');
+                st.innerText = "الأسئلة نزلت.. معاك 40 ثانية لكل سؤال, دوس بدء!";
+            } else if (window.quizStatus.hasUpcoming) {
+                sb.classList.add('hidden'); ls.classList.remove('hidden');
+                ls.innerHTML = '<div class="bg-yellow-900/30 p-3 rounded-xl border border-yellow-700/50"><i class="fas fa-hourglass-half fa-spin text-yellow-500 text-3xl mb-2"></i><p class="text-yellow-500 font-bold text-lg">قريباً ⏳</p><p class="text-xs text-gray-400 mt-1">الكويز جاهز وفي انتظار إشارة البدء</p></div>'; st.innerText = "سخن نفسك..";
+            } else {
+                sb.classList.add('hidden'); ls.classList.remove('hidden');
+                ls.innerHTML = '<i class="fas fa-lock text-gray-600 text-3xl mb-2"></i><p class="text-gray-500 text-xs">لا يوجد تحديات اليوم حتى الآن</p>'; st.innerText = "راجعنا لاحقاً.";
             }
         }
 
-        // التبديل بين الأقسام
-        window.switchSection = function(sec) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById('sec-' + sec).classList.remove('hidden');
-            if(sec === 'rankings') {
-                document.getElementById('btn-rankings').classList.add('active');
-                loadLeaderboard();
-            } else if(sec === 'quizzes') {
-                document.getElementById('btn-quizzes').classList.add('active');
-            }
+        window.loadLeaderboard = async () => {
+            const list = document.getElementById('leaderboard-list'); list.innerHTML = '<p class="text-center text-[10px] text-gray-500 py-4">جاري التحميل..</p>';
+            try {
+                const q = query(collection(db, "users"), where("group", "==", user.group), orderBy("score", "desc"));
+                const snap = await getDocs(q); list.innerHTML = ''; let r = 1;
+                snap.forEach(d => {
+                    const data = d.data(); const isMe = data.name === user.name;
+                    list.innerHTML += `<div class="flex justify-between items-center p-3 rounded-xl mb-1 ${isMe?'bg-yellow-600/20 border border-yellow-500':'bg-gray-900/40 border border-gray-800'}"><div class="flex items-center gap-3"><span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 text-[10px] font-bold text-yellow-500">#${r}</span><div class="flex flex-col"><span class="text-xs font-bold ${isMe?'text-yellow-400':'text-gray-200'}">${data.name}</span><span class="text-[8px] text-gray-500 italic">لعب ${data.rounds||0} جولة</span></div></div><div class="text-right"><p class="text-sm font-black text-yellow-500 leading-none">${data.score||0}</p><p class="text-[8px] text-gray-500 uppercase">نقطة</p></div></div>`; r++;
+                });
+            } catch(e) { list.innerHTML = '<p class="text-[10px] text-red-400 p-2 text-center">قم بتفعيل الفهرس (Index) من قاعدة البيانات ليعمل الترتيب.</p>'; }
         };
 
-        window.startQuiz = () => window.location.href = "quiz.html";
-        window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+        window.switchSection = (s) => {
+            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sec-'+s).classList.remove('hidden');
+            if(s === 'rankings') { document.getElementById('btn-rankings').classList.add('active'); loadLeaderboard(); }
+            else if(s === 'quizzes') document.getElementById('btn-quizzes').classList.add('active');
+        };
     </script>
 </body>
-</html>
+        </html>
+            
