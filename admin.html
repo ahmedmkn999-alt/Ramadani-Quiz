@@ -4,26 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>الإدارة المركزية | كويز الرمضاني</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        
-        /* التصميم الطبيعي اللي مستحيل يجمد الشاشة */
-        html, body { 
-            font-family: 'Cairo', sans-serif; 
-            background-color: #030712; 
-            color: #f3f4f6; 
-            display: block !important; 
-            overflow-x: hidden !important; 
-            overflow-y: auto !important; 
-            height: auto !important; 
-            min-height: 100vh;
-        }
-        
+        html, body { font-family: 'Cairo', sans-serif; background-color: #030712; color: #f3f4f6; overflow-x: hidden !important; }
         .days-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px; scroll-behavior: smooth; }
         .days-scroll::-webkit-scrollbar { height: 6px; }
         .days-scroll::-webkit-scrollbar-thumb { background: #b8860b; border-radius: 10px; }
@@ -33,14 +19,15 @@
         .nav-btn.active { background: linear-gradient(90deg, #b8860b, #d4af37); color: white; border-color: #d4af37; box-shadow: 0 4px 15px rgba(184, 134, 11, 0.4); }
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
     <header class="sticky top-0 z-40 bg-gray-900 border-b border-gray-800 p-4 shadow-xl">
         <div class="flex items-center justify-center gap-2 mb-4">
-            <h2 class="font-bold text-yellow-500 text-2xl"><i class="fas fa-crown ml-2"></i>الإدارة المركزية <span class="text-red-500 text-xs bg-red-900/30 px-2 py-1 rounded-full">v5.0</span></h2>
+            <h2 class="font-bold text-yellow-500 text-2xl"><i class="fas fa-crown ml-2"></i>الإدارة المركزية <span class="text-green-500 text-xs bg-green-900/30 px-2 py-1 rounded-full">v6.0</span></h2>
         </div>
         <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
             <div id="btn-users" class="nav-btn active whitespace-nowrap" onclick="switchMainTab('users')"><i class="fas fa-users ml-1"></i> اللاعبين</div>
+            <div id="btn-groups" class="nav-btn whitespace-nowrap" onclick="switchMainTab('groups')"><i class="fas fa-layer-group ml-1 text-blue-400"></i> المجموعات</div>
             <div id="btn-quizzes" class="nav-btn whitespace-nowrap" onclick="switchMainTab('quizzes')"><i class="fas fa-futbol ml-1"></i> الكويزات</div>
             <div id="btn-tournament" class="nav-btn whitespace-nowrap" onclick="switchMainTab('tournament')"><i class="fas fa-trophy ml-1 text-yellow-400"></i> البطولة</div>
             <div id="btn-settings" class="nav-btn whitespace-nowrap" onclick="switchMainTab('settings')"><i class="fas fa-cog ml-1"></i> الإعدادات</div>
@@ -52,41 +39,68 @@
         <div id="tab-users" class="block">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 class="text-2xl font-bold text-white"><i class="fas fa-users text-yellow-500 ml-2"></i>قائمة المشتركين</h1>
-                <button onclick="resetAllUsers()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg"><i class="fas fa-sync-alt ml-2"></i>يوم جديد للكل</button>
+                <button onclick="resetAllUsers()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg"><i class="fas fa-sync-alt ml-2"></i>يوم جديد للمتسابقين</button>
             </div>
             
             <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl mb-8">
                 <h3 class="text-yellow-500 font-bold mb-4 text-sm border-b border-gray-800 pb-2">إضافة لاعب جديد</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" id="u-name" placeholder="الاسم" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full text-white outline-none focus:border-yellow-500">
-                    <input type="text" id="u-pass" placeholder="الكود" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full text-yellow-500 font-bold tracking-widest outline-none focus:border-yellow-500">
-                    <input type="text" id="u-group" placeholder="المرحلة (مثال: المجموعات)" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full text-white outline-none focus:border-yellow-500">
-                    <button onclick="addNewUser()" id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold py-3 md:py-0 w-full shadow-lg">حفظ وإضافة</button>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">الاسم</label>
+                        <input type="text" id="u-name" placeholder="اسم اللاعب" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full text-white outline-none focus:border-yellow-500">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">الكود</label>
+                        <input type="text" id="u-pass" placeholder="الكود السري" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full text-yellow-500 font-bold tracking-widest outline-none focus:border-yellow-500">
+                    </div>
+                    <div>
+                        <label class="text-xs text-blue-400 mb-1 block">اختر المجموعة</label>
+                        <select id="u-group" class="p-3 bg-gray-800 border border-blue-700 rounded-xl w-full text-white outline-none focus:border-blue-500 font-bold cursor-pointer">
+                            <option value="">جاري تحميل المجموعات...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-red-400 mb-1 block">نوع الحساب</label>
+                        <select id="u-role" class="p-3 bg-gray-800 border border-red-700 rounded-xl w-full text-white outline-none font-bold cursor-pointer">
+                            <option value="user">متسابق عادي</option>
+                            <option value="tester">حساب إشراف (تجربة)</option>
+                        </select>
+                    </div>
+                    <button onclick="addNewUser()" id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold py-3 w-full shadow-lg">حفظ وإضافة</button>
                 </div>
             </div>
 
             <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-x-auto shadow-xl">
                 <table class="w-full text-right text-sm whitespace-nowrap min-w-max">
                     <thead class="bg-gray-800 text-gray-300">
-                        <tr><th class="p-4">الاسم</th><th class="p-4">المرحلة</th><th class="p-4">الكود</th><th class="p-4 text-yellow-500">النقاط</th><th class="p-4 text-green-400">الجولات</th><th class="p-4">إجراء</th></tr>
+                        <tr><th class="p-4">الاسم</th><th class="p-4">النوع</th><th class="p-4">المجموعة</th><th class="p-4">الكود</th><th class="p-4 text-yellow-500">النقاط</th><th class="p-4">إجراء</th></tr>
                     </thead>
                     <tbody id="users-table-body"></tbody>
                 </table>
             </div>
         </div>
 
+        <div id="tab-groups" class="hidden">
+            <h1 class="text-2xl font-bold text-white mb-6"><i class="fas fa-layer-group text-blue-500 ml-2"></i>إدارة المجموعات والمراحل</h1>
+            
+            <div class="bg-gray-900 border border-blue-900 p-6 rounded-2xl shadow-xl mb-8">
+                <label class="block text-blue-300 font-bold mb-2">إضافة مجموعة جديدة (أو مرحلة)</label>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="new-group-name" placeholder="مثال: المجموعة الأولى، أو دور الـ 32" class="flex-1 p-4 bg-gray-800 border border-blue-700 rounded-xl text-white outline-none focus:border-blue-400">
+                    <button onclick="createNewGroup()" id="add-group-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg">إضافة للقائمة</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="groups-list-container">
+                </div>
+        </div>
+
         <div id="tab-tournament" class="hidden">
             <div class="bg-gray-900 border border-purple-900 p-6 rounded-2xl shadow-xl mb-8">
                 <label class="block text-purple-300 font-bold mb-2 text-sm">نقل الفائزين المحددين إلى:</label>
                 <div class="flex flex-col md:flex-row gap-4">
-                    <select id="next-stage-select" class="flex-1 p-4 bg-gray-800 border border-purple-700 rounded-xl text-white font-bold outline-none cursor-pointer">
-                        <option value="دور الـ 32">دور الـ 32</option>
-                        <option value="دور الـ 16">دور الـ 16</option>
-                        <option value="ربع النهائي">ربع النهائي (دور الـ 8)</option>
-                        <option value="نصف النهائي">نصف النهائي</option>
-                        <option value="النهائي الحلم">النهائي الحلم</option>
-                    </select>
-                    <button onclick="promoteSelectedUsers()" class="w-full md:w-auto bg-gradient-to-r from-yellow-600 to-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg">تنفيذ الترقية للفائزين <i class="fas fa-check ml-2"></i></button>
+                    <select id="next-stage-select" class="flex-1 p-4 bg-gray-800 border border-purple-700 rounded-xl text-white font-bold outline-none cursor-pointer"></select>
+                    <button onclick="promoteSelectedUsers()" class="w-full md:w-auto bg-gradient-to-r from-yellow-600 to-yellow-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg">تنفيذ الترقية <i class="fas fa-check ml-2"></i></button>
                 </div>
             </div>
 
@@ -107,7 +121,7 @@
             </div>
             <div class="flex flex-col justify-between items-center mb-6 bg-gray-900 p-4 rounded-2xl border border-gray-800 gap-4">
                 <h2 class="text-xl font-bold text-white w-full text-right">كويزات <span id="selected-day-title" class="text-yellow-500">اليوم 1</span></h2>
-                <button onclick="openQuizModal()" class="w-full bg-yellow-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg text-lg"><i class="fas fa-plus ml-2"></i>إضافة كويز لليوم المحدد</button>
+                <button onclick="openQuizModal()" class="w-full bg-yellow-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg text-lg"><i class="fas fa-plus ml-2"></i>إضافة كويز لليوم</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="quizzes-list"></div>
         </div>
@@ -128,29 +142,24 @@
                 <h3 class="font-bold text-yellow-500 text-xl mb-6 text-center border-b border-gray-800 pb-4" id="modal-title">إضافة كويز</h3>
                 <input type="text" id="q-title" placeholder="عنوان الكويز" class="w-full p-4 bg-gray-800 border border-gray-700 text-white rounded-xl mb-6 font-bold text-lg">
                 <div id="questions-builder" class="space-y-6 mb-8"></div>
-                <button onclick="saveQuiz()" id="save-btn" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg text-lg">حفظ الكويز في المستودع</button>
+                <button onclick="saveQuiz()" id="save-btn" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg text-lg">حفظ الكويز</button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // نظام اصطياد الأخطاء الجذري (عشان لو فيه مشكلة تظهرلك رسالة بدل ما اللوحة تقف)
-        window.onerror = function(msg, url, line) {
-            alert("حدث خطأ برمجي: " + msg);
-        };
+        window.onerror = function(msg) { console.log("خطأ: " + msg); };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, addDoc, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
-        let activeDay = 1, editingQuizId = null;
-        let allCurrentUsers = [];
+        let activeDay = 1, editingQuizId = null, allCurrentUsers = [], systemGroups = [];
 
-        // --- التنقل ---
         window.switchMainTab = (tab) => {
-            ['users', 'quizzes', 'tournament', 'settings'].forEach(t => {
+            ['users', 'groups', 'quizzes', 'tournament', 'settings'].forEach(t => {
                 document.getElementById('tab-' + t).classList.add('hidden');
                 document.getElementById('btn-' + t).classList.remove('active');
             });
@@ -158,12 +167,74 @@
             document.getElementById('btn-' + tab).classList.add('active');
             
             if(tab === 'users') loadUsers();
+            if(tab === 'groups') loadSystemGroups();
             if(tab === 'tournament') loadTournamentUsers();
             if(tab === 'quizzes') loadDayQuizzes();
             window.scrollTo(0, 0);
         };
 
-        // --- الأيام ---
+        // ==========================================
+        // النظام الجديد: إدارة المجموعات
+        // ==========================================
+        window.loadSystemGroups = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "groupsData"));
+                if (docSnap.exists() && docSnap.data().list) {
+                    systemGroups = docSnap.data().list;
+                } else {
+                    systemGroups = ["المجموعة الأولى"]; // مجموعة افتراضية لو مفيش
+                    await setDoc(doc(db, "settings", "groupsData"), { list: systemGroups });
+                }
+                updateGroupsUI();
+            } catch (error) { console.error(error); }
+        };
+
+        function updateGroupsUI() {
+            // تحديث القوائم المنسدلة
+            const userSelect = document.getElementById('u-group');
+            const tourSelect = document.getElementById('next-stage-select');
+            
+            let optionsHTML = '';
+            if(systemGroups.length === 0) optionsHTML = '<option value="">لا يوجد مجموعات، أضف مجموعة أولاً</option>';
+            systemGroups.forEach(g => optionsHTML += `<option value="${g}">${g}</option>`);
+            
+            userSelect.innerHTML = optionsHTML;
+            tourSelect.innerHTML = optionsHTML;
+
+            // تحديث كروت المجموعات في صفحة المجموعات
+            const listContainer = document.getElementById('groups-list-container');
+            listContainer.innerHTML = '';
+            systemGroups.forEach((g, index) => {
+                listContainer.innerHTML += `
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 flex justify-between items-center shadow">
+                    <span class="text-white font-bold">${g}</span>
+                    <button onclick="deleteGroup(${index})" class="text-red-400 hover:bg-gray-700 p-2 rounded transition"><i class="fas fa-trash"></i></button>
+                </div>`;
+            });
+        }
+
+        window.createNewGroup = async () => {
+            const btn = document.getElementById('add-group-btn');
+            const newName = document.getElementById('new-group-name').value.trim();
+            if(!newName) return alert("اكتب اسم المجموعة أولاً!");
+            if(systemGroups.includes(newName)) return alert("الاسم ده موجود قبل كدا!");
+            
+            btn.innerText = "جاري الحفظ...";
+            systemGroups.push(newName);
+            await setDoc(doc(db, "settings", "groupsData"), { list: systemGroups });
+            document.getElementById('new-group-name').value = '';
+            updateGroupsUI();
+            btn.innerText = "إضافة للقائمة";
+        };
+
+        window.deleteGroup = async (index) => {
+            if(!confirm("حذف هذه المجموعة من القائمة؟ (اللاعبين اللي فيها مش هيتمسحوا بس مش هتعرف تختارها تاني)")) return;
+            systemGroups.splice(index, 1);
+            await setDoc(doc(db, "settings", "groupsData"), { list: systemGroups });
+            updateGroupsUI();
+        };
+
+        // --- باقي الأكواد الأساسية مع تعديل (نوع الحساب) ---
         const daysStrip = document.getElementById('days-strip');
         for (let i = 1; i <= 30; i++) {
             const pill = document.createElement('div'); pill.className = `day-pill ${i === 1 ? 'active' : ''}`; pill.innerHTML = `اليوم ${i}`;
@@ -171,123 +242,34 @@
             daysStrip.appendChild(pill);
         }
 
-        // --- بناء الأسئلة ---
         const qBuilder = document.getElementById('questions-builder');
         for (let i = 1; i <= 15; i++) {
-            qBuilder.innerHTML += `<div class="bg-gray-800 p-4 rounded-2xl q-block border border-gray-700 shadow relative mt-4"><span class="absolute -top-3 right-4 bg-yellow-600 text-white font-bold px-3 rounded-full text-sm">سؤال ${i}</span><textarea placeholder="نص السؤال..." class="q-txt w-full bg-gray-900 border border-gray-600 p-3 rounded-xl text-white mt-2 mb-2 h-16 outline-none"></textarea><input type="text" placeholder="رابط الصورة (اختياري)" class="q-img w-full bg-gray-900 border border-gray-600 p-3 rounded-xl text-white mb-3" dir="ltr"><div class="grid grid-cols-2 gap-2 mb-3"><input type="text" placeholder="خيار 1" class="o1 bg-gray-900 border border-gray-600 p-2 rounded-xl text-white text-xs"><input type="text" placeholder="خيار 2" class="o2 bg-gray-900 border border-gray-600 p-2 rounded-xl text-white text-xs"><input type="text" placeholder="خيار 3" class="o3 bg-gray-900 border border-gray-600 p-2 rounded-xl text-white text-xs"><input type="text" placeholder="خيار 4" class="o4 bg-gray-900 border border-gray-600 p-2 rounded-xl text-white text-xs"></div><select class="cor w-full bg-gray-900 border border-blue-600 p-3 rounded-xl text-white font-bold"><option value="0">الإجابة (1) صح</option><option value="1">الإجابة (2) صح</option><option value="2">الإجابة (3) صح</option><option value="3">الإجابة (4) صح</option></select></div>`;
+            qBuilder.innerHTML += `<div class="bg-gray-800 p-4 rounded-2xl q-block border border-gray-700 shadow relative mt-4"><span class="absolute -top-3 right-4 bg-yellow-600 text-white font-bold px-3 rounded-full text-sm">سؤال ${i}</span><textarea class="q-txt w-full bg-gray-900 p-3 rounded-xl text-white mt-2 mb-2 h-16 outline-none"></textarea><input type="text" class="q-img w-full bg-gray-900 p-3 rounded-xl text-white mb-3" dir="ltr"><div class="grid grid-cols-2 gap-2 mb-3"><input type="text" class="o1 bg-gray-900 p-2 rounded-xl text-white"><input type="text" class="o2 bg-gray-900 p-2 rounded-xl text-white"><input type="text" class="o3 bg-gray-900 p-2 rounded-xl text-white"><input type="text" class="o4 bg-gray-900 p-2 rounded-xl text-white"></div><select class="cor w-full bg-gray-900 p-3 rounded-xl text-white font-bold"><option value="0">1 صح</option><option value="1">2 صح</option><option value="2">3 صح</option><option value="3">4 صح</option></select></div>`;
         }
 
-        window.openQuizModal = (q = null) => { editingQuizId = q ? q.id : null; document.getElementById('modal-title').innerText = q ? "تعديل الكويز" : "إنشاء كويز"; document.getElementById('q-title').value = q ? q.title : ""; document.querySelectorAll('.q-block').forEach((b, i) => { const d = q ? q.questions[i] : null; b.querySelector('.q-txt').value = d ? d.q : ""; b.querySelector('.q-img').value = d ? d.image : ""; b.querySelector('.o1').value = d ? d.options[0] : ""; b.querySelector('.o2').value = d ? d.options[1] : ""; b.querySelector('.o3').value = d ? d.options[2] : ""; b.querySelector('.o4').value = d ? d.options[3] : ""; b.querySelector('.cor').value = d ? d.correctIndex : 0; }); document.getElementById('quiz-modal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        window.closeQuizModal = () => { document.getElementById('quiz-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; };
+        window.openQuizModal = (q = null) => { editingQuizId = q ? q.id : null; document.getElementById('modal-title').innerText = q ? "تعديل الكويز" : "إنشاء كويز"; document.getElementById('q-title').value = q ? q.title : ""; document.querySelectorAll('.q-block').forEach((b, i) => { const d = q ? q.questions[i] : null; b.querySelector('.q-txt').value = d ? d.q : ""; b.querySelector('.q-img').value = d ? d.image : ""; b.querySelector('.o1').value = d ? d.options[0] : ""; b.querySelector('.o2').value = d ? d.options[1] : ""; b.querySelector('.o3').value = d ? d.options[2] : ""; b.querySelector('.o4').value = d ? d.options[3] : ""; b.querySelector('.cor').value = d ? d.correctIndex : 0; }); document.getElementById('quiz-modal').classList.remove('hidden'); };
+        window.closeQuizModal = () => { document.getElementById('quiz-modal').classList.add('hidden'); };
 
-        // --- الدوال القوية والمباشرة ---
-        
-        // 1. إضافة لاعب
         window.addNewUser = async () => {
             const btn = document.getElementById('add-user-btn');
             try {
                 const name = document.getElementById('u-name').value;
                 const pass = document.getElementById('u-pass').value;
                 const group = document.getElementById('u-group').value;
+                const role = document.getElementById('u-role').value; // التقاط نوع الحساب
                 
-                if(!name || !pass || !group) { alert("⚠️ الرجاء ملء جميع الخانات (الاسم، الكود، المرحلة)!"); return; }
+                if(!name || !pass || !group) return alert("⚠️ أكمل البيانات والمجموعة!");
                 
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
-                await addDoc(collection(db, "users"), { name, password: pass, group, score: 0, rounds: 0, hasCompletedToday: false });
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+                await addDoc(collection(db, "users"), { name, password: pass, group, role: role, score: 0, rounds: 0, hasCompletedToday: false });
                 
                 document.getElementById('u-name').value = ''; document.getElementById('u-pass').value = '';
-                alert("✅ تمت الإضافة بنجاح!"); 
-                loadUsers(); 
-            } catch(e) { 
-                alert("❌ حدث خطأ في قاعدة البيانات: " + e.message); 
-            } finally {
-                btn.innerHTML = 'حفظ وإضافة';
-            }
+                alert("✅ تمت الإضافة!"); loadUsers(); 
+            } catch(e) { alert("❌ خطأ!"); } finally { btn.innerHTML = 'حفظ وإضافة'; }
         };
 
-        // 2. حفظ كويز
         window.saveQuiz = async () => {
             const btn = document.getElementById('save-btn');
             try {
                 btn.innerText = "جاري الحفظ...";
-                const qs = []; document.querySelectorAll('.q-block').forEach(b => { qs.push({ q: b.querySelector('.q-txt').value, image: b.querySelector('.q-img').value, options: [b.querySelector('.o1').value, b.querySelector('.o2').value, b.querySelector('.o3').value, b.querySelector('.o4').value], correctIndex: parseInt(b.querySelector('.cor').value) }); });
-                const data = { title: document.getElementById('q-title').value || 'كويز جديد', day: activeDay, questions: qs, isActive: false };
-                if (editingQuizId) await updateDoc(doc(db, "quizzes", editingQuizId), data); else await addDoc(collection(db, "quizzes"), data); 
-                closeQuizModal(); loadDayQuizzes(); 
-            } catch(e) { 
-                alert("❌ خطأ في حفظ الكويز: " + e.message); 
-            } finally {
-                btn.innerText = "حفظ الكويز في المستودع";
-            }
-        };
-
-        // 3. حفظ رسالة اليوم
-        window.saveDailyMessage = async () => {
-            const btn = document.getElementById('save-msg-btn');
-            try {
-                const msg = document.getElementById('daily-msg').value;
-                btn.innerText = "جاري الحفظ...";
-                await setDoc(doc(db, "settings", "dailyData"), { message: msg });
-                alert("✅ تم تحديث رسالة اليوم بنجاح!");
-            } catch(e) { 
-                alert("❌ خطأ: " + e.message); 
-            } finally {
-                btn.innerText = "حفظ ونشر الرسالة";
-            }
-        };
-
-        // --- تحميل الجداول ---
-        window.loadUsers = async () => {
-            const tbody = document.getElementById('users-table-body'); 
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-yellow-500 font-bold"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>جاري التحميل...</td></tr>';
-            try {
-                const snap = await getDocs(collection(db, "users")); tbody.innerHTML = '';
-                if(snap.empty) { tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-gray-500">لا يوجد لاعبين حتى الآن</td></tr>'; return; }
-                snap.forEach(d => { const data = d.data(); tbody.innerHTML += `<tr class="border-b border-gray-800 hover:bg-gray-800"><td class="p-4 font-bold text-white">${data.name}</td><td class="p-4 text-xs font-bold text-purple-400 bg-purple-900/20">${data.group}</td><td class="p-4 text-yellow-500 font-mono tracking-widest">${data.password}</td><td class="p-4 text-lg text-yellow-500 font-black">${data.score}</td><td class="p-4 text-green-400 font-bold">${data.rounds}</td><td class="p-4"><button onclick="deleteUser('${d.id}')" class="bg-red-900/40 text-red-400 p-2 rounded-lg"><i class="fas fa-trash"></i></button></td></tr>`; });
-            } catch (e) { alert("❌ خطأ في جلب اللاعبين: " + e.message); }
-        };
-
-        window.loadTournamentUsers = async () => {
-            const tbody = document.getElementById('tournament-table-body'); tbody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-purple-400 font-bold"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>جاري تحميل اللاعبين...</td></tr>';
-            try {
-                const snap = await getDocs(collection(db, "users")); allCurrentUsers = []; tbody.innerHTML = '';
-                snap.forEach(d => { const data = d.data(); if (data.group !== "مستبعد") { allCurrentUsers.push({ id: d.id, ...data }); tbody.innerHTML += `<tr class="border-b border-gray-800 hover:bg-gray-800"><td class="p-4 text-center"><input type="checkbox" class="user-checkbox w-5 h-5 accent-yellow-600" value="${d.id}"></td><td class="p-4 font-bold text-white">${data.name}</td><td class="p-4 text-xs font-bold text-purple-400">${data.group}</td><td class="p-4 text-xl text-yellow-500 font-black">${data.score}</td></tr>`; } });
-            } catch(e) { alert("❌ خطأ: " + e.message); }
-        };
-
-        window.loadDayQuizzes = async () => {
-            const list = document.getElementById('quizzes-list'); list.innerHTML = '<div class="col-span-full text-center py-10 text-yellow-500"><i class="fas fa-spinner fa-spin text-4xl mb-2"></i></div>';
-            try {
-                const snap = await getDocs(query(collection(db, "quizzes"), where("day", "==", activeDay)));
-                list.innerHTML = snap.empty ? '<div class="col-span-full text-center p-8 text-gray-500 border border-gray-800 rounded-3xl">لا توجد كويزات مضافة لهذا اليوم</div>' : '';
-                snap.forEach(d => { const data = d.data(); const btnColor = data.isActive ? 'bg-green-600' : 'bg-yellow-600'; const btnText = data.isActive ? '<i class="fas fa-check-circle ml-1"></i> شغال للمشتركين' : '<i class="fas fa-pause-circle ml-1"></i> قريباً (تشغيل)'; list.innerHTML += `<div class="bg-gray-800 p-5 rounded-2xl flex flex-col gap-4 border border-gray-700 shadow-xl"><div class="flex justify-between items-start"><div><h4 class="font-bold text-lg text-white mb-2">${data.title}</h4></div><div class="flex gap-2"><button onclick='openQuizModal(${JSON.stringify({id: d.id, ...data}).replace(/'/g, "&apos;")})' class="w-10 h-10 bg-gray-900 rounded-lg text-blue-400"><i class="fas fa-edit"></i></button><button onclick="deleteQuiz('${d.id}')" class="w-10 h-10 bg-gray-900 rounded-lg text-red-400"><i class="fas fa-trash"></i></button></div></div><button onclick="toggleQuizActive('${d.id}', ${data.isActive})" class="w-full py-4 rounded-xl text-white font-bold mt-auto shadow-lg ${btnColor}">${btnText}</button></div>`; });
-            } catch(e) { alert("❌ خطأ: " + e.message); }
-        };
-
-        window.promoteSelectedUsers = async () => {
-            try {
-                const selectedStage = document.getElementById('next-stage-select').value;
-                const checkboxes = document.querySelectorAll('.user-checkbox'); let selectedIds = [];
-                checkboxes.forEach(box => { if (box.checked) selectedIds.push(box.value); });
-                if (selectedIds.length === 0) return alert("⚠️ لم تقم بتحديد أي لاعب!");
-                if (!confirm(`متأكد من ترقية المحددين إلى (${selectedStage})؟`)) return;
-
-                for (let user of allCurrentUsers) {
-                    const userRef = doc(db, "users", user.id);
-                    if (selectedIds.includes(user.id)) await updateDoc(userRef, { group: selectedStage, score: 0, rounds: 0, hasCompletedToday: false });
-                    else await updateDoc(userRef, { group: "مستبعد" });
-                }
-                alert(`🎉 تمت الترقية بنجاح!`); loadTournamentUsers();
-            } catch(e) { alert("❌ خطأ: " + e.message); }
-        };
-
-        window.deleteUser = async (id) => { if(confirm("حذف المشترك نهائياً؟")) { await deleteDoc(doc(db, "users", id)); loadUsers(); } };
-        window.deleteQuiz = async (id) => { if(confirm("حذف الكويز نهائياً؟")) { await deleteDoc(doc(db, "quizzes", id)); loadDayQuizzes(); } };
-        window.toggleQuizActive = async (id, status) => { await updateDoc(doc(db, "quizzes", id), { isActive: !status }); loadDayQuizzes(); };
-        window.resetAllUsers = async () => { if(confirm("أكيد عايز تصفر حالتهم ليوم جديد؟")) { const snap = await getDocs(collection(db, "users")); snap.forEach(async (d) => { await updateDoc(doc(db, "users", d.id), { hasCompletedToday: false }); }); alert("✅ تم التجهيز ليوم جديد!"); } };
-
-        // تشغيل مباشر
-        switchMainTab('users');
-    </script>
-</body>
-</html>
+                const qs = []; document.querySelectorAll('.q-block').forEach(b => { qs.push({ q: b.querySelector('.q-txt').value, image: b.querySelector('.q-img').value, options: [b.
