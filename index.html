@@ -2,50 +2,81 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>كويز الرمضاني | دخول</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { background-color: #050a15; color: white; font-family: 'Cairo', sans-serif; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); }
+        body { background-color: #050a15; color: white; font-family: 'Cairo', sans-serif; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); overflow-x: hidden; }
         .ramadan-card { background: rgba(13, 27, 42, 0.9); border: 1px solid #b8860b; backdrop-filter: blur(10px); }
+        
+        /* ============================== */
+        /* ستايل الفوانيس الجديدة */
+        /* ============================== */
+        .hanging-fanoos {
+            position: fixed; /* عشان يفضلوا متعلقين في مكانهم حتى لو نزلنا بالصفحة */
+            top: -30px; /* متعلقين من فوق الشاشة */
+            z-index: 10; /* يظهروا فوق الخلفية بس تحت محتوى التسجيل */
+            width: 70px; /* حجم مناسب للموبايل */
+            filter: drop-shadow(0 10px 15px rgba(255, 200, 0, 0.4)); /* تأثير الوهج والإضاءة */
+            pointer-events: none; /* عشان لو جم فوق زرار م يمنعوش الضغط عليه */
+            animation: sway 3s ease-in-out infinite alternate; /* انيميشن المرجيحة */
+        }
+        .fanoos-left { left: 10px; animation-delay: 0s; }
+        .fanoos-right { right: 10px; animation-delay: 1.5s; /* تأخير عشان ميتحركوش مع بعض بالظبط */ }
+
+        /* تكبير حجمهم شوية على الشاشات الكبيرة */
+        @media (min-width: 768px) {
+           .hanging-fanoos { width: 110px; top: -40px; }
+           .fanoos-left { left: 30px; }
+           .fanoos-right { right: 30px; }
+        }
+
+        /* حركة المرجيحة */
+        @keyframes sway {
+            from { transform: rotate(-5deg); }
+            to { transform: rotate(5deg); }
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 relative">
 
-    <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-40 h-40 object-contain mb-6 shadow-2xl rounded-full border-4 border-yellow-600">
+    <img src="https://i.ibb.co/mzs9j9K/fanoos.png" class="hanging-fanoos fanoos-right" alt="فانوس رمضان يمين">
+    <img src="https://i.ibb.co/mzs9j9K/fanoos.png" class="hanging-fanoos fanoos-left" alt="فانوس رمضان شمال">
 
-    <div class="ramadan-card p-6 rounded-xl text-center mb-8 max-w-md w-full border-r-4 border-yellow-500 shadow-lg">
+
+    <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-40 h-40 object-contain mb-6 shadow-2xl rounded-full border-4 border-yellow-600 relative z-20">
+
+    <div class="ramadan-card p-6 rounded-xl text-center mb-8 max-w-md w-full border-r-4 border-yellow-500 shadow-lg relative z-20">
         <p class="text-yellow-400 text-xs mb-2 italic">رسالة اليوم ✨</p>
-        <p class="text-lg font-bold leading-relaxed" id="daily-message">أهلاً بكم في كويز الرمضاني.. جاري التحميل...</p>
+        <p class="text-lg font-bold leading-relaxed" id="daily-message">جاري التحميل... 🌙</p>
     </div>
 
-    <div class="ramadan-card p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+    <div class="ramadan-card p-8 rounded-2xl shadow-xl w-full max-w-sm text-center relative z-20">
         <h2 class="text-2xl font-bold mb-6 text-yellow-500">سجل دخولك</h2>
         
         <input type="password" id="password-input" placeholder="أدخل كود الدخول" class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
         
         <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">دخول للمسابقة</button>
         
-        <p id="error-msg" class="text-red-500 mt-4 hidden text-sm font-bold bg-red-900/30 py-2 rounded-lg border border-red-800"><i class="fas fa-exclamation-triangle ml-1"></i> كود الدخول غير صحيح!</p>
+        <p id="error-msg" class="text-red-500 mt-4 hidden text-sm font-bold bg-red-900/30 py-2 rounded-lg border border-red-800"><i class="fas fa-exclamation-triangle ml-1"></i> الكود غير صحيح!</p>
     </div>
 
-    <div class="flex mt-10 gap-6">
+    <div class="flex mt-10 gap-6 relative z-20">
         <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-8 h-8"></a>
         <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8"></a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, initializeFirestore, persistentLocalCache } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = initializeFirestore(app, { localCache: persistentLocalCache() });
 
-        // جلب رسالة اليوم من الإعدادات
         async function fetchMessage() {
             try {
                 const docSnap = await getDoc(doc(db, "settings", "dailyData"));
@@ -54,36 +85,23 @@
                 } else {
                     document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني، نتمنى لكم التوفيق!";
                 }
-            } catch(e) {
-                document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني!";
-            }
+            } catch(e) { document.getElementById('daily-message').innerText = "أهلاً بكم!"; }
         }
         fetchMessage();
 
-        // ==========================================
-        // التعديل الجديد: كتابة الكود المحفوظ تلقائياً
-        // ==========================================
         window.onload = () => {
-            const savedPassword = localStorage.getItem('userSecretCode'); // ندور على الكود في الذاكرة
-            if (savedPassword) {
-                // لو لقيناه، نكتبه جوه الخانة أوتوماتيك
-                document.getElementById('password-input').value = savedPassword;
-            }
+            const savedPassword = localStorage.getItem('userSecretCode');
+            if (savedPassword) document.getElementById('password-input').value = savedPassword;
         };
 
-        // زرار الدخول
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('password-input').value;
             const btn = document.getElementById('login-btn');
+            const err = document.getElementById('error-msg');
             
-            if(!pass) {
-                document.getElementById('error-msg').innerText = "الرجاء إدخال الكود أولاً!";
-                document.getElementById('error-msg').classList.remove('hidden');
-                return;
-            }
+            if(!pass) { err.innerText = "الرجاء إدخال الكود!"; err.classList.remove('hidden'); return; }
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري التحقق..';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري التحقق..'; btn.disabled = true; err.classList.add('hidden');
             
             try {
                 const q = query(collection(db, "users"), where("password", "==", pass));
@@ -91,25 +109,17 @@
                 
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach((doc) => {
-                        // تسجيل الدخول نجح!
-                        // نحفظ بيانات اللاعب
                         localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
-                        
-                        // التعديل الجديد: نحفظ الكود في الذاكرة عشان المرة الجاية
                         localStorage.setItem('userSecretCode', pass);
                     });
                     window.location.href = "dashboard.html";
                 } else {
-                    document.getElementById('error-msg').innerText = "كود الدخول غير صحيح!";
-                    document.getElementById('error-msg').classList.remove('hidden');
-                    btn.innerText = "دخول للمسابقة";
-                    btn.disabled = false;
+                    err.innerText = "الكود غير صحيح!"; err.classList.remove('hidden');
+                    btn.innerText = "دخول للمسابقة"; btn.disabled = false;
                 }
             } catch (error) {
-                document.getElementById('error-msg').innerText = "حدث خطأ في الاتصال، حاول مرة أخرى.";
-                document.getElementById('error-msg').classList.remove('hidden');
-                btn.innerText = "دخول للمسابقة";
-                btn.disabled = false;
+                err.innerText = "خطأ في الاتصال، حاول مرة أخرى."; err.classList.remove('hidden');
+                btn.innerText = "دخول للمسابقة"; btn.disabled = false;
             }
         });
     </script>
