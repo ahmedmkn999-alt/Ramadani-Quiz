@@ -36,7 +36,7 @@
                 <i class="fas fa-users text-lg"></i> <span class="hidden sm:inline">إدارة المشتركين</span>
             </div>
             <div id="btn-quizzes" class="nav-btn flex-1 md:flex-none justify-center md:justify-start" onclick="switchMainTab('quizzes')">
-                <i class="fas fa-futbol text-lg"></i> <span class="hidden sm:inline">بنك الكويزات (30 يوم)</span>
+                <i class="fas fa-futbol text-lg"></i> <span class="hidden sm:inline">بنك الكويزات</span>
             </div>
         </div>
     </aside>
@@ -46,7 +46,7 @@
         <div id="tab-users" class="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto custom-scrollbar">
             <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <h1 class="text-2xl font-bold text-white"><i class="fas fa-users text-yellow-500 ml-2"></i>قائمة المشتركين</h1>
-                <button onclick="resetAllUsers()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105"><i class="fas fa-sync-alt ml-2"></i>تجهيز المشتركين ليوم جديد</button>
+                <button onclick="resetAllUsers()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition"><i class="fas fa-sync-alt ml-2"></i>تجهيز المشتركين ليوم جديد</button>
             </div>
             
             <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl mb-8">
@@ -55,7 +55,7 @@
                     <input type="text" id="u-name" placeholder="اسم اللاعب" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white">
                     <input type="text" id="u-pass" placeholder="كود الدخول" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white font-bold text-yellow-500">
                     <input type="text" id="u-group" placeholder="المجموعة (مثال: المجموعة 1)" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white">
-                    <button id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg py-3 md:py-0 transition">حفظ وإضافة</button>
+                    <button id="add-user-btn" onclick="addNewUser()" class="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg py-3 md:py-0 transition">حفظ وإضافة</button>
                 </div>
             </div>
 
@@ -65,7 +65,7 @@
                         <tr><th class="p-4 rounded-tr-2xl">الاسم</th><th class="p-4">المجموعة</th><th class="p-4">الكود</th><th class="p-4 text-yellow-500">النقاط</th><th class="p-4 text-green-400">الجولات</th><th class="p-4 rounded-tl-2xl">حذف</th></tr>
                     </thead>
                     <tbody id="users-table-body">
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -185,20 +185,20 @@
         window.deleteQuiz = async (id) => { if(confirm("حذف الكويز؟")) { await deleteDoc(doc(db, "quizzes", id)); loadDayQuizzes(); } };
         window.toggleQuizActive = async (id, status) => { await updateDoc(doc(db, "quizzes", id), { isActive: !status }); loadDayQuizzes(); };
 
-        // --- التحديث القوي لزرار الإضافة ---
-        document.getElementById('add-user-btn').addEventListener('click', async () => {
+        // ==========================================
+        // دالة إضافة المشترك الجديدة والمباشرة
+        // ==========================================
+        window.addNewUser = async () => {
             const btn = document.getElementById('add-user-btn');
             const name = document.getElementById('u-name').value;
             const pass = document.getElementById('u-pass').value;
             const group = document.getElementById('u-group').value;
 
-            // التأكد من ملء الخانات
             if(!name || !pass || !group) {
                 alert("⚠️ الرجاء كتابة الاسم، كود الدخول، والمجموعة أولاً!");
                 return;
             }
 
-            // إعطاء إشارة مرئية إن الزرار شغال
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
             btn.disabled = true;
 
@@ -212,23 +212,21 @@
                     hasCompletedToday: false
                 });
                 
-                // تفريغ الخانات بعد النجاح
                 document.getElementById('u-name').value = ''; 
                 document.getElementById('u-pass').value = '';
                 
                 alert("✅ تم إضافة اللاعب بنجاح!");
-                loadUsers(); // تحديث الجدول
+                loadUsers(); 
             } catch (error) {
                 alert("❌ حدث خطأ، تأكد من الاتصال بقاعدة البيانات.");
                 console.error(error);
             }
 
-            // إرجاع الزرار لشكله الطبيعي
             btn.innerHTML = 'حفظ وإضافة';
             btn.disabled = false;
-        });
+        };
 
-        // --- التحديث القوي لجدول المشتركين ---
+        // دالة تحميل المشتركين للجدول
         window.loadUsers = async () => {
             const tbody = document.getElementById('users-table-body'); 
             tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-gray-400"><i class="fas fa-spinner fa-spin text-3xl mb-3"></i><br>جاري تحميل المشتركين...</td></tr>';
@@ -256,9 +254,12 @@
                 });
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-red-500 font-bold">حدث خطأ في الاتصال بقاعدة البيانات.</td></tr>';
-                console.error(error);
             }
         };
 
         window.deleteUser = async (id) => { if(confirm("حذف هذا المشترك؟")) { await deleteDoc(doc(db, "users", id)); loadUsers(); } };
-        window.resetAllUsers = async () => { if(confirm("تجهيز المشتركين ليوم جديد؟")) { const snap = await getDocs(collection(db, "users")); snap.forEach(async (d) => { await updateD
+        window.resetAllUsers = async () => { if(confirm("تجهيز المشتركين ليوم جديد؟")) { const snap = await getDocs(collection(db, "users")); snap.forEach(async (d) => { await updateDoc(doc(db, "users", d.id), { hasCompletedToday: false }); }); alert("تم التجهيز بنجاح!"); } };
+
+        // تشغيل صفحة المشتركين أول ما تفتح
+        switchMainTab('users');
+    </sc
