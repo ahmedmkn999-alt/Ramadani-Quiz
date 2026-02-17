@@ -2,45 +2,203 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تحدي الكويز</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي كويز الرمضاني</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>body { background-color: #0d1b2a; color: white; user-select: none; }</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        body { 
+            font-family: 'Cairo', sans-serif; background-color: #050a15; color: white;
+            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png');
+            background-attachment: fixed; user-select: none;
+        }
+        .quiz-card { background: rgba(13, 27, 42, 0.95); border: 2px solid #b8860b; border-radius: 20px; box-shadow: 0 0 20px rgba(184, 134, 11, 0.3); }
+        .option-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(184, 134, 11, 0.2); transition: 0.2s; }
+        .option-btn:hover { background: rgba(184, 134, 11, 0.2); border-color: #b8860b; }
+        .timer-bar { height: 6px; background: #b8860b; transition: width 1s linear; width: 100%; }
+    </style>
 </head>
-<body class="p-4 md:p-10 flex justify-center items-center min-h-screen">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="quiz-container" class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-3xl hidden">
-        <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
-            <span class="text-xl font-bold text-yellow-500" id="q-counter">سؤال 1 / 15</span>
-            <span class="text-2xl font-bold text-red-500 bg-red-100 px-4 py-1 rounded" id="timer">40</span>
+    <div id="loading-screen" class="text-center">
+        <i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-4"></i>
+        <p>جاري سحب أسئلة التحدي...</p>
+    </div>
+
+    <div id="quiz-container" class="hidden w-full max-w-lg quiz-card p-6 md:p-8 relative overflow-hidden">
+        <div class="absolute top-0 right-0 left-0">
+            <div id="timer-progress" class="timer-bar"></div>
         </div>
-        
-        <h2 id="question-text" class="text-2xl font-bold mb-6 text-center">جاري تحميل السؤال...</h2>
-        
-        <img id="question-img" src="" class="hidden w-full max-h-64 object-contain mb-6 rounded">
 
-        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex justify-between items-center mb-6 mt-2">
+            <span class="bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold" id="q-number">سؤال 1 / 15</span>
+            <span class="text-yellow-500 font-bold" id="timer-text"><i class="fas fa-clock ml-1"></i> 40ث</span>
+        </div>
+
+        <h2 id="question-text" class="text-xl md:text-2xl font-bold text-center mb-6 leading-relaxed"></h2>
+        
+        <div id="img-wrapper" class="hidden mb-6">
+            <img id="question-img" src="" class="w-full max-h-48 object-contain rounded-lg border border-gray-700">
+        </div>
+
+        <div id="options-grid" class="grid grid-cols-1 gap-3">
             </div>
     </div>
 
-    <div id="result-container" class="hidden text-center">
-        <h1 class="text-4xl text-green-500 font-bold mb-4">انتهى الاختبار!</h1>
-        <p class="text-xl">تم حفظ نتيجتك بنجاح.</p>
-        <button onclick="window.location.href='dashboard.html'" class="mt-6 bg-yellow-600 px-6 py-2 rounded">عودة للوحة</button>
+    <div id="result-screen" class="hidden text-center quiz-card p-10 max-w-sm w-full">
+        <i class="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
+        <h2 class="text-3xl font-bold mb-2">عاش يا بطل!</h2>
+        <p class="text-gray-300 mb-6">لقد انتهيت من تحدي اليوم بنجاح.</p>
+        <div class="bg-gray-900 p-4 rounded-xl mb-6">
+            <p class="text-sm text-gray-400">نقاطك في هذا الكويز</p>
+            <p id="final-score" class="text-4xl font-bold text-yellow-500">0</p>
+        </div>
+        <button onclick="window.location.href='dashboard.html'" class="w-full bg-yellow-600 py-3 rounded-lg font-bold">العودة للرئيسية</button>
     </div>
 
     <script type="module">
-        // نظام الحماية: إذا خرج من التبويب (الغش)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDocs, collection, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            projectId: "ramadan-87817",
+            appId: "1:343525703258:web:6776b4857425df8bcca263"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // متغيرات اللعبة
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 40;
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+
+        if(!user) window.location.href = "index.html";
+
+        // منع الغش
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                alert("تحذير: لقد خرجت من صفحة الاختبار! تم إنهاء الاختبار الخاص بك.");
-                finishQuiz(); // دالة تقوم بإنهاء وحفظ النتيجة
+            if (document.visibilityState === 'hidden' && currentIndex < 15) {
+                alert("تم اكتشاف الخروج من الصفحة! سيتم إنهاء الكويز فوراً.");
+                finishQuiz();
             }
         });
-        // منع كليك يمين
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        
-        // (الكود البرمجي لجلب الأسئلة من Firebase وإدارة العداد سيكون هنا، وهو طويل قليلاً، سنكمله عند إعداد الإدمن لتجهيز الأسئلة)
-        // حالياً تم تجهيز الهيكل ونظام الحماية.
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // جلب كويز عشوائي
+        async function loadRandomQuiz() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "quizzes"));
+                const allQuizzes = [];
+                querySnapshot.forEach(doc => allQuizzes.push(doc.data()));
+
+                if(allQuizzes.length === 0) {
+                    alert("لا توجد كويزات مضافة حالياً!");
+                    window.location.href = "dashboard.html";
+                    return;
+                }
+
+                // اختيار كويز عشوائي
+                const randomQuiz = allQuizzes[Math.floor(Math.random() * allQuizzes.length)];
+                currentQuestions = randomQuiz.questions;
+                
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('quiz-container').classList.remove('hidden');
+                showQuestion();
+            } catch (e) { console.error(e); }
+        }
+
+        function showQuestion() {
+            if(currentIndex >= 15 || currentIndex >= currentQuestions.length) {
+                finishQuiz();
+                return;
+            }
+
+            const qData = currentQuestions[currentIndex];
+            document.getElementById('q-number').innerText = `سؤال ${currentIndex + 1} / 15`;
+            document.getElementById('question-text').innerText = qData.q;
+            
+            // التعامل مع الصورة
+            const imgWrapper = document.getElementById('img-wrapper');
+            if(qData.image && qData.image.trim() !== "") {
+                document.getElementById('question-img').src = qData.image;
+                imgWrapper.classList.remove('hidden');
+            } else {
+                imgWrapper.classList.add('hidden');
+            }
+
+            // توليد الخيارات
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full p-4 rounded-xl text-right font-bold";
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(idx);
+                grid.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 40;
+            updateTimerUI();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                if(timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleAnswer(-1); // الوقت خلص (إجابة خطأ)
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            document.getElementById('timer-text').innerHTML = `<i class="fas fa-clock ml-1"></i> ${timeLeft}ث`;
+            const percentage = (timeLeft / 40) * 100;
+            document.getElementById('timer-progress').style.width = percentage + "%";
+        }
+
+        async function handleAnswer(selectedIdx) {
+            clearInterval(timer);
+            const correctIdx = currentQuestions[currentIndex].correctIndex;
+            
+            if(selectedIdx === correctIdx) {
+                score++;
+            }
+
+            currentIndex++;
+            showQuestion();
+        }
+
+        async function finishQuiz() {
+            clearInterval(timer);
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+            document.getElementById('loading-screen').innerText = "جاري حفظ النتيجة...";
+
+            try {
+                // تحديث بيانات المستخدم في فايربيز
+                const userRef = doc(db, "users", user.id);
+                await updateDoc(userRef, {
+                    hasCompletedToday: true,
+                    isQuizActive: false,
+                    score: increment(score) // إضافة النقاط للمجموع الكلي
+                });
+
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('result-screen').classList.remove('hidden');
+                document.getElementById('final-score').innerText = score;
+            } catch (e) { console.error(e); }
+        }
+
+        loadRandomQuiz();
     </script>
 </body>
-</html>
+                </html>
+                
