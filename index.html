@@ -3,124 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <title>كويز الرمضاني | دخول</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { background-color: #050a15; color: white; font-family: 'Cairo', sans-serif; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); overflow-x: hidden; }
-        .ramadan-card { background: rgba(13, 27, 42, 0.9); border: 1px solid #b8860b; backdrop-filter: blur(10px); }
+        
+        body { 
+            background-color: #050a15; 
+            color: white; 
+            font-family: 'Cairo', sans-serif; 
+            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); 
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .ramadan-card { 
+            background: rgba(13, 27, 42, 0.9); 
+            border: 1px solid #b8860b; 
+            backdrop-filter: blur(10px); 
+        }
         
         /* ============================== */
-        /* ستايل الفوانيس الجديدة */
+        /* ستايل الفوانيس المتعلقة */
         /* ============================== */
         .hanging-fanoos {
-            position: fixed; /* عشان يفضلوا متعلقين في مكانهم حتى لو نزلنا بالصفحة */
-            top: -30px; /* متعلقين من فوق الشاشة */
-            z-index: 10; /* يظهروا فوق الخلفية بس تحت محتوى التسجيل */
-            width: 70px; /* حجم مناسب للموبايل */
-            filter: drop-shadow(0 10px 15px rgba(255, 200, 0, 0.4)); /* تأثير الوهج والإضاءة */
-            pointer-events: none; /* عشان لو جم فوق زرار م يمنعوش الضغط عليه */
-            animation: sway 3s ease-in-out infinite alternate; /* انيميشن المرجيحة */
+            position: fixed;
+            top: -20px;
+            z-index: 10;
+            width: 80px; /* حجم مثالي للموبايل */
+            border-radius: 0 0 20px 20px; /* تحسين شكل الصورة لو JPG */
+            box-shadow: 0 10px 20px rgba(184, 134, 11, 0.3);
+            pointer-events: none;
+            animation: sway 3s ease-in-out infinite alternate;
         }
-        .fanoos-left { left: 10px; animation-delay: 0s; }
-        .fanoos-right { right: 10px; animation-delay: 1.5s; /* تأخير عشان ميتحركوش مع بعض بالظبط */ }
 
-        /* تكبير حجمهم شوية على الشاشات الكبيرة */
+        .fanoos-left { left: 15px; animation-delay: 0s; }
+        .fanoos-right { right: 15px; animation-delay: 1.5s; }
+
         @media (min-width: 768px) {
-           .hanging-fanoos { width: 110px; top: -40px; }
-           .fanoos-left { left: 30px; }
-           .fanoos-right { right: 30px; }
+           .hanging-fanoos { width: 120px; top: -30px; }
+           .fanoos-left { left: 50px; }
+           .fanoos-right { right: 50px; }
         }
 
-        /* حركة المرجيحة */
+        /* انيميشن حركة الفانوس */
         @keyframes sway {
-            from { transform: rotate(-5deg); }
-            to { transform: rotate(5deg); }
+            from { transform: rotate(-6deg); transform-origin: top center; }
+            to { transform: rotate(6deg); transform-origin: top center; }
+        }
+
+        /* تحسين شكل اللوجو */
+        .main-logo {
+            filter: drop-shadow(0 0 15px rgba(184, 134, 11, 0.5));
         }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 relative">
 
-    <img src="https://i.ibb.co/mzs9j9K/fanoos.png" class="hanging-fanoos fanoos-right" alt="فانوس رمضان يمين">
-    <img src="https://i.ibb.co/mzs9j9K/fanoos.png" class="hanging-fanoos fanoos-left" alt="فانوس رمضان شمال">
+    <img src="https://i.postimg.cc/HW9gRpZn/images-2.jpg" class="hanging-fanoos fanoos-left" alt="فانوس">
+    <img src="https://i.postimg.cc/HW9gRpZn/images-2.jpg" class="hanging-fanoos fanoos-right" alt="فانوس">
 
-
-    <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-40 h-40 object-contain mb-6 shadow-2xl rounded-full border-4 border-yellow-600 relative z-20">
-
-    <div class="ramadan-card p-6 rounded-xl text-center mb-8 max-w-md w-full border-r-4 border-yellow-500 shadow-lg relative z-20">
-        <p class="text-yellow-400 text-xs mb-2 italic">رسالة اليوم ✨</p>
-        <p class="text-lg font-bold leading-relaxed" id="daily-message">جاري التحميل... 🌙</p>
-    </div>
-
-    <div class="ramadan-card p-8 rounded-2xl shadow-xl w-full max-w-sm text-center relative z-20">
-        <h2 class="text-2xl font-bold mb-6 text-yellow-500">سجل دخولك</h2>
+    <div class="relative z-20 flex flex-col items-center w-full max-w-sm">
         
-        <input type="password" id="password-input" placeholder="أدخل كود الدخول" class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
-        
-        <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">دخول للمسابقة</button>
-        
-        <p id="error-msg" class="text-red-500 mt-4 hidden text-sm font-bold bg-red-900/30 py-2 rounded-lg border border-red-800"><i class="fas fa-exclamation-triangle ml-1"></i> الكود غير صحيح!</p>
-    </div>
+        <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="main-logo w-36 h-36 object-contain mb-6 rounded-full border-4 border-yellow-600">
 
-    <div class="flex mt-10 gap-6 relative z-20">
-        <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-8 h-8"></a>
-        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8"></a>
+        <div class="ramadan-card p-6 rounded-2xl text-center mb-8 w-full border-r-4 border-yellow-500 shadow-2xl">
+            <p class="text-yellow-400 text-[10px] mb-2 font-bold uppercase tracking-widest">رسالة اليوم ✨</p>
+            <p class="text-md font-bold leading-relaxed text-gray-100" id="daily-message">🌙 جاري تحميل بركات اليوم...</p>
+        </div>
+
+        <div class="ramadan-card p-8 rounded-3xl shadow-2xl w-full text-center border-t-4 border-yellow-600">
+            <h2 class="text-xl font-bold mb-6 text-yellow-500">سجل دخولك للمنافسة</h2>
+            
+            <input type="password" id="password-input" placeholder="أدخل كود الدخول" 
+                   class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
+            
+            <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">
+                دخول للمسابقة
+            </button>
+            
+            <p id="error-msg" class="text-red-400 mt-4 hidden text-xs font-bold bg-red-900/20 py-2 rounded-lg border border-red-900/50">
+                <i class="fas fa-exclamation-circle ml-1"></i> كود الدخول غير صحيح!
+            </p>
+        </div>
+
+        <div class="flex mt-10 gap-8">
+            <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-125 transition duration-300"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-7 h-7"></a>
+            <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-125 transition duration-300"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-7 h-7"></a>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where, doc, getDoc, initializeFirestore, persistentLocalCache } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
+            projectId: "ramadan-87817", 
+            appId: "1:343525703258:web:6776b4857425df8bcca263" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = initializeFirestore(app, { localCache: persistentLocalCache() });
 
+        // جلب الرسالة
         async function fetchMessage() {
             try {
                 const docSnap = await getDoc(doc(db, "settings", "dailyData"));
-                if (docSnap.exists() && docSnap.data().message) {
-                    document.getElementById('daily-message').innerText = docSnap.data().message;
-                } else {
-                    document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني، نتمنى لكم التوفيق!";
-                }
-            } catch(e) { document.getElementById('daily-message').innerText = "أهلاً بكم!"; }
+                if (docSnap.exists()) document.getElementById('daily-message').innerText = docSnap.data().message;
+            } catch(e) { document.getElementById('daily-message').innerText = "رمضان كريم! جاهز للتحدي؟"; }
         }
         fetchMessage();
 
+        // خاصية تذكر الكود
         window.onload = () => {
-            const savedPassword = localStorage.getItem('userSecretCode');
-            if (savedPassword) document.getElementById('password-input').value = savedPassword;
+            const saved = localStorage.getItem('userSecretCode');
+            if (saved) document.getElementById('password-input').value = saved;
         };
 
+        // تسجيل الدخول
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('password-input').value;
             const btn = document.getElementById('login-btn');
             const err = document.getElementById('error-msg');
             
-            if(!pass) { err.innerText = "الرجاء إدخال الكود!"; err.classList.remove('hidden'); return; }
+            if(!pass) return;
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري التحقق..'; btn.disabled = true; err.classList.add('hidden');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; err.classList.add('hidden');
             
             try {
                 const q = query(collection(db, "users"), where("password", "==", pass));
-                const querySnapshot = await getDocs(q);
+                const snap = await getDocs(q);
                 
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach((doc) => {
+                if (!snap.empty) {
+                    snap.forEach((doc) => {
                         localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
                         localStorage.setItem('userSecretCode', pass);
                     });
                     window.location.href = "dashboard.html";
                 } else {
-                    err.innerText = "الكود غير صحيح!"; err.classList.remove('hidden');
-                    btn.innerText = "دخول للمسابقة"; btn.disabled = false;
+                    err.classList.remove('hidden'); btn.innerText = "دخول للمسابقة"; btn.disabled = false;
                 }
-            } catch (error) {
-                err.innerText = "خطأ في الاتصال، حاول مرة أخرى."; err.classList.remove('hidden');
-                btn.innerText = "دخول للمسابقة"; btn.disabled = false;
-            }
+            } catch (e) { alert("مشكلة في الشبكة!"); btn.disabled = false; }
         });
     </script>
 </body>
