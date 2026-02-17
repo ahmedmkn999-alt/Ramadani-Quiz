@@ -7,128 +7,70 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; overflow-x: hidden; }
-        .sidebar { min-height: 100vh; background-color: #1e293b; transition: transform 0.3s ease-in-out; z-index: 50; }
-        .nav-item { cursor: pointer; transition: 0.3s; }
-        .nav-item:hover, .nav-item.active { background-color: #3b82f6; color: white; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; transition: 0.3s; z-index: 50; }
+        @media (max-width: 768px) { .sidebar { position: fixed; right: 0; transform: translateX(100%); } .sidebar.open { transform: translateX(0); } }
+        .nav-item.active { background-color: #3b82f6; color: white; }
         .section-content { display: none; }
         .section-content.active { display: block; }
-        
-        /* تضبيط الموبايل */
-        @media (max-width: 768px) {
-            .sidebar { position: fixed; right: 0; top: 0; transform: translateX(100%); width: 250px; }
-            .sidebar.open { transform: translateX(0); }
-            main { margin-right: 0 !important; padding-top: 80px !important; width: 100%; }
-            .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-            .mobile-overlay.open { display: block; }
-        }
     </style>
 </head>
 <body class="flex">
 
-    <div class="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center fixed w-full top-0 z-30 shadow-md">
-        <h1 class="font-bold text-lg">المدير العام</h1>
-        <button onclick="toggleSidebar()" class="text-2xl focus:outline-none text-yellow-500"><i class="fas fa-bars"></i></button>
+    <div class="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center fixed w-full top-0 z-40">
+        <h1 class="font-bold">المدير العام</h1>
+        <button onclick="toggleSidebar()" class="text-yellow-500 text-2xl"><i class="fas fa-bars"></i></button>
     </div>
 
-    <div id="mobile-overlay" class="mobile-overlay" onclick="toggleSidebar()"></div>
-
-    <aside id="sidebar" class="sidebar w-64 text-gray-300 flex flex-col shadow-xl fixed h-full md:right-0">
-        <button onclick="toggleSidebar()" class="md:hidden absolute top-4 left-4 text-gray-400 hover:text-white text-2xl">
-            <i class="fas fa-times"></i>
-        </button>
-
-        <div class="p-6 text-center border-b border-gray-700 mt-8 md:mt-0">
-            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-20 h-20 mx-auto rounded-full mb-3 border-2 border-yellow-500">
-            <h2 class="text-xl font-bold text-white">المدير العام</h2>
+    <aside id="sidebar" class="sidebar w-64 text-gray-300 flex flex-col fixed h-full md:right-0">
+        <div class="p-6 text-center border-b border-gray-700">
+            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-16 h-16 mx-auto rounded-full mb-3 border-2 border-yellow-500">
+            <h2 class="text-sm font-bold">لوحة التحكم</h2>
         </div>
-        <nav class="flex-1 mt-6">
-            <div class="nav-item active p-4 flex items-center gap-3" onclick="switchTab('settings')">
-                <i class="fas fa-cog"></i> <span>الإعدادات العامة</span>
-            </div>
-            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('users')">
-                <i class="fas fa-users"></i> <span>إدارة المشتركين</span>
-            </div>
-            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('quizzes')">
-                <i class="fas fa-futbol"></i> <span>بنك الكويزات</span>
-            </div>
-            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('results')">
-                <i class="fas fa-trophy"></i> <span>النتائج والترتيب</span>
-            </div>
+        <nav class="mt-6 flex-1">
+            <div class="nav-item active p-4 cursor-pointer flex items-center gap-3" onclick="switchTab('settings')"><i class="fas fa-cog"></i> الإعدادات</div>
+            <div class="nav-item p-4 cursor-pointer flex items-center gap-3" onclick="switchTab('users')"><i class="fas fa-users"></i> المشتركين</div>
+            <div class="nav-item p-4 cursor-pointer flex items-center gap-3" onclick="switchTab('quizzes')"><i class="fas fa-futbol"></i> بنك الكويزات</div>
         </nav>
-        <div class="p-4 border-t border-gray-700 text-center text-sm">
-            كويز الرمضاني © 2026
-        </div>
     </aside>
 
-    <main class="flex-1 p-4 md:p-8 md:mr-64 transition-all w-full">
+    <main class="flex-1 p-4 md:p-8 md:mr-64 mt-16 md:mt-0">
         
         <section id="settings" class="section-content active">
-            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-cog text-blue-600 ml-2"></i>الإعدادات والواجهة</h2>
-            <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl">
-                <label class="block text-gray-700 font-bold mb-2">الآية القرآنية أو رسالة اليوم (تظهر في صفحة الدخول)</label>
-                <textarea id="daily-msg" class="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500 mb-4" rows="4" placeholder="اكتب الآية أو الدعاء هنا..."></textarea>
-                <button id="save-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg w-full md:w-auto">حفظ ونشر</button>
+            <h2 class="text-2xl font-bold mb-6">الإعدادات</h2>
+            <div class="bg-white p-6 rounded shadow-md">
+                <label class="block mb-2 font-bold">آية / دعاء اليوم</label>
+                <textarea id="daily-msg" class="w-full p-2 border rounded mb-4" rows="3"></textarea>
+                <button id="save-msg-btn" class="bg-blue-600 text-white px-6 py-2 rounded">نشر الرسالة</button>
             </div>
         </section>
 
         <section id="users" class="section-content">
-            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-users text-blue-600 ml-2"></i>إدارة المشتركين</h2>
-            
-            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md mb-8">
-                <h3 class="text-lg md:text-xl font-bold mb-4 border-b pb-2">إضافة مشترك جديد</h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" id="u-name" placeholder="اسم المشترك" class="p-2 border rounded w-full">
-                    <input type="text" id="u-pass" placeholder="كود الدخول (كلمة السر)" class="p-2 border rounded w-full">
-                    <select id="u-group" class="p-2 border rounded w-full">
+            <h2 class="text-2xl font-bold mb-6">إدارة المشتركين</h2>
+            <div class="bg-white p-4 rounded shadow mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <input type="text" id="u-name" placeholder="الاسم" class="p-2 border rounded">
+                    <input type="text" id="u-pass" placeholder="الكود" class="p-2 border rounded">
+                    <select id="u-group" class="p-2 border rounded">
                         <option value="المجموعة 1">المجموعة 1</option>
                         <option value="المجموعة 2">المجموعة 2</option>
-                        <option value="المجموعة 3">المجموعة 3</option>
-                        <option value="المجموعة 4">المجموعة 4</option>
                     </select>
-                    <button id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded w-full">إضافة اللاعب</button>
+                    <button id="add-user-btn" class="bg-green-600 text-white rounded">إضافة</button>
                 </div>
             </div>
-
-            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md overflow-x-auto w-full">
-                <h3 class="text-lg md:text-xl font-bold mb-4 border-b pb-2">قائمة المشتركين (للتحكم في دخولهم)</h3>
-                <div class="min-w-[600px]"> <table class="w-full text-right border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-700">
-                                <th class="p-3 border-b">الاسم</th>
-                                <th class="p-3 border-b">الكود</th>
-                                <th class="p-3 border-b">المجموعة</th>
-                                <th class="p-3 border-b">الحالة</th>
-                                <th class="p-3 border-b">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table-body">
-                            </tbody>
-                    </table>
-                </div>
-                <button onclick="loadUsers()" class="mt-4 w-full md:w-auto bg-gray-800 text-white px-4 py-2 rounded text-sm"><i class="fas fa-sync-alt ml-2"></i>تحديث الجدول</button>
+            <div class="bg-white rounded shadow overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead class="bg-gray-100"><tr><th class="p-3">الاسم</th><th class="p-3">المجموعة</th><th class="p-3">النقاط</th><th class="p-3">إجراء</th></tr></thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
             </div>
         </section>
 
         <section id="quizzes" class="section-content">
-            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-futbol text-blue-600 ml-2"></i>بنك الكويزات</h2>
-            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-                <h3 class="text-lg md:text-xl font-bold mb-4 text-red-600 border-b pb-2">إنشاء كويز جديد (15 سؤال)</h3>
-                <input type="text" id="quiz-title" placeholder="اسم الكويز (مثال: كويز اليوم الأول)" class="w-full p-3 border rounded mb-6 font-bold text-lg">
-                
-                <div id="questions-container" class="space-y-6">
-                    </div>
-                
-                <button id="save-quiz-btn" class="mt-8 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-lg text-lg md:text-xl shadow-lg">حفظ الكويز في قاعدة البيانات</button>
-            </div>
-        </section>
-
-        <section id="results" class="section-content">
-            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-trophy text-blue-600 ml-2"></i>النتائج والترتيب</h2>
-            <div class="bg-white p-6 rounded-lg shadow-md text-center">
-                <i class="fas fa-tools text-6xl text-gray-400 mb-4"></i>
-                <h3 class="text-xl md:text-2xl font-bold text-gray-600">سيتم تفعيل جدول الترتيب التلقائي بعد أول يوم</h3>
-            </div>
+            <h2 class="text-2xl font-bold mb-4">إضافة كويز (15 سؤال)</h2>
+            <input type="text" id="quiz-title" placeholder="عنوان الكويز" class="w-full p-2 border rounded mb-4">
+            <div id="q-container" class="space-y-4"></div>
+            <button id="save-quiz-btn" class="w-full bg-blue-700 text-white p-4 rounded mt-6 font-bold">حفظ الكويز</button>
         </section>
 
     </main>
@@ -137,154 +79,82 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, collection, addDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ ضع إعدادات الفايربيز الخاصة بك هنا ⚠️
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
-            authDomain: "ramadan-87817.firebaseapp.com",
             projectId: "ramadan-87817",
-            storageBucket: "ramadan-87817.firebasestorage.app",
-            messagingSenderId: "343525703258",
-            appId: "1:343525703258:web:6776b4857425df8bcca263",
-            measurementId: "G-YM18TG6ZGR"
+            appId: "1:343525703258:web:6776b4857425df8bcca263"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- نظام فتح وقفل القائمة للموبايل ---
-        window.toggleSidebar = function() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('mobile-overlay').classList.toggle('open');
-        };
-
-        // --- نظام التنقل بين الصفحات ---
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+        window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('open');
+        window.switchTab = (id) => {
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
             event.currentTarget.classList.add('active');
-            
-            // قفل القائمة أوتوماتيك في الموبايل بعد ما تختار صفحة
-            if(window.innerWidth <= 768) {
-                toggleSidebar();
-            }
-
-            if(tabId === 'users') loadUsers();
+            if(id === 'users') loadUsers();
+            if(window.innerWidth < 768) toggleSidebar();
         };
 
-        // --- 1. حفظ رسالة اليوم ---
-        document.getElementById('save-msg-btn').addEventListener('click', async () => {
-            const msg = document.getElementById('daily-msg').value;
-            await setDoc(doc(db, "settings", "dailyData"), { message: msg });
-            alert("تم تحديث الرسالة بنجاح!");
-        });
+        document.getElementById('save-msg-btn').onclick = async () => {
+            await setDoc(doc(db, "settings", "dailyData"), { message: document.getElementById('daily-msg').value });
+            alert("تم!");
+        };
 
-        // --- 2. إدارة المشتركين ---
-        document.getElementById('add-user-btn').addEventListener('click', async () => {
-            const name = document.getElementById('u-name').value;
-            const pass = document.getElementById('u-pass').value;
-            const group = document.getElementById('u-group').value;
-            if(!name || !pass) return alert("أدخل الاسم وكلمة السر!");
-            
+        document.getElementById('add-user-btn').onclick = async () => {
             await addDoc(collection(db, "users"), {
-                name: name, password: pass, group: group,
-                isQuizActive: false, hasCompletedToday: false, score: 0
+                name: document.getElementById('u-name').value,
+                password: document.getElementById('u-pass').value,
+                group: document.getElementById('u-group').value,
+                score: 0, rounds: 0, isQuizActive: false, hasCompletedToday: false
             });
-            alert("تم إضافة المشترك!");
-            document.getElementById('u-name').value = ''; document.getElementById('u-pass').value = '';
             loadUsers();
-        });
+        };
 
-        window.loadUsers = async function() {
+        window.loadUsers = async () => {
+            const snap = await getDocs(collection(db, "users"));
             const tbody = document.getElementById('users-table-body');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">جاري التحميل...</td></tr>';
-            const querySnapshot = await getDocs(collection(db, "users"));
             tbody.innerHTML = '';
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const userId = docSnap.id;
-                const statusColor = data.isQuizActive ? 'text-green-600 font-bold' : 'text-red-500';
-                const statusText = data.isQuizActive ? 'مفتوح له' : 'مغلق';
-                const btnAction = data.isQuizActive ? 'إغلاق' : 'تفعيل';
-                const btnColor = data.isQuizActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
-
-                tbody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 font-bold">${data.name}</td>
-                        <td class="p-3">${data.password}</td>
-                        <td class="p-3 text-sm">${data.group}</td>
-                        <td class="p-3 text-sm ${statusColor}">${statusText}</td>
-                        <td class="p-3">
-                            <button onclick="toggleQuizStatus('${userId}', ${!data.isQuizActive})" class="${btnColor} text-white px-2 py-1 rounded text-xs md:text-sm">${btnAction}</button>
-                        </td>
-                    </tr>
-                `;
+            snap.forEach(d => {
+                const data = d.data();
+                tbody.innerHTML += `<tr class="border-b"><td class="p-3">${data.name}</td><td class="p-3">${data.group}</td><td class="p-3">${data.score}</td>
+                <td class="p-3"><button onclick="toggleActive('${d.id}', ${!data.isQuizActive})" class="p-1 rounded ${data.isQuizActive?'bg-red-400':'bg-green-400'} text-xs">${data.isQuizActive?'قفل':'فتح'}</button></td></tr>`;
             });
         };
 
-        window.toggleQuizStatus = async function(userId, newStatus) {
-            await updateDoc(doc(db, "users", userId), { isQuizActive: newStatus });
+        window.toggleActive = async (id, status) => {
+            await updateDoc(doc(db, "users", id), { isQuizActive: status });
             loadUsers();
         };
 
-        // --- 3. توليد فورمات الـ 15 سؤال برمجياً ---
-        const qContainer = document.getElementById('questions-container');
-        for(let i = 1; i <= 15; i++) {
-            qContainer.innerHTML += `
-                <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg question-block">
-                    <h4 class="font-bold text-blue-800 mb-2">السؤال رقم ${i}</h4>
-                    <textarea placeholder="اكتب نص السؤال هنا..." class="q-text w-full p-2 border rounded mb-2 text-sm md:text-base" rows="2"></textarea>
-                    <input type="text" placeholder="رابط صورة (اختياري)" class="q-img w-full p-2 border rounded mb-2 text-left text-sm" dir="ltr">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                        <input type="text" placeholder="الاختيار 1" class="q-opt1 p-2 border rounded text-sm">
-                        <input type="text" placeholder="الاختيار 2" class="q-opt2 p-2 border rounded text-sm">
-                        <input type="text" placeholder="الاختيار 3" class="q-opt3 p-2 border rounded text-sm">
-                        <input type="text" placeholder="الاختيار 4" class="q-opt4 p-2 border rounded text-sm">
-                    </div>
-                    <select class="q-correct w-full p-2 border rounded bg-blue-50 text-sm">
-                        <option value="">حدد الإجابة الصحيحة...</option>
-                        <option value="1">الاختيار 1 هو الصحيح</option>
-                        <option value="2">الاختيار 2 هو الصحيح</option>
-                        <option value="3">الاختيار 3 هو الصحيح</option>
-                        <option value="4">الاختيار 4 هو الصحيح</option>
-                    </select>
+        const qc = document.getElementById('q-container');
+        for(let i=1; i<=15; i++){
+            qc.innerHTML += `<div class="p-3 bg-white border rounded shadow-sm">
+                <p class="font-bold text-xs">سؤال ${i}</p>
+                <input type="text" placeholder="السؤال" class="q-t w-full p-1 border rounded mb-1 text-sm">
+                <div class="grid grid-cols-2 gap-1 mb-1">
+                    <input type="text" placeholder="1" class="o1 p-1 border rounded text-xs">
+                    <input type="text" placeholder="2" class="o2 p-1 border rounded text-xs">
+                    <input type="text" placeholder="3" class="o3 p-1 border rounded text-xs">
+                    <input type="text" placeholder="4" class="o4 p-1 border rounded text-xs">
                 </div>
-            `;
+                <select class="cor w-full p-1 border rounded text-xs"><option value="0">الإجابة 1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select>
+            </div>`;
         }
 
-        document.getElementById('save-quiz-btn').addEventListener('click', async () => {
-            const title = document.getElementById('quiz-title').value;
-            if(!title) return alert("الرجاء كتابة اسم الكويز!");
-            
-            const questions = [];
-            const blocks = document.querySelectorAll('.question-block');
-            
-            blocks.forEach((block, index) => {
-                const text = block.querySelector('.q-text').value;
-                const img = block.querySelector('.q-img').value;
-                const opt1 = block.querySelector('.q-opt1').value;
-                const opt2 = block.querySelector('.q-opt2').value;
-                const opt3 = block.querySelector('.q-opt3').value;
-                const opt4 = block.querySelector('.q-opt4').value;
-                const correct = block.querySelector('.q-correct').value;
-
-                if(text && opt1 && opt2 && opt3 && opt4 && correct) {
-                    questions.push({
-                        q: text, image: img, options: [opt1, opt2, opt3, opt4], correctIndex: parseInt(correct) - 1
-                    });
-                }
+        document.getElementById('save-quiz-btn').onclick = async () => {
+            const qs = [];
+            document.querySelectorAll('#q-container > div').forEach(div => {
+                qs.push({
+                    q: div.querySelector('.q-t').value,
+                    options: [div.querySelector('.o1').value, div.querySelector('.o2').value, div.querySelector('.o3').value, div.querySelector('.o4').value],
+                    correctIndex: parseInt(div.querySelector('.cor').value)
+                });
             });
-
-            if(questions.length === 0) return alert("الرجاء إدخال سؤال واحد على الأقل كاملاً.");
-
-            try {
-                await addDoc(collection(db, "quizzes"), { title: title, questions: questions });
-                alert(`تم حفظ الكويز بنجاح! يحتوي على ${questions.length} أسئلة.`);
-                document.getElementById('quiz-title').value = '';
-                blocks.forEach(block => block.querySelectorAll('input, textarea, select').forEach(input => input.value = ''));
-            } catch (e) { console.error(e); alert("حدث خطأ أثناء الحفظ"); }
-        });
+            await addDoc(collection(db, "quizzes"), { title: document.getElementById('quiz-title').value, questions: qs });
+            alert("تم حفظ الكويز!");
+        };
     </script>
 </body>
 </html>
