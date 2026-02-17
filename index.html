@@ -24,35 +24,6 @@
             border: 1px solid #b8860b; 
             backdrop-filter: blur(10px); 
         }
-        
-        /* ============================== */
-        /* ستايل الفوانيس الشفافة الجديد */
-        /* ============================== */
-        .hanging-fanoos {
-            position: fixed;
-            top: -50px; /* مرفوع لفوق عشان السلسلة تبان */
-            z-index: 10;
-            width: 90px; /* حجم مناسب */
-            pointer-events: none;
-            /* استخدام filter بدل box-shadow عشان الوهج يمشي مع شكل الفانوس الشفاف */
-            filter: drop-shadow(0 10px 10px rgba(255, 215, 0, 0.3));
-            animation: sway 4s ease-in-out infinite alternate; /* حركة أبطأ وأكثر واقعية */
-        }
-
-        .fanoos-left { left: 10px; animation-delay: 0s; transform-origin: top center; }
-        .fanoos-right { right: 10px; animation-delay: 2s; transform-origin: top center; }
-
-        @media (min-width: 768px) {
-           .hanging-fanoos { width: 130px; top: -70px; }
-           .fanoos-left { left: 40px; }
-           .fanoos-right { right: 40px; }
-        }
-
-        /* انيميشن المرجحة */
-        @keyframes sway {
-            from { transform: rotate(-4deg); }
-            to { transform: rotate(4deg); }
-        }
 
         .main-logo {
             filter: drop-shadow(0 0 15px rgba(184, 134, 11, 0.5));
@@ -61,10 +32,7 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 relative">
 
-    <img src="https://i.postimg.cc/mkZhgBgF/fanoos-gold-trans.png" class="hanging-fanoos fanoos-left" alt="فانوس رمضان">
-    <img src="https://i.postimg.cc/mkZhgBgF/fanoos-gold-trans.png" class="hanging-fanoos fanoos-right" alt="فانوس رمضان">
-
-    <div class="relative z-20 flex flex-col items-center w-full max-w-sm mt-10">
+    <div class="relative z-20 flex flex-col items-center w-full max-w-sm">
         
         <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="main-logo w-36 h-36 object-contain mb-6 rounded-full border-4 border-yellow-600">
 
@@ -75,11 +43,14 @@
 
         <div class="ramadan-card p-8 rounded-3xl shadow-2xl w-full text-center border-t-4 border-yellow-600">
             <h2 class="text-xl font-bold mb-6 text-yellow-500">سجل دخولك للمنافسة</h2>
+            
             <input type="password" id="password-input" placeholder="أدخل كود الدخول" 
                    class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
+            
             <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">
                 دخول للمسابقة
             </button>
+            
             <p id="error-msg" class="text-red-400 mt-4 hidden text-xs font-bold bg-red-900/20 py-2 rounded-lg border border-red-900/50">
                 <i class="fas fa-exclamation-circle ml-1"></i> كود الدخول غير صحيح!
             </p>
@@ -95,7 +66,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where, doc, getDoc, initializeFirestore, persistentLocalCache } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
+            projectId: "ramadan-87817", 
+            appId: "1:343525703258:web:6776b4857425df8bcca263" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = initializeFirestore(app, { localCache: persistentLocalCache() });
 
@@ -116,11 +91,15 @@
             const pass = document.getElementById('password-input').value;
             const btn = document.getElementById('login-btn');
             const err = document.getElementById('error-msg');
+            
             if(!pass) return;
+
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; err.classList.add('hidden');
+            
             try {
                 const q = query(collection(db, "users"), where("password", "==", pass));
                 const snap = await getDocs(q);
+                
                 if (!snap.empty) {
                     snap.forEach((doc) => {
                         localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
@@ -135,4 +114,3 @@
     </script>
 </body>
 </html>
-    
