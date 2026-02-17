@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة اللاعب</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>body { background-color: #0d1b2a; color: white; }</style>
+</head>
+<body class="p-6 max-w-2xl mx-auto mt-10">
+
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center border-t-4 border-yellow-500">
+        <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-24 h-24 mx-auto mb-4 rounded-full">
+        <h1 class="text-3xl font-bold mb-2" id="user-name">أهلاً بك</h1>
+        <p class="text-gray-400 mb-6" id="user-group">المجموعة: -</p>
+
+        <div id="quiz-status-area" class="p-4 bg-gray-900 rounded-lg">
+            <h3 class="text-xl mb-4 text-yellow-500">حالة الكويز اليوم</h3>
+            <p id="status-msg" class="mb-4">جاري التحقق من حالتك...</p>
+            <button id="start-quiz-btn" class="hidden bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-bold text-white w-full">بدء الكويز الآن</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // نفس إعدادات الفايربيز توضع هنا
+        const firebaseConfig = { /* انسخ نفس الاعدادات من الملف الأول */ 
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            projectId: "ramadan-87817",
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user) window.location.href = "index.html";
+
+        document.getElementById('user-name').innerText = "أهلاً، " + user.name;
+        document.getElementById('user-group').innerText = "المجموعة: " + user.group;
+
+        // التحقق المباشر من حالة اللاعب
+        async function checkStatus() {
+            const docRef = doc(db, "users", user.id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.isQuizActive && !data.hasCompletedToday) {
+                    document.getElementById('status-msg').innerText = "كويز اليوم جاهز! تذكر: مدة السؤال 40 ثانية ويمنع الخروج من الصفحة.";
+                    document.getElementById('start-quiz-btn').classList.remove('hidden');
+                } else if (data.hasCompletedToday) {
+                    document.getElementById('status-msg').innerText = "لقد أنهيت كويز اليوم، نتيجتك محفوظة.";
+                } else {
+                    document.getElementById('status-msg').innerText = "الكويز مغلق حالياً، في انتظار تفعيل الإدمن.";
+                }
+            }
+        }
+        checkStatus();
+
+        document.getElementById('start-quiz-btn').addEventListener('click', () => {
+            window.location.href = "quiz.html";
+        });
+    </script>
+</body>
+</html>
