@@ -2,67 +2,267 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة الإدارة - كويز الرمضاني</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | كويز الرمضاني</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; }
+        .nav-item { cursor: pointer; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background-color: #3b82f6; color: white; }
+        .section-content { display: none; }
+        .section-content.active { display: block; }
+    </style>
 </head>
-<body class="bg-gray-100 p-8 text-gray-800">
+<body class="flex">
 
-    <h1 class="text-3xl font-bold mb-8 text-center text-blue-900">غرفة التحكم (Admin Panel)</h1>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-white p-6 rounded shadow">
-            <h2 class="text-xl font-bold mb-4">تحديث آية / دعاء اليوم</h2>
-            <textarea id="msg-input" class="w-full p-2 border rounded mb-4" rows="3"></textarea>
-            <button id="save-msg-btn" class="bg-blue-600 text-white px-4 py-2 rounded">حفظ الرسالة</button>
+    <aside class="sidebar w-64 text-gray-300 flex flex-col shadow-xl fixed h-full">
+        <div class="p-6 text-center border-b border-gray-700">
+            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-20 h-20 mx-auto rounded-full mb-3 border-2 border-yellow-500">
+            <h2 class="text-xl font-bold text-white">المدير العام</h2>
         </div>
-
-        <div class="bg-white p-6 rounded shadow">
-            <h2 class="text-xl font-bold mb-4">إضافة مشترك جديد</h2>
-            <input type="text" id="u-name" placeholder="اسم المشترك" class="w-full p-2 border rounded mb-2">
-            <input type="text" id="u-pass" placeholder="كلمة السر (كود الدخول)" class="w-full p-2 border rounded mb-2">
-            <select id="u-group" class="w-full p-2 border rounded mb-4">
-                <option value="A">المجموعة أ</option>
-                <option value="B">المجموعة ب</option>
-                <option value="C">المجموعة ج</option>
-            </select>
-            <button id="add-user-btn" class="bg-green-600 text-white px-4 py-2 rounded">إضافة اللاعب</button>
+        <nav class="flex-1 mt-6">
+            <div class="nav-item active p-4 flex items-center gap-3" onclick="switchTab('settings')">
+                <i class="fas fa-cog"></i> <span>الإعدادات العامة</span>
+            </div>
+            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('users')">
+                <i class="fas fa-users"></i> <span>إدارة المشتركين</span>
+            </div>
+            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('quizzes')">
+                <i class="fas fa-futbol"></i> <span>بنك الكويزات</span>
+            </div>
+            <div class="nav-item p-4 flex items-center gap-3" onclick="switchTab('results')">
+                <i class="fas fa-trophy"></i> <span>النتائج والترتيب</span>
+            </div>
+        </nav>
+        <div class="p-4 border-t border-gray-700 text-center text-sm">
+            كويز الرمضاني © 2026
         </div>
-    </div>
+    </aside>
+
+    <main class="flex-1 p-8 mr-64">
+        
+        <section id="settings" class="section-content active">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-cog text-blue-600 ml-2"></i>الإعدادات والواجهة</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl">
+                <label class="block text-gray-700 font-bold mb-2">الآية القرآنية أو رسالة اليوم (تظهر في صفحة الدخول)</label>
+                <textarea id="daily-msg" class="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500 mb-4" rows="4" placeholder="اكتب الآية أو الدعاء هنا..."></textarea>
+                <button id="save-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">حفظ ونشر</button>
+            </div>
+        </section>
+
+        <section id="users" class="section-content">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-users text-blue-600 ml-2"></i>إدارة المشتركين والمجموعات</h2>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-xl font-bold mb-4 border-b pb-2">إضافة مشترك جديد</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="u-name" placeholder="اسم المشترك" class="p-2 border rounded">
+                    <input type="text" id="u-pass" placeholder="كود الدخول (كلمة السر)" class="p-2 border rounded">
+                    <select id="u-group" class="p-2 border rounded">
+                        <option value="المجموعة 1">المجموعة 1</option>
+                        <option value="المجموعة 2">المجموعة 2</option>
+                        <option value="المجموعة 3">المجموعة 3</option>
+                        <option value="المجموعة 4">المجموعة 4</option>
+                    </select>
+                    <button id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">إضافة اللاعب</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 border-b pb-2">قائمة المشتركين (للتحكم في دخولهم)</h3>
+                <table class="min-w-full text-right">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700">
+                            <th class="p-3">الاسم</th>
+                            <th class="p-3">كود الدخول</th>
+                            <th class="p-3">المجموعة</th>
+                            <th class="p-3">حالة الكويز</th>
+                            <th class="p-3">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        </tbody>
+                </table>
+                <button onclick="loadUsers()" class="mt-4 bg-gray-800 text-white px-4 py-2 rounded text-sm"><i class="fas fa-sync-alt ml-2"></i>تحديث الجدول</button>
+            </div>
+        </section>
+
+        <section id="quizzes" class="section-content">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-futbol text-blue-600 ml-2"></i>بنك الكويزات</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold mb-4 text-red-600 border-b pb-2">إنشاء كويز جديد (15 سؤال)</h3>
+                <input type="text" id="quiz-title" placeholder="اسم الكويز (مثال: كويز اليوم الأول)" class="w-full p-3 border rounded mb-6 font-bold text-lg">
+                
+                <div id="questions-container" class="space-y-6">
+                    </div>
+                
+                <button id="save-quiz-btn" class="mt-8 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-lg text-xl shadow-lg">حفظ الكويز بالكامل في قاعدة البيانات</button>
+            </div>
+        </section>
+
+        <section id="results" class="section-content">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800"><i class="fas fa-trophy text-blue-600 ml-2"></i>النتائج والترتيب</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <i class="fas fa-tools text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-600">سيتم تفعيل جدول الترتيب التلقائي بعد أول يوم مسابقة</h3>
+                <p class="text-gray-500 mt-2">هنا سيظهر ترتيب المجموعات بناءً على السرعة والإجابات الصحيحة.</p>
+            </div>
+        </section>
+
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, addDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { /* انسخ إعداداتك هنا */ 
+        // إعدادات الفايربيز الخاصة بك
+        const firebaseConfig = {
             apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            authDomain: "ramadan-87817.firebaseapp.com",
             projectId: "ramadan-87817",
+            storageBucket: "ramadan-87817.firebasestorage.app",
+            messagingSenderId: "343525703258",
+            appId: "1:343525703258:web:6776b4857425df8bcca263",
+            measurementId: "G-YM18TG6ZGR"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // حفظ الرسالة
+        // --- نظام التنقل بين الصفحات ---
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tabId === 'users') loadUsers(); // تحميل الأعضاء عند فتح صفحتهم
+        };
+
+        // --- 1. حفظ رسالة اليوم ---
         document.getElementById('save-msg-btn').addEventListener('click', async () => {
-            const msg = document.getElementById('msg-input').value;
+            const msg = document.getElementById('daily-msg').value;
             await setDoc(doc(db, "settings", "dailyData"), { message: msg });
             alert("تم تحديث الرسالة بنجاح!");
         });
 
-        // إضافة مستخدم
+        // --- 2. إدارة المشتركين ---
         document.getElementById('add-user-btn').addEventListener('click', async () => {
             const name = document.getElementById('u-name').value;
             const pass = document.getElementById('u-pass').value;
             const group = document.getElementById('u-group').value;
+            if(!name || !pass) return alert("أدخل الاسم وكلمة السر!");
             
             await addDoc(collection(db, "users"), {
-                name: name,
-                password: pass,
-                group: group,
-                isQuizActive: false, // الكويز مقفول في البداية
-                hasCompletedToday: false,
-                score: 0
+                name: name, password: pass, group: group,
+                isQuizActive: false, hasCompletedToday: false, score: 0
             });
-            alert("تم إضافة المشترك بنجاح!");
+            alert("تم إضافة المشترك!");
+            document.getElementById('u-name').value = '';
+            document.getElementById('u-pass').value = '';
+            loadUsers();
         });
+
+        // دالة لجلب وعرض المشتركين وتفعيلهم
+        window.loadUsers = async function() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">جاري التحميل...</td></tr>';
+            const querySnapshot = await getDocs(collection(db, "users"));
+            tbody.innerHTML = '';
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const userId = docSnap.id;
+                const statusColor = data.isQuizActive ? 'text-green-600 font-bold' : 'text-red-500';
+                const statusText = data.isQuizActive ? 'مفتوح له' : 'مغلق';
+                const btnAction = data.isQuizActive ? 'إغلاق الكويز' : 'تفعيل الكويز';
+                const btnColor = data.isQuizActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
+
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-3 font-bold">${data.name}</td>
+                        <td class="p-3">${data.password}</td>
+                        <td class="p-3">${data.group}</td>
+                        <td class="p-3 ${statusColor}">${statusText}</td>
+                        <td class="p-3">
+                            <button onclick="toggleQuizStatus('${userId}', ${!data.isQuizActive})" class="${btnColor} text-white px-3 py-1 rounded text-sm">${btnAction}</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        };
+
+        // تفعيل/إلغاء تفعيل الكويز للاعب
+        window.toggleQuizStatus = async function(userId, newStatus) {
+            await updateDoc(doc(db, "users", userId), { isQuizActive: newStatus });
+            loadUsers();
+        };
+
+        // --- 3. توليد فورمات الـ 15 سؤال برمجياً ---
+        const qContainer = document.getElementById('questions-container');
+        for(let i = 1; i <= 15; i++) {
+            qContainer.innerHTML += `
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg question-block">
+                    <h4 class="font-bold text-blue-800 mb-2">السؤال رقم ${i}</h4>
+                    <textarea placeholder="اكتب نص السؤال هنا..." class="q-text w-full p-2 border rounded mb-2" rows="2"></textarea>
+                    <input type="text" placeholder="رابط صورة توضيحية للسؤال (اختياري - اتركه فارغاً إذا لم يوجد)" class="q-img w-full p-2 border rounded mb-2 text-left" dir="ltr">
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <input type="text" placeholder="الاختيار 1" class="q-opt1 p-2 border rounded">
+                        <input type="text" placeholder="الاختيار 2" class="q-opt2 p-2 border rounded">
+                        <input type="text" placeholder="الاختيار 3" class="q-opt3 p-2 border rounded">
+                        <input type="text" placeholder="الاختيار 4" class="q-opt4 p-2 border rounded">
+                    </div>
+                    <select class="q-correct w-full p-2 border rounded bg-blue-50">
+                        <option value="">حدد الإجابة الصحيحة...</option>
+                        <option value="1">الاختيار 1 هو الصحيح</option>
+                        <option value="2">الاختيار 2 هو الصحيح</option>
+                        <option value="3">الاختيار 3 هو الصحيح</option>
+                        <option value="4">الاختيار 4 هو الصحيح</option>
+                    </select>
+                </div>
+            `;
+        }
+
+        // حفظ الكويز في قاعدة البيانات
+        document.getElementById('save-quiz-btn').addEventListener('click', async () => {
+            const title = document.getElementById('quiz-title').value;
+            if(!title) return alert("الرجاء كتابة اسم الكويز!");
+            
+            const questions = [];
+            const blocks = document.querySelectorAll('.question-block');
+            
+            let isValid = true;
+            blocks.forEach((block, index) => {
+                const text = block.querySelector('.q-text').value;
+                const img = block.querySelector('.q-img').value;
+                const opt1 = block.querySelector('.q-opt1').value;
+                const opt2 = block.querySelector('.q-opt2').value;
+                const opt3 = block.querySelector('.q-opt3').value;
+                const opt4 = block.querySelector('.q-opt4').value;
+                const correct = block.querySelector('.q-correct').value;
+
+                if(text && opt1 && opt2 && opt3 && opt4 && correct) {
+                    questions.push({
+                        q: text, image: img, options: [opt1, opt2, opt3, opt4], correctIndex: parseInt(correct) - 1
+                    });
+                } else {
+                    // إذا لم يكمل كل الأسئلة الـ 15 ممكن نسمح له يحفظ اللي كتبه أو نجبره، الأفضل نكتفي باللي كتبه كامل
+                }
+            });
+
+            if(questions.length === 0) return alert("الرجاء إدخال سؤال واحد على الأقل بجميع خياراته وتحديد الإجابة الصحيحة.");
+
+            try {
+                await addDoc(collection(db, "quizzes"), { title: title, questions: questions });
+                alert(`تم حفظ الكويز بنجاح! يحتوي على ${questions.length} أسئلة.`);
+                document.getElementById('quiz-title').value = '';
+                // تفريغ الحقول بعد الحفظ
+                blocks.forEach(block => {
+                    block.querySelectorAll('input, textarea, select').forEach(input => input.value = '');
+                });
+            } catch (e) { console.error(e); alert("حدث خطأ أثناء الحفظ"); }
+        });
+
     </script>
 </body>
-</html>
+    </html>
+        
