@@ -3,45 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كويز الرمضاني | لوحة المتسابق</title>
+    <title>كويز الرمضاني | الملعب</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        
-        body { 
-            background-color: #050a15; 
-            color: white; 
-            font-family: 'Cairo', sans-serif; 
-            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); 
-            overflow-x: hidden;
-        }
-
-        /* ستايل الكروت الفخمة */
-        .ramadan-card { 
-            background: rgba(13, 27, 42, 0.95); 
-            border: 1px solid #b8860b; 
-            backdrop-filter: blur(10px); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* التبويبات */
+        body { background-color: #050a15; color: white; font-family: 'Cairo', sans-serif; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); overflow-x: hidden; }
+        .ramadan-card { background: rgba(13, 27, 42, 0.95); border: 1px solid #b8860b; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .tab-btn { transition: 0.3s; }
         .tab-btn.active { background: linear-gradient(90deg, #b8860b, #d4af37); color: #000; font-weight: 900; }
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* شريط الوقت */
         #timer-bar { transition: width 1s linear, background-color 0.3s; }
-        
-        /* أزرار الإجابات */
-        .option-btn {
-            background: #112240;
-            border: 1px solid #233f78;
-            transition: all 0.2s;
-        }
+        .option-btn { background: #112240; border: 1px solid #233f78; transition: all 0.2s; }
         .option-btn:active { transform: scale(0.95); background: #b8860b; color: black; }
     </style>
 </head>
@@ -53,12 +28,12 @@
 
     <header class="ramadan-card flex justify-between items-center p-4 rounded-2xl mb-6 w-full max-w-lg mx-auto">
         <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center shadow-inner">
+            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-12 h-12 rounded-full flex items-center justify-center">
                 <i class="fas fa-user text-2xl text-black"></i>
             </div>
             <div>
-                <h2 id="player-name" class="font-bold text-white text-md truncate max-w-[120px]">---</h2>
-                <p id="player-group" class="text-xs text-yellow-500 font-bold bg-yellow-900/30 px-2 py-0.5 rounded-full mt-1 inline-block">---</p>
+                <h2 id="player-name" class="font-bold text-white text-md">---</h2>
+                <p id="player-group" class="text-xs text-yellow-500 font-bold">---</p>
             </div>
         </div>
         <div class="text-center bg-gray-900 p-2 rounded-xl border border-gray-700 min-w-[70px]">
@@ -67,9 +42,9 @@
         </div>
     </header>
 
-    <div class="flex bg-gray-900 rounded-xl p-1 mb-6 max-w-lg mx-auto w-full border border-gray-800 shadow-lg">
-        <button onclick="switchTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3 text-sm rounded-lg text-gray-400 font-bold"><i class="fas fa-futbol ml-1"></i> الملعب</button>
-        <button onclick="switchTab('leaderboard')" id="btn-leaderboard" class="tab-btn flex-1 py-3 text-sm rounded-lg text-gray-400 font-bold"><i class="fas fa-trophy ml-1"></i> ترتيب مجموعتي</button>
+    <div class="flex bg-gray-900 rounded-xl p-1 mb-6 max-w-lg mx-auto w-full border border-gray-800">
+        <button onclick="switchTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3 text-sm rounded-lg text-gray-400 font-bold"><i class="fas fa-futbol"></i> الملعب</button>
+        <button onclick="switchTab('leaderboard')" id="btn-leaderboard" class="tab-btn flex-1 py-3 text-sm rounded-lg text-gray-400 font-bold"><i class="fas fa-trophy"></i> مجموعتي</button>
     </div>
 
     <main id="tab-arena" class="tab-content active flex-grow flex flex-col items-center w-full max-w-lg mx-auto">
@@ -81,176 +56,135 @@
     <main id="tab-leaderboard" class="tab-content flex-grow w-full max-w-lg mx-auto">
         <div class="ramadan-card p-5 rounded-2xl">
             <h3 class="text-yellow-500 font-bold mb-4 text-center border-b border-gray-700 pb-2">فرسان المجموعة</h3>
-            <div id="group-list" class="space-y-2">
-                <div class="text-center text-gray-400 py-4"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
-            </div>
+            <div id="group-list" class="space-y-2"><p class="text-center text-gray-400 py-4">جاري التحميل...</p></div>
         </div>
     </main>
 
     <div class="mt-auto pt-8 flex flex-col items-center gap-4">
-        <div class="flex gap-6">
-            <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="bg-gray-800 p-3 rounded-full text-gray-400 hover:text-white hover:bg-blue-600 transition shadow-lg"><i class="fab fa-facebook text-xl"></i></a>
-            <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="bg-gray-800 p-3 rounded-full text-gray-400 hover:text-white hover:bg-green-600 transition shadow-lg"><i class="fab fa-whatsapp text-xl"></i></a>
-        </div>
-        <button id="logout-btn" class="text-gray-600 text-xs font-bold hover:text-red-500 transition mt-2"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+        <button id="logout-btn" onclick="logout()" class="text-gray-600 text-xs font-bold hover:text-red-500"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, onSnapshot, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <script>
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) window.location.href = "index.html";
+        let currentUser = null;
+        try {
+            currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !currentUser.id) throw new Error("No user");
+        } catch(e) { window.location.href = "index.html"; }
 
         document.getElementById('player-name').innerText = currentUser.name;
         document.getElementById('player-group').innerText = currentUser.group;
         document.getElementById('player-score').innerText = currentUser.score || 0;
 
         let quizData = []; let currentQuestion = 0; let tempScore = 0; let detailedResults = []; let activeDayNum = 0;
-        let timerInterval; let timeLeft = 30;
-        
-        // متغير الأمان: لمعرفة هل اللاعب داخل الاختبار أم لا
-        let isQuizActive = false; 
+        let timerInterval; let timeLeft = 30; let isQuizActive = false; 
 
-        window.switchTab = (tabName) => {
-            if (isQuizActive) {
-                alert("⚠️ لا يمكنك التنقل بين الصفحات أثناء أداء الاختبار!");
-                return;
-            }
+        function switchTab(tabName) {
+            if (isQuizActive) { alert("⚠️ لا يمكنك التنقل أثناء الاختبار!"); return; }
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
             document.getElementById(`btn-${tabName}`).classList.add('active');
             if(tabName === 'leaderboard') loadGroupLeaderboard();
-        };
+        }
 
         async function loadGroupLeaderboard() {
             const listDiv = document.getElementById('group-list');
             try {
-                const q = query(collection(db, "users"), where("group", "==", currentUser.group));
-                const snap = await getDocs(q);
+                const snap = await db.collection("users").where("group", "==", currentUser.group).get();
                 let members = []; snap.forEach(d => members.push(d.data()));
                 members.sort((a,b) => (b.score || 0) - (a.score || 0));
                 
                 listDiv.innerHTML = '';
                 members.forEach((m, index) => {
                     let rankColor = index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-300' : index === 2 ? 'text-yellow-700' : 'text-gray-500';
-                    let isMe = m.name === currentUser.name ? 'border-2 border-yellow-600 bg-gray-800 transform scale-105 my-2 shadow-lg' : 'bg-gray-900 border border-gray-800';
+                    let isMe = m.name === currentUser.name ? 'border-2 border-yellow-600 bg-gray-800 transform scale-105 my-2' : 'bg-gray-900 border border-gray-800';
                     listDiv.innerHTML += `<div class="flex justify-between items-center p-4 rounded-xl transition ${isMe}"><div class="flex items-center gap-4"><span class="font-black text-lg ${rankColor}">${index + 1}</span><span class="font-bold text-sm ${m.name === currentUser.name ? 'text-white' : 'text-gray-300'}">${m.name}</span></div><span class="font-black text-yellow-500 text-lg">${m.score || 0}</span></div>`;
                 });
             } catch(e) { listDiv.innerHTML = '<p class="text-center text-red-500 text-xs">خطأ في جلب الترتيب</p>'; }
         }
 
-        onSnapshot(doc(db, "settings", "global_status"), async (docSnap) => {
+        db.collection("settings").doc("global_status").onSnapshot(async (docSnap) => {
             const container = document.getElementById('quiz-container');
-            if (!docSnap.exists()) return;
+            if (!docSnap.exists) return;
             
             const globalData = docSnap.data();
             const status = globalData.status;
             activeDayNum = globalData.currentDay;
             const expiryTime = globalData.expiryTime;
 
-            if (expiryTime && Date.now() > expiryTime) {
-                if(isQuizActive) { isQuizActive = false; clearInterval(timerInterval); endQuiz(); return; }
-                container.innerHTML = `<div class="ramadan-card p-8 text-center shadow-2xl border-t-4 border-red-500"><i class="fas fa-hourglass-end text-6xl text-red-500 mb-6 animate-pulse"></i><h2 class="text-2xl font-black text-white mb-2">انتهى وقت الجولة!</h2><p class="text-gray-300 text-sm leading-relaxed mb-6">لقد انتهى الوقت المحدد للإجابة على جولة اليوم (${activeDayNum}).</p><button onclick="switchTab('leaderboard')" class="bg-gray-800 text-white font-bold py-3 px-6 rounded-xl border border-gray-600">شاهد الترتيب</button></div>`;
-                return;
-            }
-
-            const userSnap = await getDoc(doc(db, "users", currentUser.id));
-            if(userSnap.exists()) {
+            const userSnap = await db.collection("users").doc(currentUser.id).get();
+            if(userSnap.exists) {
                 currentUser = { id: userSnap.id, ...userSnap.data() };
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 document.getElementById('player-score').innerText = currentUser.score || 0;
             }
 
+            if (expiryTime && Date.now() > expiryTime) {
+                if(isQuizActive) { isQuizActive = false; clearInterval(timerInterval); endQuiz(); return; }
+                container.innerHTML = `<div class="ramadan-card p-8 text-center"><i class="fas fa-hourglass-end text-6xl text-red-500 mb-6 animate-pulse"></i><h2 class="text-2xl font-black text-white mb-2">انتهى وقت الجولة!</h2></div>`;
+                return;
+            }
+
             if (status === 'closed') {
-                container.innerHTML = `<div class="ramadan-card p-8 text-center"><div class="bg-red-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border-2 border-red-500"><i class="fas fa-lock text-3xl text-red-400"></i></div><h2 class="text-xl font-bold text-white mb-2">الغرفة مغلقة</h2><p class="text-gray-400 text-sm">تم إغلاق اللعب من قِبل الإدارة مؤقتاً.</p></div>`;
+                container.innerHTML = `<div class="ramadan-card p-8 text-center"><i class="fas fa-lock text-5xl text-red-400 mb-4"></i><h2 class="text-xl font-bold text-white mb-2">الغرفة مغلقة</h2></div>`;
                 return;
             }
 
             if (status === 'soon') {
-                container.innerHTML = `<div class="ramadan-card p-8 text-center"><div class="bg-blue-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border-2 border-blue-500"><i class="fas fa-clock text-3xl text-blue-400"></i></div><h2 class="text-xl font-bold text-white mb-2">جولة اليوم (${activeDayNum})</h2><p class="text-gray-400 text-sm">التحدي لم يبدأ بعد.. استعدوا!</p></div>`;
+                container.innerHTML = `<div class="ramadan-card p-8 text-center"><i class="fas fa-clock text-5xl text-blue-400 mb-4"></i><h2 class="text-xl font-bold text-white mb-2">جولة اليوم (${activeDayNum})</h2></div>`;
                 return;
             }
 
             if (currentUser.lastPlayedDay === activeDayNum) {
-                container.innerHTML = `<div class="ramadan-card p-8 text-center"><div class="bg-green-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border-2 border-green-500"><i class="fas fa-check-circle text-4xl text-green-400"></i></div><h2 class="text-xl font-bold text-white mb-2">أنت أنهيت جولة اليوم بنجاح!</h2><p class="text-gray-400 text-sm leading-relaxed">لقد أكملت أسئلة اليوم (${activeDayNum}).<br>راجع ترتيب مجموعتك وانتظرنا غداً!</p></div>`;
+                container.innerHTML = `<div class="ramadan-card p-8 text-center"><i class="fas fa-check-circle text-5xl text-green-400 mb-4"></i><h2 class="text-xl font-bold text-white mb-2">تم إنهاء الجولة بنجاح!</h2></div>`;
                 return;
             }
 
-            if (status === 'active' && !isQuizActive) showStartScreen();
-        });
-
-        function showStartScreen() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = `<div class="ramadan-card p-8 text-center w-full shadow-2xl transform transition hover:scale-105"><div class="bg-gradient-to-br from-yellow-500 to-yellow-700 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6 shadow-inner border-4 border-gray-900"><i class="fas fa-play text-4xl text-black ml-2"></i></div><h2 class="text-2xl font-black text-white mb-3">تحدي اليوم (${activeDayNum})</h2><p class="text-gray-300 text-sm mb-6 leading-relaxed bg-gray-900/50 p-3 rounded-lg border border-gray-800"><i class="fas fa-exclamation-triangle text-yellow-500 mr-1"></i> لديك 30 ثانية لكل سؤال.<br><span class="text-red-400 font-bold">تنبيه:</span> الخروج من الصفحة أو تبديل التطبيق سيؤدي لإنهاء الاختبار فوراً!</p><button onclick="startQuizForDay(${activeDayNum})" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-[0_0_15px_rgba(184,134,11,0.4)] text-lg transition active:scale-95">دخول الملعب وبدء التحدي</button></div>`;
-        }
-
-        window.startQuizForDay = async (dayNumber) => {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = `<div class="ramadan-card p-10 text-center"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-4"></i><p class="font-bold animate-pulse">جاري تجهيز الأسئلة...</p></div>`;
-            try {
-                const daySnap = await getDoc(doc(db, "quizzes_pool", `day_${dayNumber}`));
-                if (daySnap.exists() && daySnap.data().variations && daySnap.data().variations.length > 0) {
-                    const variations = daySnap.data().variations;
-                    quizData = variations[Math.floor(Math.random() * variations.length)].questions;
-                    currentQuestion = 0; tempScore = 0; detailedResults = []; 
-                    
-                    isQuizActive = true; 
-                    showQuestion();
-                } else {
-                    container.innerHTML = `<div class="ramadan-card p-8 text-center text-red-400"><i class="fas fa-times-circle text-4xl mb-4"></i><p>عذراً، لم تقم الإدارة برفع أسئلة اليوم بعد.</p></div>`;
-                }
-            } catch (e) { console.error(e); }
-        };
-
-        // ==========================================
-        // 🚨 نظام الأمان ومكافحة الغش 🚨
-        // ==========================================
-        
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden && isQuizActive) {
-                alert("🚫 تحذير أمني: لقد قمت بالخروج من نافذة الاختبار!\nتم إنهاء الجولة فوراً لمنع الغش، وسيتم حفظ نتيجتك الحالية.");
-                isQuizActive = false;
-                clearInterval(timerInterval);
-                endQuiz();
+            if (status === 'active' && !isQuizActive) {
+                container.innerHTML = `<div class="ramadan-card p-8 text-center"><i class="fas fa-play-circle text-6xl text-yellow-500 mb-4"></i><h2 class="text-2xl font-black text-white mb-3">تحدي اليوم (${activeDayNum})</h2><p class="text-gray-300 text-sm mb-6"><span class="text-red-400 font-bold">تنبيه:</span> الخروج من الصفحة ينهي الاختبار!</p><button onclick="startQuizForDay(${activeDayNum})" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl text-lg">بدء التحدي</button></div>`;
             }
         });
 
+        async function startQuizForDay(dayNumber) {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = `<div class="ramadan-card p-10 text-center"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-4"></i><p class="font-bold">تجهيز الأسئلة...</p></div>`;
+            try {
+                const daySnap = await db.collection("quizzes_pool").doc(`day_${dayNumber}`).get();
+                if (daySnap.exists && daySnap.data().variations?.length > 0) {
+                    const variations = daySnap.data().variations;
+                    quizData = variations[Math.floor(Math.random() * variations.length)].questions;
+                    currentQuestion = 0; tempScore = 0; detailedResults = []; isQuizActive = true; 
+                    showQuestion();
+                } else {
+                    container.innerHTML = `<div class="ramadan-card p-8 text-center text-red-400"><p>لم تقم الإدارة برفع أسئلة اليوم بعد.</p></div>`;
+                }
+            } catch (e) { container.innerHTML = 'خطأ في الاتصال'; }
+        }
+
+        // الأمان
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && isQuizActive) { alert("🚫 الخروج ينهي الاختبار!"); isQuizActive = false; clearInterval(timerInterval); endQuiz(); }
+        });
         window.history.pushState(null, null, window.location.href);
         window.onpopstate = function () {
             if (isQuizActive) {
-                const warning = confirm("⚠️ تحذير: الرجوع للخلف سيؤدي إلى إنهاء الاختبار فوراً! هل أنت متأكد؟");
-                if (warning) {
-                    isQuizActive = false;
-                    clearInterval(timerInterval);
-                    endQuiz();
-                } else {
-                    window.history.pushState(null, null, window.location.href); 
-                }
-            } else {
-                window.history.back();
-            }
+                if (confirm("⚠️ الرجوع ينهي الاختبار!")) { isQuizActive = false; clearInterval(timerInterval); endQuiz(); }
+                else { window.history.pushState(null, null, window.location.href); }
+            } else { window.history.back(); }
         };
-
-        window.addEventListener("beforeunload", (e) => {
-            if (isQuizActive) {
-                e.preventDefault();
-                e.returnValue = "الخروج الآن سيؤدي لإنهاء الكويز بالدرجة الحالية!";
-                return e.returnValue;
-            }
-        });
-        // ==========================================
 
         function showQuestion() {
             if (currentQuestion >= quizData.length) return endQuiz();
             const q = quizData[currentQuestion];
-            let html = `<div class="ramadan-card p-6 w-full shadow-2xl"><div class="flex justify-between items-center mb-5 text-xs font-bold text-gray-400 border-b border-gray-700 pb-3"><span class="bg-gray-800 px-3 py-1 rounded-lg">اليوم ${activeDayNum}</span><span class="text-yellow-500 bg-yellow-900/30 px-3 py-1 rounded-lg">سؤال ${currentQuestion + 1} / ${quizData.length}</span></div><div class="w-full bg-gray-900 h-3 rounded-full mb-6 overflow-hidden border border-gray-700 p-0.5"><div id="timer-bar" class="h-full bg-green-500 w-full rounded-full"></div></div><div class="text-center mb-6"><span id="timer-text" class="text-3xl font-black text-white drop-shadow-md">30</span></div><h2 class="text-xl md:text-2xl font-bold mb-8 text-center leading-relaxed text-white drop-shadow-md">${q.q}</h2><div class="space-y-3">`;
-            q.options.forEach((opt, index) => { html += `<button onclick="handleAnswer(${index})" class="option-btn w-full text-right p-5 rounded-xl font-bold text-sm md:text-base text-gray-200 shadow-md">${opt}</button>`; });
+            let html = `<div class="ramadan-card p-6 w-full"><div class="flex justify-between mb-5 text-xs text-gray-400"><span>اليوم ${activeDayNum}</span><span class="text-yellow-500">سؤال ${currentQuestion + 1} / ${quizData.length}</span></div><div class="w-full bg-gray-900 h-3 rounded-full mb-6 border border-gray-700 p-0.5"><div id="timer-bar" class="h-full bg-green-500 w-full rounded-full"></div></div><div class="text-center mb-6"><span id="timer-text" class="text-3xl font-black text-white">30</span></div><h2 class="text-xl md:text-2xl font-bold mb-8 text-center">${q.q}</h2><div class="space-y-3">`;
+            q.options.forEach((opt, index) => { html += `<button onclick="handleAnswer(${index})" class="option-btn w-full text-right p-5 rounded-xl font-bold text-sm text-gray-200">${opt}</button>`; });
             html += `</div></div>`;
             document.getElementById('quiz-container').innerHTML = html;
             startTimer();
@@ -267,26 +201,34 @@
             }, 1000);
         }
 
-        window.handleAnswer = (selectedIndex) => {
+        function handleAnswer(selectedIndex) {
             clearInterval(timerInterval);
             detailedResults.push(selectedIndex === quizData[currentQuestion].correctIndex);
             if (selectedIndex === quizData[currentQuestion].correctIndex) tempScore += 1;
             currentQuestion++; showQuestion();
-        };
+        }
 
         async function endQuiz() {
             isQuizActive = false; 
             const container = document.getElementById('quiz-container');
-            container.innerHTML = `<div class="ramadan-card p-12 text-center shadow-2xl"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-6"></i><p class="font-bold text-lg animate-pulse">جاري رصد درجاتك في السيرفر...</p></div>`;
+            container.innerHTML = `<div class="ramadan-card p-12 text-center"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-6"></i><p class="font-bold text-lg">جاري رصد درجاتك...</p></div>`;
             try {
-                const userRef = doc(db, "users", currentUser.id);
-                await updateDoc(userRef, { score: increment(tempScore), lastPlayedDay: activeDayNum });
-                await addDoc(collection(userRef, "game_logs"), { day: activeDayNum, score: tempScore, results: detailedResults, timestamp: serverTimestamp() });
+                await db.collection("users").doc(currentUser.id).update({ score: firebase.firestore.FieldValue.increment(tempScore), lastPlayedDay: activeDayNum });
+                await db.collection("users").doc(currentUser.id).collection("game_logs").add({ day: activeDayNum, score: tempScore, results: detailedResults, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 
                 currentUser.score = (currentUser.score || 0) + tempScore; 
                 currentUser.lastPlayedDay = activeDayNum; 
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 document.getElementById('player-score').innerText = currentUser.score;
                 
-                container.innerHTML = `<div class="ramadan-card p-8 text-center shadow-2xl border-t-4 border-yellow-500"><i class="fas fa-trophy text-7xl text-yellow-500 mb-6 drop-shadow-lg"></i><h2 class="text-3xl font-black text-white mb-2">انتهت المعركة!</h2><p class="text-gray-400 mb-6 text-sm">تم تسجيل نتيجتك لليوم (${activeDayNum}) بنجاح</p><div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8 shadow-inner"><p class="text-sm text-gray-500 mb-2 font-bold">النقاط التي حصدتها اليوم</p><p class="text-5xl font-black text-yellow-500 drop-shadow-md">${tempScore} <span class="text-lg text-gray-600">/ ${quizData.length}</span></p></div><button onclick="switchTab('leaderboard')" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white font-bold py-4 rounded-xl shadow-lg transition text-lg"><i class="fas fa-list-ol ml-2"></i> شاهد ترتيب مجموعتك</button></div>`;
-            } catch(e) { container.innerHTML = `<div class="ramadan-card p-8 tex
+                container.innerHTML = `<div class="ramadan-card p-8 text-center border-t-4 border-yellow-500"><i class="fas fa-trophy text-7xl text-yellow-500 mb-6"></i><h2 class="text-3xl font-black text-white mb-2">انتهت المعركة!</h2><p class="text-gray-400 mb-6 text-sm">تم تسجيل النتيجة</p><div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8"><p class="text-sm text-gray-500 mb-2 font-bold">حصدت اليوم</p><p class="text-5xl font-black text-yellow-500">${tempScore} <span class="text-lg text-gray-600">/ ${quizData.length}</span></p></div><button onclick="switchTab('leaderboard')" class="w-full bg-gray-800 text-white font-bold py-4 rounded-xl">شاهد ترتيب مجموعتك</button></div>`;
+            } catch(e) { container.innerHTML = `<div class="ramadan-card p-8 text-center text-red-500"><p>خطأ في الشبكة!</p></div>`; }
+        }
+
+        function logout() { 
+            if (isQuizActive) { alert("لا يمكنك الخروج أثناء الاختبار!"); return; }
+            localStorage.clear(); window.location.href = "index.html"; 
+        }
+    </script>
+</body>
+</html>
