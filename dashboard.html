@@ -2,140 +2,331 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المشترك | كويز الرمضاني</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كويز الرمضاني | المنافسة</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #050a15; color: white; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); }
-        .top-nav { background: rgba(13, 27, 42, 0.95); border-bottom: 2px solid #b8860b; backdrop-filter: blur(10px); }
-        .tab-btn { border: 1px solid rgba(184, 134, 11, 0.4); color: #b8860b; }
-        .tab-btn.active { background-color: #b8860b; color: white; box-shadow: 0 0 15px rgba(184, 134, 11, 0.5); }
-        .ramadan-card { background: rgba(27, 38, 59, 0.85); border: 1px solid rgba(184, 134, 11, 0.3); border-radius: 20px; }
-        .fade-in { animation: fadeIn 0.4s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        
+        body { 
+            background-color: #050a15; 
+            color: white; 
+            font-family: 'Cairo', sans-serif; 
+            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); 
+            overflow-x: hidden;
+        }
+
+        .glass-card { 
+            background: rgba(13, 27, 42, 0.95); 
+            border: 1px solid #b8860b; 
+            backdrop-filter: blur(10px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .option-btn {
+            background-color: #1e293b;
+            border: 2px solid #334155;
+            transition: all 0.3s ease;
+        }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct { background-color: #16a34a !important; border-color: #15803d !important; color: white; }
+        .option-btn.wrong { background-color: #dc2626 !important; border-color: #991b1b !important; color: white; }
+
+        /* شريط الوقت */
+        #timer-bar { transition: width 1s linear; }
     </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="flex flex-col min-h-screen">
 
-    <header class="top-nav sticky top-0 z-50 px-4 py-2 flex justify-between items-center shadow-lg">
-        <div class="flex items-center gap-3">
-            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-10 h-10 rounded-full border border-yellow-500 shadow-md">
-            <h1 class="text-sm font-bold text-yellow-500">كويز الرمضاني</h1>
-        </div>
-        <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition" onclick="switchSection('profile')">
-            <div class="text-left"><p class="text-[10px] text-gray-400 leading-none">مرحباً بك،</p><p id="nav-user-name" class="text-xs font-bold">--</p></div>
-            <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center border border-yellow-400 shadow-inner"><i class="fas fa-user text-white text-xs"></i></div>
+    <header class="bg-gray-900 border-b-4 border-yellow-600 p-4 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h1 id="user-name" class="font-bold text-sm text-yellow-500">جاري التحميل...</h1>
+                    <p id="user-group" class="text-xs text-gray-400">المجموعة</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="bg-gray-800 px-4 py-1 rounded-lg border border-gray-700">
+                    <span class="text-[10px] text-gray-400 block">إجمالي النقاط</span>
+                    <span id="user-score" class="font-black text-lg text-white">0</span>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="flex justify-center gap-3 my-6 px-4">
-        <button id="btn-quizzes" onclick="switchSection('quizzes')" class="tab-btn active flex-1 max-w-[150px] py-2 rounded-xl font-bold transition-all"><i class="fas fa-play-circle ml-1"></i> التحديات</button>
-        <button id="btn-rankings" onclick="switchSection('rankings')" class="tab-btn flex-1 max-w-[150px] py-2 rounded-xl font-bold transition-all"><i class="fas fa-trophy ml-1"></i> الترتيب</button>
-    </div>
-
-    <main class="px-4 max-w-md mx-auto">
-        <section id="sec-quizzes" class="fade-in">
-            <div class="ramadan-card p-6 text-center shadow-2xl">
-                <div class="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-600"><i class="fas fa-futbol text-2xl text-yellow-500"></i></div>
-                <h3 class="text-xl font-bold mb-2 text-white">تحدي اليوم</h3>
-                <p id="quiz-status-text" class="text-gray-400 mb-6 text-xs leading-relaxed">جاري تحميل الملعب...</p>
-                
-                <button id="start-btn" onclick="location.href='quiz.html'" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 rounded-xl shadow-xl transition-transform active:scale-95 text-lg"><i class="fas fa-bolt ml-2"></i>بدء الكويز الآن</button>
-                <div id="locked-state" class="p-4 bg-gray-900/50 rounded-xl border border-gray-700"></div>
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div id="dynamic-container" class="w-full max-w-md">
+            
+            <div id="screen-loading" class="text-center text-yellow-500 animate-pulse">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                <p class="font-bold">جاري الاتصال بالملعب...</p>
             </div>
-        </section>
 
-        <section id="sec-rankings" class="hidden fade-in">
-            <div class="ramadan-card p-4">
-                <div class="flex items-center justify-between mb-4 border-b border-yellow-600/30 pb-2"><h3 class="text-lg font-bold text-yellow-500"><i class="fas fa-users ml-2"></i>عيلة المجموعة</h3><span id="group-tag" class="text-[10px] bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded border border-yellow-600">--</span></div>
-                <div id="leaderboard-list" class="space-y-2"></div>
+            <div id="screen-banned" class="hidden glass-card p-8 rounded-3xl text-center border-red-600">
+                <i class="fas fa-ban text-red-500 text-6xl mb-4"></i>
+                <h2 class="text-xl font-bold text-red-500 mb-2">تم حظر حسابك!</h2>
+                <p class="text-gray-300 text-sm">لقد تم إيقاف حسابك من قبل الإدارة لمخالفة قوانين البطولة.</p>
             </div>
-        </section>
 
-        <section id="sec-profile" class="hidden fade-in">
-            <div class="ramadan-card p-6 text-center">
-                <div class="w-20 h-20 bg-gradient-to-tr from-yellow-700 to-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-gray-900 shadow-xl"><i class="fas fa-user text-3xl text-white"></i></div>
-                <h2 id="prof-name" class="text-xl font-bold mb-1 text-white">-</h2>
-                <p id="prof-group" class="text-yellow-500 mb-6 font-bold text-xs">-</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800"><p class="text-[10px] text-gray-500 mb-1">النقاط</p><p id="prof-score" class="text-2xl font-bold text-yellow-500">0</p></div>
-                    <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800"><p class="text-[10px] text-gray-500 mb-1">لعبت</p><p id="prof-rounds" class="text-2xl font-bold text-green-400">0 <span class="text-xs">جولة</span></p></div>
+            <div id="screen-soon" class="hidden glass-card p-8 rounded-3xl text-center border-blue-500">
+                <i class="fas fa-clock text-blue-400 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-blue-400 mb-2">استعد للمواجهة!</h2>
+                <p class="text-gray-300 text-sm">الجولة القادمة لم تبدأ بعد، حافظ على تركيزك وانتظر صافرة الحكم ⚽🌙</p>
+            </div>
+
+            <div id="screen-closed" class="hidden glass-card p-8 rounded-3xl text-center border-gray-500">
+                <i class="fas fa-lock text-gray-400 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-300 mb-2">انتهت جولة اليوم</h2>
+                <p class="text-gray-400 text-sm">تم غلق الجولة الحالية، نلقاكم في التحدي القادم. راجع ترتيبك في اللوحة!</p>
+            </div>
+
+            <div id="screen-start" class="hidden glass-card p-8 rounded-3xl text-center border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+                <i class="fas fa-futbol text-green-400 text-6xl mb-4 animate-bounce"></i>
+                <h2 id="active-quiz-title" class="text-2xl font-bold text-green-400 mb-2">جولة جديدة</h2>
+                <p class="text-gray-300 text-sm mb-6">لديك 15 سؤال، ومحاولة واحدة فقط. هل أنت مستعد للنزول لأرض الملعب؟</p>
+                <button onclick="startQuiz()" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg">
+                    ابدأ التحدي الآن ⚽
+                </button>
+            </div>
+
+            <div id="screen-playing" class="hidden glass-card p-6 rounded-3xl">
+                <div class="flex justify-between items-center mb-4 text-sm font-bold">
+                    <span class="text-yellow-500" id="q-counter">سؤال 1 / 15</span>
+                    <span class="text-red-400 flex items-center gap-1"><i class="fas fa-stopwatch"></i> <span id="timer-text">30</span>ث</span>
                 </div>
-                <button onclick="localStorage.clear(); location.href='index.html'" class="mt-8 text-red-400 text-xs font-bold hover:text-red-300 transition"><i class="fas fa-sign-out-alt ml-1"></i>تسجيل الخروج</button>
+                <div class="w-full bg-gray-800 rounded-full h-2 mb-6 overflow-hidden">
+                    <div id="timer-bar" class="bg-yellow-500 h-2 rounded-full w-full"></div>
+                </div>
+                
+                <h3 id="question-text" class="text-lg font-bold text-white mb-6 leading-relaxed text-center min-h-[60px]"></h3>
+                
+                <div id="options-container" class="space-y-3">
+                    </div>
             </div>
-        </section>
+
+            <div id="screen-result" class="hidden glass-card p-8 rounded-3xl text-center border-yellow-500">
+                <i class="fas fa-trophy text-yellow-500 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">صافرة النهاية!</h2>
+                <p class="text-gray-300 mb-6">لقد أنهيت التحدي، وهذه هي محصلتك:</p>
+                <div class="text-6xl font-black text-yellow-500 mb-6" id="final-score-text">0</div>
+                <p class="text-sm text-gray-400 mb-6">تم إرسال إجاباتك التفصيلية للإدارة وتسجيل نقاطك بنجاح ✅</p>
+            </div>
+
+        </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, onSnapshot, updateDoc, collection, addDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        if(!user) location.href = "index.html";
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
+            projectId: "ramadan-87817", 
+            appId: "1:343525703258:web:6776b4857425df8bcca263" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        document.getElementById('nav-user-name').innerText = user.name; document.getElementById('prof-name').innerText = user.name;
-        document.getElementById('prof-group').innerText = user.group; document.getElementById('group-tag').innerText = user.group;
+        // --- 1. التحقق من هوية المتسابق ---
+        const localUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!localUser) window.location.href = "index.html";
 
-        let userData = null;
-        onSnapshot(doc(db, "users", user.id), (snap) => {
-            if(snap.exists()){
-                userData = snap.data();
-                document.getElementById('prof-score').innerText = userData.score || 0;
-                document.getElementById('prof-rounds').innerText = userData.rounds || 0;
-                updateUI();
-            }
-        });
+        // متغيرات اللعبة
+        let quizData = [];
+        let quizTitle = "";
+        let currentQIndex = 0;
+        let sessionScore = 0;
+        let detailedResults = []; // لتسجيل الصح والغلط [true, false, ...]
+        let timerInterval;
+        let isAnswering = false;
+        let totalUserScore = localUser.score || 0;
 
-        onSnapshot(collection(db, "quizzes"), (snap) => {
-            let hasActive = false, hasUpcoming = false;
-            snap.forEach(d => { if(d.data().isActive) hasActive = true; else hasUpcoming = true; });
-            window.quizStatus = { hasActive, hasUpcoming };
-            updateUI();
-        });
+        // عرض بيانات الهيدر
+        document.getElementById('user-name').innerText = localUser.name;
+        document.getElementById('user-group').innerText = localUser.group;
+        document.getElementById('user-score').innerText = totalUserScore;
 
-        function updateUI() {
-            if(!userData || !window.quizStatus) return;
-            const sb = document.getElementById('start-btn'), ls = document.getElementById('locked-state'), st = document.getElementById('quiz-status-text');
+        // --- 2. التحقق من حالة المستخدم وحالة الموقع ---
+        async function initializeDashboard() {
+            // جلب بيانات المتسابق الحالية (للتأكد إنه مش محظور)
+            const userRef = doc(db, "users", localUser.id);
+            const userSnap = await getDoc(userRef);
             
-            if (userData.hasCompletedToday) {
-                sb.classList.add('hidden'); ls.classList.remove('hidden');
-                ls.innerHTML = '<i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i><p class="text-green-500 font-bold">بطل! خلصت الماتش بنجاح</p>'; st.innerText = "انتظر تحدي اليوم القادم.";
-            } else if (window.quizStatus.hasActive) {
-                sb.classList.remove('hidden'); ls.classList.add('hidden');
-                st.innerText = "الأسئلة نزلت.. معاك 40 ثانية لكل سؤال, دوس بدء!";
-            } else if (window.quizStatus.hasUpcoming) {
-                sb.classList.add('hidden'); ls.classList.remove('hidden');
-                ls.innerHTML = '<div class="bg-yellow-900/30 p-3 rounded-xl border border-yellow-700/50"><i class="fas fa-hourglass-half fa-spin text-yellow-500 text-3xl mb-2"></i><p class="text-yellow-500 font-bold text-lg">قريباً ⏳</p><p class="text-xs text-gray-400 mt-1">الكويز جاهز وفي انتظار إشارة البدء</p></div>'; st.innerText = "سخن نفسك..";
-            } else {
-                sb.classList.add('hidden'); ls.classList.remove('hidden');
-                ls.innerHTML = '<i class="fas fa-lock text-gray-600 text-3xl mb-2"></i><p class="text-gray-500 text-xs">لا يوجد تحديات اليوم حتى الآن</p>'; st.innerText = "راجعنا لاحقاً.";
+            if (userSnap.exists() && userSnap.data().isBanned === true) {
+                switchScreen('screen-banned');
+                return;
+            }
+
+            if (userSnap.exists()) {
+                totalUserScore = userSnap.data().score || 0;
+                document.getElementById('user-score').innerText = totalUserScore;
+            }
+
+            // الاستماع لحالة الكويز من الإدارة لحظياً
+            onSnapshot(doc(db, "settings", "quiz_status"), async (docSnap) => {
+                if(docSnap.exists()) {
+                    const status = docSnap.data().currentStatus;
+                    handleAdminStatus(status);
+                }
+            });
+        }
+
+        async function handleAdminStatus(status) {
+            // لو كان بيلعب دلوقتي، متخرجوش من الشاشة!
+            if(!document.getElementById('screen-playing').classList.contains('hidden')) return;
+
+            if (status === 'soon') switchScreen('screen-soon');
+            else if (status === 'closed' || status === 'saved') switchScreen('screen-closed');
+            else if (status === 'active') {
+                // جلب بيانات الكويز
+                const qSnap = await getDoc(doc(db, "settings", "active_quiz_data"));
+                if(qSnap.exists()) {
+                    quizTitle = qSnap.data().title;
+                    quizData = qSnap.data().questions;
+                    document.getElementById('active-quiz-title').innerText = quizTitle;
+                    
+                    // التأكد إنه ملعبهوش قبل كدة (حماية)
+                    if(localStorage.getItem(`played_${quizTitle}`)) {
+                        switchScreen('screen-closed');
+                        document.querySelector('#screen-closed h2').innerText = "لقد لعبت هذه الجولة بالفعل!";
+                    } else {
+                        switchScreen('screen-start');
+                    }
+                }
             }
         }
 
-        window.loadLeaderboard = async () => {
-            const list = document.getElementById('leaderboard-list'); list.innerHTML = '<p class="text-center text-[10px] text-gray-500 py-4">جاري التحميل..</p>';
-            try {
-                const q = query(collection(db, "users"), where("group", "==", user.group), orderBy("score", "desc"));
-                const snap = await getDocs(q); list.innerHTML = ''; let r = 1;
-                snap.forEach(d => {
-                    const data = d.data(); const isMe = data.name === user.name;
-                    list.innerHTML += `<div class="flex justify-between items-center p-3 rounded-xl mb-1 ${isMe?'bg-yellow-600/20 border border-yellow-500':'bg-gray-900/40 border border-gray-800'}"><div class="flex items-center gap-3"><span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 text-[10px] font-bold text-yellow-500">#${r}</span><div class="flex flex-col"><span class="text-xs font-bold ${isMe?'text-yellow-400':'text-gray-200'}">${data.name}</span><span class="text-[8px] text-gray-500 italic">لعب ${data.rounds||0} جولة</span></div></div><div class="text-right"><p class="text-sm font-black text-yellow-500 leading-none">${data.score||0}</p><p class="text-[8px] text-gray-500 uppercase">نقطة</p></div></div>`; r++;
-                });
-            } catch(e) { list.innerHTML = '<p class="text-[10px] text-red-400 p-2 text-center">قم بتفعيل الفهرس (Index) من قاعدة البيانات ليعمل الترتيب.</p>'; }
+        // --- 3. نظام اللعب (المحرك الأساسي) ---
+        window.startQuiz = () => {
+            currentQIndex = 0;
+            sessionScore = 0;
+            detailedResults = []; // تصفير مصفوفة النتائج
+            switchScreen('screen-playing');
+            loadQuestion();
         };
 
-        window.switchSection = (s) => {
-            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('sec-'+s).classList.remove('hidden');
-            if(s === 'rankings') { document.getElementById('btn-rankings').classList.add('active'); loadLeaderboard(); }
-            else if(s === 'quizzes') document.getElementById('btn-quizzes').classList.add('active');
-        };
+        function loadQuestion() {
+            if (currentQIndex >= quizData.length) { endQuiz(); return; }
+            
+            isAnswering = false;
+            const q = quizData[currentQIndex];
+            document.getElementById('q-counter').innerText = `سؤال ${currentQIndex + 1} / ${quizData.length}`;
+            document.getElementById('question-text').innerText = q.q;
+            
+            const optionsDiv = document.getElementById('options-container');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-right p-4 rounded-xl font-bold text-gray-200 block';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsDiv.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            let time = 30;
+            const timerText = document.getElementById('timer-text');
+            const timerBar = document.getElementById('timer-bar');
+            
+            clearInterval(timerInterval);
+            timerText.innerText = time;
+            timerBar.style.width = '100%';
+
+            timerInterval = setInterval(() => {
+                time--;
+                timerText.innerText = time;
+                timerBar.style.width = `${(time/30)*100}%`;
+                
+                if (time <= 0) {
+                    clearInterval(timerInterval);
+                    checkAnswer(-1, null); // انتهى الوقت = إجابة خاطئة
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selectedIndex, clickedBtn) {
+            if (isAnswering) return;
+            isAnswering = true;
+            clearInterval(timerInterval);
+
+            const q = quizData[currentQIndex];
+            const isCorrect = (selectedIndex === parseInt(q.correctIndex));
+            
+            // تسجيل هل جاوب صح ولا غلط للمسؤول (لتظهر في الـ Logs)
+            detailedResults.push(isCorrect);
+
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // تلوين الإجابات
+            if (isCorrect) {
+                clickedBtn.classList.add('correct');
+                sessionScore += 10;
+            } else {
+                if (clickedBtn) clickedBtn.classList.add('wrong');
+                // إظهار الإجابة الصحيحة
+                if(buttons[parseInt(q.correctIndex)]) {
+                    buttons[parseInt(q.correctIndex)].classList.add('correct');
+                }
+            }
+
+            setTimeout(() => {
+                currentQIndex++;
+                loadQuestion();
+            }, 1500);
+        }
+
+        async function endQuiz() {
+            switchScreen('screen-result');
+            document.getElementById('final-score-text').innerText = sessionScore;
+            
+            // حفظ إن اللاعب لعب الجولة دي عشان ميلعبهاش تاني
+            localStorage.setItem(`played_${quizTitle}`, "true");
+
+            const userRef = doc(db, "users", localUser.id);
+            
+            try {
+                // 1. تحديث النقاط الإجمالية
+                await updateDoc(userRef, {
+                    score: increment(sessionScore),
+                    rounds: increment(1)
+                });
+
+                // 2. إرسال التقرير التفصيلي لجدول الإدارة (Logs)
+                await addDoc(collection(userRef, "game_logs"), {
+                    day: quizTitle,
+                    score: sessionScore,
+                    results: detailedResults, // مصفوفة الـ true/false
+                    timestamp: serverTimestamp()
+                });
+
+                // تحديث الدرجة في الهيدر
+                totalUserScore += sessionScore;
+                document.getElementById('user-score').innerText = totalUserScore;
+                
+            } catch (e) {
+                console.error("خطأ في حفظ النتيجة: ", e);
+            }
+        }
+
+        // دالة تبديل الشاشات
+        function switchScreen(screenId) {
+            const screens = ['screen-loading', 'screen-banned', 'screen-soon', 'screen-closed', 'screen-start', 'screen-playing', 'screen-result'];
+            screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // تشغيل النظام عند فتح الصفحة
+        initializeDashboard();
+
     </script>
 </body>
-        </html>
-            
+</html>
