@@ -3,73 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | كويز الرمضاني</title>
+    <title>الإدارة المركزية | كويز الرمضاني</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #e2e8f0; overflow: hidden; }
-        .sidebar-day { transition: 0.3s; cursor: pointer; border-right: 4px solid transparent; }
-        .sidebar-day.active { background: #1e293b; border-right-color: #fbbf24; color: #fbbf24; }
-        .quiz-card { background: #1e293b; border: 1px solid #334155; transition: 0.3s; }
-        .quiz-card:hover { border-color: #fbbf24; }
-        .modal { background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 10px; }
+        
+        /* شريط الأيام الأفقي */
+        .days-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px; scroll-behavior: smooth; }
+        .days-scroll::-webkit-scrollbar { height: 6px; }
+        .days-scroll::-webkit-scrollbar-thumb { background: #b8860b; border-radius: 10px; }
+        .day-pill { flex-shrink: 0; padding: 8px 20px; background: #1e293b; border: 1px solid #334155; border-radius: 50px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 14px; }
+        .day-pill.active { background: #b8860b; color: white; border-color: #b8860b; box-shadow: 0 4px 10px rgba(184, 134, 11, 0.4); }
+        
+        /* الكروت والمودال */
+        .quiz-card { background: #1e293b; border: 1px solid #334155; transition: 0.3s; border-radius: 16px; }
+        .modal { background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #b8860b; border-radius: 10px; }
+        
+        /* القائمة الجانبية */
+        .nav-btn { width: 100%; text-align: right; padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; transition: 0.3s; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #94a3b8; }
+        .nav-btn:hover { background: #1e293b; color: white; }
+        .nav-btn.active { background: linear-gradient(90deg, #b8860b, #d4af37); color: white; box-shadow: 0 4px 15px rgba(184, 134, 11, 0.4); }
     </style>
 </head>
-<body class="flex h-screen">
+<body class="flex h-screen flex-col md:flex-row">
 
-    <aside class="w-24 md:w-48 bg-gray-900 flex flex-col border-l border-gray-800">
-        <div class="p-4 border-b border-gray-800 text-center"><img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-10 h-10 mx-auto rounded-full mb-2"><h2 class="text-[10px] md:text-sm font-bold text-yellow-500">الإدارة</h2></div>
-        <div class="p-3 text-center border-b border-gray-800 cursor-pointer hover:bg-gray-800" onclick="switchMainTab('users')"><i class="fas fa-users text-blue-400"></i><p class="text-[10px] md:text-xs">المشتركين</p></div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar" id="days-list"></div>
+    <aside class="w-full md:w-64 bg-gray-900 border-l border-gray-800 p-4 flex flex-col z-20 shadow-xl">
+        <div class="text-center mb-8 hidden md:block">
+            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-16 h-16 mx-auto rounded-full border-2 border-yellow-500 shadow-lg mb-3">
+            <h2 class="font-bold text-yellow-500">المدير العام</h2>
+        </div>
+        
+        <div class="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+            <div id="btn-users" class="nav-btn active flex-1 md:flex-none justify-center md:justify-start" onclick="switchMainTab('users')">
+                <i class="fas fa-users text-lg"></i> <span class="hidden sm:inline">إدارة المشتركين</span>
+            </div>
+            <div id="btn-quizzes" class="nav-btn flex-1 md:flex-none justify-center md:justify-start" onclick="switchMainTab('quizzes')">
+                <i class="fas fa-futbol text-lg"></i> <span class="hidden sm:inline">بنك الكويزات (30 يوم)</span>
+            </div>
+        </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden bg-gray-900">
+    <main class="flex-1 flex flex-col overflow-hidden bg-gray-950">
         
-        <div id="tab-quizzes" class="flex-1 flex flex-col hidden active-tab">
-            <header class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
-                <h1 class="text-sm md:text-lg font-bold">كويزات <span id="selected-day-title" class="text-yellow-500">اليوم 1</span></h1>
-                <button onclick="openQuizModal()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm"><i class="fas fa-plus ml-1"></i>كويز جديد</button>
-            </header>
-            <div class="flex-1 p-4 overflow-y-auto custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-4 content-start" id="quizzes-list"></div>
-        </div>
-
-        <div id="tab-users" class="flex-1 flex flex-col hidden p-6 overflow-y-auto custom-scrollbar">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">إدارة المشتركين</h2>
-                <button onclick="resetAllUsers()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg"><i class="fas fa-sync-alt ml-2"></i>تجهيز المشتركين ليوم جديد</button>
+        <div id="tab-users" class="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto custom-scrollbar">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h1 class="text-2xl font-bold text-white"><i class="fas fa-users text-yellow-500 ml-2"></i>قائمة المشتركين</h1>
+                <button onclick="resetAllUsers()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105"><i class="fas fa-sync-alt ml-2"></i>تجهيز المشتركين ليوم جديد</button>
             </div>
             
-            <div class="bg-gray-800 p-4 rounded-xl shadow mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input type="text" id="u-name" placeholder="الاسم" class="p-2 border border-gray-600 bg-gray-700 rounded w-full">
-                    <input type="text" id="u-pass" placeholder="الكود" class="p-2 border border-gray-600 bg-gray-700 rounded w-full">
-                    <input type="text" id="u-group" placeholder="المجموعة (مثال: المجموعة 1)" class="p-2 border border-gray-600 bg-gray-700 rounded w-full">
-                    <button id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white rounded font-bold">إضافة</button>
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl mb-8">
+                <h3 class="text-yellow-500 font-bold mb-4 text-sm border-b border-gray-800 pb-2">إضافة لاعب جديد</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="u-name" placeholder="اسم اللاعب" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white">
+                    <input type="text" id="u-pass" placeholder="كود الدخول" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white font-bold text-yellow-500">
+                    <input type="text" id="u-group" placeholder="المجموعة (مثال: المجموعة 1)" class="p-3 bg-gray-800 border border-gray-700 rounded-xl w-full focus:outline-none focus:border-yellow-500 text-white">
+                    <button id="add-user-btn" class="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg py-3 md:py-0">حفظ وإضافة</button>
                 </div>
             </div>
-            <div class="bg-gray-800 rounded-xl overflow-x-auto">
-                <table class="w-full text-right text-sm">
-                    <thead class="bg-gray-700 text-gray-300"><tr><th class="p-3">الاسم</th><th class="p-3">المجموعة</th><th class="p-3">الكود</th><th class="p-3">النقاط</th><th class="p-3">الجولات</th><th class="p-3">إجراء</th></tr></thead>
-                    <tbody id="users-table-body"></tbody>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-x-auto shadow-xl">
+                <table class="w-full text-right text-sm whitespace-nowrap">
+                    <thead class="bg-gray-800 text-gray-300">
+                        <tr><th class="p-4 rounded-tr-2xl">الاسم</th><th class="p-4">المجموعة</th><th class="p-4">الكود</th><th class="p-4 text-yellow-500">النقاط</th><th class="p-4 text-green-400">لعب (جولات)</th><th class="p-4 rounded-tl-2xl">حذف</th></tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div id="tab-quizzes" class="flex-1 flex flex-col hidden">
+            <div class="bg-gray-900 border-b border-gray-800 pt-4 pb-2 shadow-md">
+                <div class="flex items-center justify-between px-4 mb-2">
+                    <h2 class="font-bold text-yellow-500"><i class="fas fa-calendar-alt ml-2"></i>أيام الشهر الكريم</h2>
+                    <span class="text-[10px] text-gray-500">اسحب لليمين واليسار</span>
+                </div>
+                <div class="days-scroll" id="days-strip">
+                    </div>
+            </div>
+
+            <div class="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+                <div class="flex justify-between items-center mb-6 bg-gray-900 p-4 rounded-2xl border border-gray-800">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-white">كويزات <span id="selected-day-title" class="text-yellow-500">اليوم 1</span></h2>
+                        <p class="text-xs text-gray-400 mt-1">يمكنك إضافة عدد لا نهائي من الكويزات لهذا اليوم</p>
+                    </div>
+                    <button onclick="openQuizModal()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105"><i class="fas fa-plus ml-2"></i>إضافة كويز</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 content-start" id="quizzes-list">
+                    </div>
             </div>
         </div>
 
     </main>
 
-    <div id="quiz-modal" class="modal fixed inset-0 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-gray-800 w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl border border-gray-600">
-            <div class="p-4 border-b border-gray-700 flex justify-between"><h3 class="font-bold text-yellow-500" id="modal-title">إضافة كويز</h3><button onclick="closeQuizModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button></div>
-            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <input type="text" id="q-title" placeholder="عنوان الكويز (مثال: تحدي الهدافين)" class="w-full p-4 bg-gray-900 border border-gray-600 rounded-xl mb-6 outline-none focus:border-yellow-500 font-bold">
-                <div id="questions-builder" class="space-y-4"></div>
+    <div id="quiz-modal" class="modal fixed inset-0 hidden z-50 flex items-center justify-center p-2 md:p-6">
+        <div class="bg-gray-900 w-full max-w-5xl max-h-[95vh] rounded-3xl flex flex-col shadow-2xl border-2 border-yellow-600/30">
+            <div class="p-5 md:p-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/50 rounded-t-3xl">
+                <div>
+                    <h3 class="font-bold text-xl text-yellow-500" id="modal-title">إضافة كويز جديد</h3>
+                    <p class="text-[10px] md:text-xs text-gray-400 mt-1">السؤال يمكن أن يكون نصاً فقط، أو صورة فقط، أو الاثنين معاً.</p>
+                </div>
+                <button onclick="closeQuizModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-times text-2xl"></i></button>
             </div>
-            <div class="p-4 bg-gray-900 border-t border-gray-700 flex gap-4">
-                <button id="save-btn" onclick="saveQuiz()" class="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-xl font-bold shadow-lg">حفظ الكويز كـ (قريباً ⏳)</button>
-                <button onclick="closeQuizModal()" class="bg-gray-700 px-8 py-3 rounded-xl font-bold">إلغاء</button>
+            
+            <div class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-gray-950">
+                <input type="text" id="q-title" placeholder="عنوان الكويز الأساسي (يظهر للمتسابق)" class="w-full p-4 bg-gray-800 border-2 border-gray-700 focus:border-yellow-500 rounded-2xl mb-8 outline-none font-bold text-lg text-yellow-400 shadow-inner">
+                
+                <div id="questions-builder" class="space-y-6">
+                    </div>
+            </div>
+
+            <div class="p-5 md:p-6 bg-gray-800/50 border-t border-gray-800 flex gap-4 rounded-b-3xl">
+                <button id="save-btn" onclick="saveQuiz()" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-4 rounded-2xl font-bold shadow-xl transition transform active:scale-95 text-lg">حفظ الكويز في المستودع (قريباً ⏳)</button>
+                <button onclick="closeQuizModal()" class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-2xl font-bold transition">إلغاء</button>
             </div>
         </div>
     </div>
@@ -77,90 +129,155 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, collection, addDoc, getDocs, query, where, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
         let activeDay = 1, editingQuizId = null;
 
-        // نظام التبديل بين المشتركين والكويزات
+        // --- 1. نظام التنقل بين المشتركين والكويزات ---
         window.switchMainTab = (tab) => {
-            document.getElementById('tab-quizzes').classList.add('hidden');
             document.getElementById('tab-users').classList.add('hidden');
+            document.getElementById('tab-quizzes').classList.add('hidden');
             document.getElementById('tab-' + tab).classList.remove('hidden');
+            
+            document.getElementById('btn-users').classList.remove('active');
+            document.getElementById('btn-quizzes').classList.remove('active');
+            document.getElementById('btn-' + tab).classList.add('active');
+
             if(tab === 'users') loadUsers();
-            document.querySelectorAll('.sidebar-day').forEach(d => d.classList.remove('active'));
+            if(tab === 'quizzes') loadDayQuizzes();
         };
 
-        // توليد الـ 30 يوم
-        const daysList = document.getElementById('days-list');
+        // --- 2. توليد شريط الـ 30 يوم برمجياً ---
+        const daysStrip = document.getElementById('days-strip');
         for (let i = 1; i <= 30; i++) {
-            const div = document.createElement('div'); div.className = `sidebar-day p-4 text-xs md:text-sm font-bold text-center border-b border-gray-800 ${i === 1 ? 'active' : ''}`; div.innerHTML = `يوم ${i}`;
-            div.onclick = () => { switchMainTab('quizzes'); document.querySelectorAll('.sidebar-day').forEach(d => d.classList.remove('active')); div.classList.add('active'); activeDay = i; document.getElementById('selected-day-title').innerText = `اليوم ${i}`; loadDayQuizzes(); };
-            daysList.appendChild(div);
+            const pill = document.createElement('div');
+            pill.className = `day-pill ${i === 1 ? 'active' : ''}`;
+            pill.innerHTML = `اليوم ${i}`;
+            pill.onclick = () => {
+                document.querySelectorAll('.day-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                activeDay = i;
+                document.getElementById('selected-day-title').innerText = `اليوم ${i}`;
+                loadDayQuizzes();
+            };
+            daysStrip.appendChild(pill);
         }
 
-        // توليد فورمات الأسئلة 15
+        // --- 3. توليد الـ 15 سؤال بشياكة مع توضيح (الصورة/النص) ---
         const qBuilder = document.getElementById('questions-builder');
         for (let i = 1; i <= 15; i++) {
-            qBuilder.innerHTML += `<div class="p-4 bg-gray-900 border border-gray-700 rounded-xl q-block shadow"><p class="text-xs text-yellow-500 mb-2 font-bold bg-gray-800 inline-block px-3 py-1 rounded">سؤال ${i}</p><textarea placeholder="اكتب السؤال هنا..." class="q-txt w-full bg-gray-800 border border-gray-600 p-3 rounded-lg mb-3 text-sm h-16 outline-none focus:border-blue-500"></textarea><div class="grid grid-cols-2 gap-2 mb-3"><input type="text" placeholder="خيار 1" class="o1 bg-gray-800 border border-gray-600 p-2 rounded-lg text-xs outline-none focus:border-blue-500"><input type="text" placeholder="خيار 2" class="o2 bg-gray-800 border border-gray-600 p-2 rounded-lg text-xs outline-none focus:border-blue-500"><input type="text" placeholder="خيار 3" class="o3 bg-gray-800 border border-gray-600 p-2 rounded-lg text-xs outline-none focus:border-blue-500"><input type="text" placeholder="خيار 4" class="o4 bg-gray-800 border border-gray-600 p-2 rounded-lg text-xs outline-none focus:border-blue-500"></div><select class="cor w-full bg-blue-900/30 border border-blue-700 p-2 rounded-lg text-xs text-blue-300 font-bold outline-none"><option value="0">الإجابة 1 هي الصح</option><option value="1">الإجابة 2 هي الصح</option><option value="2">الإجابة 3 هي الصح</option><option value="3">الإجابة 4 هي الصح</option></select></div>`;
+            qBuilder.innerHTML += `
+            <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-lg q-block">
+                <div class="bg-gray-900 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+                    <span class="text-yellow-500 font-bold text-sm bg-yellow-900/30 px-3 py-1 rounded-full">سؤال رقم ${i}</span>
+                </div>
+                <div class="p-4 md:p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="text-[10px] text-gray-400 mb-1 block">نص السؤال (اتركه فارغاً إذا كنت ستضع صورة فقط)</label>
+                            <textarea placeholder="اكتب السؤال هنا..." class="q-txt w-full bg-gray-900 border border-gray-600 p-3 rounded-xl text-sm h-20 outline-none focus:border-yellow-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400 mb-1 block">رابط الصورة (اتركه فارغاً إذا كنت ستضع نصاً فقط)</label>
+                            <input type="text" placeholder="https://..." class="q-img w-full bg-gray-900 border border-gray-600 p-3 rounded-xl text-sm outline-none focus:border-yellow-500" dir="ltr">
+                            <p class="text-[9px] text-blue-400 mt-1">* يمكنك وضع الاثنين معاً (صورة وتحتها نص)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <input type="text" placeholder="الاختيار الأول" class="o1 bg-gray-900 border border-gray-600 p-3 rounded-xl text-xs outline-none focus:border-green-500 focus:bg-green-900/10">
+                        <input type="text" placeholder="الاختيار الثاني" class="o2 bg-gray-900 border border-gray-600 p-3 rounded-xl text-xs outline-none focus:border-green-500 focus:bg-green-900/10">
+                        <input type="text" placeholder="الاختيار الثالث" class="o3 bg-gray-900 border border-gray-600 p-3 rounded-xl text-xs outline-none focus:border-green-500 focus:bg-green-900/10">
+                        <input type="text" placeholder="الاختيار الرابع" class="o4 bg-gray-900 border border-gray-600 p-3 rounded-xl text-xs outline-none focus:border-green-500 focus:bg-green-900/10">
+                    </div>
+                    
+                    <div class="bg-blue-900/20 p-3 rounded-xl border border-blue-900/50">
+                        <label class="text-[10px] text-blue-400 mb-1 block font-bold">الإجابة الصحيحة هي:</label>
+                        <select class="cor w-full bg-gray-900 border border-blue-700 p-2 rounded-lg text-sm text-white font-bold outline-none cursor-pointer">
+                            <option value="0">الاختيار الأول</option>
+                            <option value="1">الاختيار الثاني</option>
+                            <option value="2">الاختيار الثالث</option>
+                            <option value="3">الاختيار الرابع</option>
+                        </select>
+                    </div>
+                </div>
+            </div>`;
         }
 
+        // --- 4. دوال فتح وحفظ الكويز ---
         window.openQuizModal = (q = null) => {
-            editingQuizId = q ? q.id : null; document.getElementById('modal-title').innerText = q ? "تعديل الكويز" : "كويز جديد"; document.getElementById('q-title').value = q ? q.title : "";
-            document.querySelectorAll('.q-block').forEach((b, i) => { const d = q ? q.questions[i] : null; b.querySelector('.q-txt').value = d ? d.q : ""; b.querySelector('.o1').value = d ? d.options[0] : ""; b.querySelector('.o2').value = d ? d.options[1] : ""; b.querySelector('.o3').value = d ? d.options[2] : ""; b.querySelector('.o4').value = d ? d.options[3] : ""; b.querySelector('.cor').value = d ? d.correctIndex : 0; });
+            editingQuizId = q ? q.id : null; 
+            document.getElementById('modal-title').innerText = q ? "تعديل الكويز المحدد" : "إنشاء كويز جديد"; 
+            document.getElementById('q-title').value = q ? q.title : "";
+            
+            document.querySelectorAll('.q-block').forEach((b, i) => { 
+                const d = q ? q.questions[i] : null; 
+                b.querySelector('.q-txt').value = d ? d.q : ""; 
+                b.querySelector('.q-img').value = d ? d.image : ""; 
+                b.querySelector('.o1').value = d ? d.options[0] : ""; 
+                b.querySelector('.o2').value = d ? d.options[1] : ""; 
+                b.querySelector('.o3').value = d ? d.options[2] : ""; 
+                b.querySelector('.o4').value = d ? d.options[3] : ""; 
+                b.querySelector('.cor').value = d ? d.correctIndex : 0; 
+            });
             document.getElementById('quiz-modal').classList.remove('hidden');
         };
         window.closeQuizModal = () => document.getElementById('quiz-modal').classList.add('hidden');
 
         window.saveQuiz = async () => {
-            const btn = document.getElementById('save-btn'); btn.innerText = "جاري الحفظ..."; btn.disabled = true;
-            const qs = []; document.querySelectorAll('.q-block').forEach(b => { qs.push({ q: b.querySelector('.q-txt').value, options: [b.querySelector('.o1').value, b.querySelector('.o2').value, b.querySelector('.o3').value, b.querySelector('.o4').value], correctIndex: parseInt(b.querySelector('.cor').value) }); });
-            const data = { title: document.getElementById('q-title').value || 'كويز بدون اسم', day: activeDay, questions: qs, isActive: false };
-            try { if (editingQuizId) await updateDoc(doc(db, "quizzes", editingQuizId), data); else await addDoc(collection(db, "quizzes"), data); closeQuizModal(); loadDayQuizzes(); } catch (e) { alert("خطأ!"); }
-            btn.innerText = "حفظ الكويز كـ (قريباً ⏳)"; btn.disabled = false;
+            const btn = document.getElementById('save-btn'); btn.innerText = "جاري الحفظ في قاعدة البيانات..."; btn.disabled = true;
+            const qs = []; 
+            document.querySelectorAll('.q-block').forEach(b => { 
+                qs.push({ 
+                    q: b.querySelector('.q-txt').value, 
+                    image: b.querySelector('.q-img').value, // إضافة حفظ الصورة
+                    options: [b.querySelector('.o1').value, b.querySelector('.o2').value, b.querySelector('.o3').value, b.querySelector('.o4').value], 
+                    correctIndex: parseInt(b.querySelector('.cor').value) 
+                }); 
+            });
+            const data = { title: document.getElementById('q-title').value || 'كويز جديد', day: activeDay, questions: qs, isActive: false };
+            try { 
+                if (editingQuizId) await updateDoc(doc(db, "quizzes", editingQuizId), data); 
+                else await addDoc(collection(db, "quizzes"), data); 
+                closeQuizModal(); loadDayQuizzes(); 
+            } catch (e) { alert("حدث خطأ أثناء الحفظ!"); console.log(e); }
+            btn.innerText = "حفظ الكويز في المستودع (قريباً ⏳)"; btn.disabled = false;
         };
 
         window.loadDayQuizzes = async () => {
-            document.getElementById('tab-quizzes').classList.remove('hidden'); document.getElementById('tab-users').classList.add('hidden');
-            const list = document.getElementById('quizzes-list'); list.innerHTML = '<p class="text-gray-500 w-full text-center mt-10"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>جاري التحميل...</p>';
+            const list = document.getElementById('quizzes-list'); 
+            list.innerHTML = '<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-4"></i><p class="text-gray-400">جاري جلب كويزات هذا اليوم...</p></div>';
+            
             const snap = await getDocs(query(collection(db, "quizzes"), where("day", "==", activeDay)));
-            list.innerHTML = snap.empty ? '<div class="col-span-full text-center p-10 border-2 border-dashed border-gray-700 rounded-2xl text-gray-500"><i class="fas fa-box-open text-4xl mb-3"></i><br>لا يوجد كويزات مضافة لهذا اليوم</div>' : '';
+            list.innerHTML = snap.empty ? '<div class="col-span-full text-center p-12 border-2 border-dashed border-gray-800 rounded-3xl bg-gray-900/50"><i class="fas fa-box-open text-6xl text-gray-700 mb-4"></i><p class="text-gray-400 font-bold">لا يوجد أي كويزات مضافة لهذا اليوم بعد.</p></div>' : '';
+            
             snap.forEach(d => {
                 const data = d.data();
-                const btnColor = data.isActive ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/50' : 'bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-900/50';
-                const btnText = data.isActive ? '<i class="fas fa-check-circle ml-1"></i> شغال دلوقتي' : '<i class="fas fa-hourglass-half ml-1"></i> قريباً (اضغط للتشغيل)';
-                list.innerHTML += `<div class="quiz-card p-5 rounded-2xl flex flex-col gap-4"><div class="flex justify-between items-start"><div><h4 class="font-bold text-lg text-white mb-1">${data.title}</h4><p class="text-xs text-yellow-500 font-bold bg-yellow-900/30 inline-block px-2 py-1 rounded">15 سؤال</p></div><div class="flex gap-1"><button onclick='openQuizModal(${JSON.stringify({id: d.id, ...data}).replace(/'/g, "&apos;")})' class="p-2 text-blue-400 hover:bg-gray-700 rounded transition"><i class="fas fa-edit"></i></button><button onclick="deleteQuiz('${d.id}')" class="p-2 text-red-400 hover:bg-gray-700 rounded transition"><i class="fas fa-trash"></i></button></div></div><button onclick="toggleQuizActive('${d.id}', ${data.isActive})" class="w-full py-3 rounded-xl text-sm font-bold transition ${btnColor}">${btnText}</button></div>`;
+                const btnColor = data.isActive ? 'bg-gradient-to-r from-green-600 to-green-700 shadow-green-900/50' : 'bg-gradient-to-r from-yellow-600 to-yellow-700 shadow-yellow-900/50 text-white';
+                const btnText = data.isActive ? '<i class="fas fa-broadcast-tower ml-2"></i> شغال للمشتركين دلوقتي' : '<i class="fas fa-pause-circle ml-2"></i> قريباً ⏳ (اضغط للتشغيل)';
+                
+                list.innerHTML += `
+                <div class="quiz-card p-6 flex flex-col gap-4 shadow-xl">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-xl text-white mb-2 leading-tight">${data.title}</h4>
+                            <span class="text-xs text-yellow-500 font-bold bg-yellow-900/40 px-3 py-1 rounded-full"><i class="fas fa-list-ol ml-1"></i>15 سؤال</span>
+                        </div>
+                        <div class="flex gap-2 bg-gray-900 p-1 rounded-lg border border-gray-800">
+                            <button onclick='openQuizModal(${JSON.stringify({id: d.id, ...data}).replace(/'/g, "&apos;")})' class="w-8 h-8 flex items-center justify-center text-blue-400 hover:bg-blue-900/30 rounded transition"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteQuiz('${d.id}')" class="w-8 h-8 flex items-center justify-center text-red-400 hover:bg-red-900/30 rounded transition"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="toggleQuizActive('${d.id}', ${data.isActive})" class="w-full py-3 rounded-xl text-sm font-bold shadow-lg transition transform active:scale-95 mt-auto ${btnColor}">${btnText}</button>
+                </div>`;
             });
         };
 
-        window.deleteQuiz = async (id) => { if(confirm("أكيد عايز تمسح الكويز؟")) { await deleteDoc(doc(db, "quizzes", id)); loadDayQuizzes(); } };
+        window.deleteQuiz = async (id) => { if(confirm("هل أنت متأكد من حذف هذا الكويز نهائياً؟")) { await deleteDoc(doc(db, "quizzes", id)); loadDayQuizzes(); } };
         window.toggleQuizActive = async (id, status) => { await updateDoc(doc(db, "quizzes", id), { isActive: !status }); loadDayQuizzes(); };
 
-        // إدارة المشتركين
+        // --- 5. إدارة المشتركين ---
         document.getElementById('add-user-btn').onclick = async () => {
-            const name = document.getElementById('u-name').value, pass = document.getElementById('u-pass').value, group = document.getElementById('u-group').value;
-            if(!name || !pass || !group) return alert("اكمل البيانات");
-            await addDoc(collection(db, "users"), { name, password: pass, group, score: 0, rounds: 0, hasCompletedToday: false });
-            document.getElementById('u-name').value = ''; document.getElementById('u-pass').value = ''; loadUsers();
-        };
-
-        window.loadUsers = async () => {
-            const snap = await getDocs(collection(db, "users")); const tbody = document.getElementById('users-table-body'); tbody.innerHTML = '';
-            snap.forEach(d => { const data = d.data(); tbody.innerHTML += `<tr class="border-b border-gray-700 hover:bg-gray-700/50"><td class="p-3 font-bold">${data.name}</td><td class="p-3">${data.group}</td><td class="p-3 text-yellow-500">${data.password}</td><td class="p-3 font-bold">${data.score}</td><td class="p-3">${data.rounds}</td><td class="p-3"><button onclick="deleteUser('${d.id}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button></td></tr>`; });
-        };
-
-        window.deleteUser = async (id) => { if(confirm("مسح المشترك؟")) { await deleteDoc(doc(db, "users", id)); loadUsers(); } };
-        
-        // تصفير حالة المشتركين ليوم جديد
-        window.resetAllUsers = async () => {
-            if(!confirm("أكيد عايز تصفر حالة المشتركين عشان يخشوا كويز يوم جديد؟ (ده مش بيمسح النقاط، بس بيسمح لهم يدخلوا الماتش الجديد)")) return;
-            const snap = await getDocs(collection(db, "users"));
-            snap.forEach(async (d) => { await updateDoc(doc(db, "users", d.id), { hasCompletedToday: false }); });
-            alert("تم التجهيز ليوم جديد بنجاح!");
-        };
-
-        loadDayQuizzes();
-    </script>
-</body>
-    </html>
-    
+  
