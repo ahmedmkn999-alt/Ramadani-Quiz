@@ -2,331 +2,200 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كويز الرمضاني | المنافسة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كويز الرمضاني | الملعب</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        
-        body { 
-            background-color: #050a15; 
-            color: white; 
-            font-family: 'Cairo', sans-serif; 
-            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); 
-            overflow-x: hidden;
-        }
-
-        .glass-card { 
-            background: rgba(13, 27, 42, 0.95); 
-            border: 1px solid #b8860b; 
-            backdrop-filter: blur(10px); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-
-        .option-btn {
-            background-color: #1e293b;
-            border: 2px solid #334155;
-            transition: all 0.3s ease;
-        }
-        .option-btn:active { transform: scale(0.98); }
-        .option-btn.correct { background-color: #16a34a !important; border-color: #15803d !important; color: white; }
-        .option-btn.wrong { background-color: #dc2626 !important; border-color: #991b1b !important; color: white; }
-
-        /* شريط الوقت */
-        #timer-bar { transition: width 1s linear; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        body { background-color: #050a15; color: white; font-family: 'Cairo', sans-serif; background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="p-4 flex flex-col min-h-screen">
 
-    <header class="bg-gray-900 border-b-4 border-yellow-600 p-4 sticky top-0 z-50 shadow-xl">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-yellow-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div>
-                    <h1 id="user-name" class="font-bold text-sm text-yellow-500">جاري التحميل...</h1>
-                    <p id="user-group" class="text-xs text-gray-400">المجموعة</p>
-                </div>
+    <header class="flex justify-between items-center bg-gray-900 p-4 rounded-2xl border border-gray-800 mb-6 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-yellow-600 p-3 rounded-full"><i class="fas fa-user text-xl text-black"></i></div>
+            <div>
+                <h2 id="player-name" class="font-bold text-yellow-500 text-lg"></h2>
+                <p id="player-group" class="text-xs text-blue-300"></p>
             </div>
-            <div class="text-center">
-                <div class="bg-gray-800 px-4 py-1 rounded-lg border border-gray-700">
-                    <span class="text-[10px] text-gray-400 block">إجمالي النقاط</span>
-                    <span id="user-score" class="font-black text-lg text-white">0</span>
-                </div>
-            </div>
+        </div>
+        <div class="text-center bg-gray-800 p-2 rounded-xl border border-gray-700 min-w-[80px]">
+            <p class="text-[10px] text-gray-400">النقاط</p>
+            <p id="player-score" class="font-black text-xl text-white"></p>
         </div>
     </header>
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div id="dynamic-container" class="w-full max-w-md">
-            
-            <div id="screen-loading" class="text-center text-yellow-500 animate-pulse">
-                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
-                <p class="font-bold">جاري الاتصال بالملعب...</p>
-            </div>
-
-            <div id="screen-banned" class="hidden glass-card p-8 rounded-3xl text-center border-red-600">
-                <i class="fas fa-ban text-red-500 text-6xl mb-4"></i>
-                <h2 class="text-xl font-bold text-red-500 mb-2">تم حظر حسابك!</h2>
-                <p class="text-gray-300 text-sm">لقد تم إيقاف حسابك من قبل الإدارة لمخالفة قوانين البطولة.</p>
-            </div>
-
-            <div id="screen-soon" class="hidden glass-card p-8 rounded-3xl text-center border-blue-500">
-                <i class="fas fa-clock text-blue-400 text-6xl mb-4"></i>
-                <h2 class="text-2xl font-bold text-blue-400 mb-2">استعد للمواجهة!</h2>
-                <p class="text-gray-300 text-sm">الجولة القادمة لم تبدأ بعد، حافظ على تركيزك وانتظر صافرة الحكم ⚽🌙</p>
-            </div>
-
-            <div id="screen-closed" class="hidden glass-card p-8 rounded-3xl text-center border-gray-500">
-                <i class="fas fa-lock text-gray-400 text-6xl mb-4"></i>
-                <h2 class="text-2xl font-bold text-gray-300 mb-2">انتهت جولة اليوم</h2>
-                <p class="text-gray-400 text-sm">تم غلق الجولة الحالية، نلقاكم في التحدي القادم. راجع ترتيبك في اللوحة!</p>
-            </div>
-
-            <div id="screen-start" class="hidden glass-card p-8 rounded-3xl text-center border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-                <i class="fas fa-futbol text-green-400 text-6xl mb-4 animate-bounce"></i>
-                <h2 id="active-quiz-title" class="text-2xl font-bold text-green-400 mb-2">جولة جديدة</h2>
-                <p class="text-gray-300 text-sm mb-6">لديك 15 سؤال، ومحاولة واحدة فقط. هل أنت مستعد للنزول لأرض الملعب؟</p>
-                <button onclick="startQuiz()" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg">
-                    ابدأ التحدي الآن ⚽
-                </button>
-            </div>
-
-            <div id="screen-playing" class="hidden glass-card p-6 rounded-3xl">
-                <div class="flex justify-between items-center mb-4 text-sm font-bold">
-                    <span class="text-yellow-500" id="q-counter">سؤال 1 / 15</span>
-                    <span class="text-red-400 flex items-center gap-1"><i class="fas fa-stopwatch"></i> <span id="timer-text">30</span>ث</span>
-                </div>
-                <div class="w-full bg-gray-800 rounded-full h-2 mb-6 overflow-hidden">
-                    <div id="timer-bar" class="bg-yellow-500 h-2 rounded-full w-full"></div>
-                </div>
-                
-                <h3 id="question-text" class="text-lg font-bold text-white mb-6 leading-relaxed text-center min-h-[60px]"></h3>
-                
-                <div id="options-container" class="space-y-3">
-                    </div>
-            </div>
-
-            <div id="screen-result" class="hidden glass-card p-8 rounded-3xl text-center border-yellow-500">
-                <i class="fas fa-trophy text-yellow-500 text-6xl mb-4"></i>
-                <h2 class="text-2xl font-bold text-white mb-2">صافرة النهاية!</h2>
-                <p class="text-gray-300 mb-6">لقد أنهيت التحدي، وهذه هي محصلتك:</p>
-                <div class="text-6xl font-black text-yellow-500 mb-6" id="final-score-text">0</div>
-                <p class="text-sm text-gray-400 mb-6">تم إرسال إجاباتك التفصيلية للإدارة وتسجيل نقاطك بنجاح ✅</p>
-            </div>
-
-        </div>
+    <main id="quiz-container" class="flex-grow flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
+        <div class="text-center p-10"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-4"></i><p>جاري الاتصال بالملعب...</p></div>
     </main>
+
+    <div class="text-center mt-6">
+        <button id="logout-btn" class="text-gray-500 text-sm hover:text-red-500"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, onSnapshot, updateDoc, collection, addDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
-            projectId: "ramadan-87817", 
-            appId: "1:343525703258:web:6776b4857425df8bcca263" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 1. التحقق من هوية المتسابق ---
-        const localUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!localUser) window.location.href = "index.html";
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) window.location.href = "index.html";
 
-        // متغيرات اللعبة
+        document.getElementById('player-name').innerText = currentUser.name;
+        document.getElementById('player-group').innerText = currentUser.group;
+        document.getElementById('player-score').innerText = currentUser.score || 0;
+
         let quizData = [];
-        let quizTitle = "";
-        let currentQIndex = 0;
-        let sessionScore = 0;
-        let detailedResults = []; // لتسجيل الصح والغلط [true, false, ...]
-        let timerInterval;
-        let isAnswering = false;
-        let totalUserScore = localUser.score || 0;
+        let currentQuestion = 0;
+        let score = 0;
+        let detailedResults = [];
+        let activeDayNum = 0;
 
-        // عرض بيانات الهيدر
-        document.getElementById('user-name').innerText = localUser.name;
-        document.getElementById('user-group').innerText = localUser.group;
-        document.getElementById('user-score').innerText = totalUserScore;
-
-        // --- 2. التحقق من حالة المستخدم وحالة الموقع ---
-        async function initializeDashboard() {
-            // جلب بيانات المتسابق الحالية (للتأكد إنه مش محظور)
-            const userRef = doc(db, "users", localUser.id);
-            const userSnap = await getDoc(userRef);
+        // 1. الاستماع لحالة الموقع من الإدارة
+        onSnapshot(doc(db, "settings", "global_status"), async (docSnap) => {
+            const container = document.getElementById('quiz-container');
+            if (!docSnap.exists()) return;
             
-            if (userSnap.exists() && userSnap.data().isBanned === true) {
-                switchScreen('screen-banned');
+            const globalData = docSnap.data();
+            const status = globalData.status;
+            activeDayNum = globalData.currentDay;
+
+            // تحديث بيانات المستخدم من السيرفر للتأكد من اليوم اللي لعبه
+            const userSnap = await getDoc(doc(db, "users", currentUser.id));
+            if(userSnap.exists()) {
+                currentUser = { id: userSnap.id, ...userSnap.data() };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+
+            // فحص الحالات
+            if (status === 'closed') {
+                container.innerHTML = `<div class="bg-gray-900 border border-red-900 p-8 rounded-2xl text-center w-full"><i class="fas fa-lock text-5xl text-red-500 mb-4"></i><h2 class="text-2xl font-bold text-red-400">الغرفة مغلقة</h2><p class="text-gray-400 mt-2">تم إغلاق اللعب من قبل الإدارة حالياً.</p></div>`;
                 return;
             }
 
-            if (userSnap.exists()) {
-                totalUserScore = userSnap.data().score || 0;
-                document.getElementById('user-score').innerText = totalUserScore;
+            if (status === 'soon') {
+                container.innerHTML = `<div class="bg-gray-900 border border-blue-900 p-8 rounded-2xl text-center w-full"><i class="fas fa-clock text-5xl text-blue-500 mb-4"></i><h2 class="text-2xl font-bold text-yellow-500">جولة (اليوم ${activeDayNum}) قريباً!</h2><p class="text-gray-400 mt-2">استعد.. سيتم فتح الأسئلة قريباً.</p></div>`;
+                return;
             }
 
-            // الاستماع لحالة الكويز من الإدارة لحظياً
-            onSnapshot(doc(db, "settings", "quiz_status"), async (docSnap) => {
-                if(docSnap.exists()) {
-                    const status = docSnap.data().currentStatus;
-                    handleAdminStatus(status);
+            // لو الموقع "نشط" -> نفحص هل اللاعب لعب جولة النهارده؟
+            if (currentUser.lastPlayedDay === activeDayNum) {
+                container.innerHTML = `
+                    <div class="bg-gray-900 border border-green-900 p-8 rounded-2xl text-center w-full shadow-2xl">
+                        <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-white mb-2">أنت أنهيت جولة اليوم بنجاح!</h2>
+                        <p class="text-gray-400 mt-2">لقد أكملت أسئلة (اليوم ${activeDayNum}).<br>راجع ترتيبك وانتظرنا غداً في التحدي القادم!</p>
+                    </div>`;
+                return;
+            }
+
+            // لو ملعبش والموقع نشط -> نجلب كويز عشوائي
+            if (status === 'active') {
+                loadRandomQuizForDay(activeDayNum);
+            }
+        });
+
+        async function loadRandomQuizForDay(dayNumber) {
+            const container = document.getElementById('quiz-container');
+            try {
+                const daySnap = await getDoc(doc(db, "quizzes_pool", `day_${dayNumber}`));
+                if (daySnap.exists() && daySnap.data().variations && daySnap.data().variations.length > 0) {
+                    const variations = daySnap.data().variations;
+                    // السحر هنا: اختيار كويز عشوائي من المصفوفة
+                    const randomIndex = Math.floor(Math.random() * variations.length);
+                    quizData = variations[randomIndex].questions;
+                    showQuestion();
+                } else {
+                    container.innerHTML = `<div class="text-center text-red-500 bg-red-900/20 p-6 rounded-xl border border-red-900">لم يتم رفع أسئلة لهذا اليوم بعد.</div>`;
                 }
+            } catch (e) { console.error(e); }
+        }
+
+        function showQuestion() {
+            if (currentQuestion >= quizData.length) return endQuiz();
+            const q = quizData[currentQuestion];
+            let html = `
+                <div class="w-full">
+                    <div class="mb-4 flex justify-between items-center text-sm font-bold text-gray-400 bg-gray-900 p-3 rounded-xl border border-gray-800">
+                        <span>اليوم: ${activeDayNum}</span>
+                        <span class="text-yellow-500">سؤال ${currentQuestion + 1} / ${quizData.length}</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-bold mb-8 text-white leading-relaxed text-center bg-gray-900/50 p-6 rounded-2xl border border-yellow-600/30 shadow-lg">${q.q}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+            q.options.forEach((opt, index) => {
+                html += `<button onclick="checkAnswer(${index})" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white font-bold py-4 px-4 rounded-xl transition text-right shadow-md active:scale-95">${opt}</button>`;
             });
+            html += `</div></div>`;
+            document.getElementById('quiz-container').innerHTML = html;
         }
 
-        async function handleAdminStatus(status) {
-            // لو كان بيلعب دلوقتي، متخرجوش من الشاشة!
-            if(!document.getElementById('screen-playing').classList.contains('hidden')) return;
+        window.checkAnswer = (index) => {
+            const q = quizData[currentQuestion];
+            const isCorrect = (index === q.correctIndex);
+            detailedResults.push(isCorrect);
+            if (isCorrect) score += 1;
 
-            if (status === 'soon') switchScreen('screen-soon');
-            else if (status === 'closed' || status === 'saved') switchScreen('screen-closed');
-            else if (status === 'active') {
-                // جلب بيانات الكويز
-                const qSnap = await getDoc(doc(db, "settings", "active_quiz_data"));
-                if(qSnap.exists()) {
-                    quizTitle = qSnap.data().title;
-                    quizData = qSnap.data().questions;
-                    document.getElementById('active-quiz-title').innerText = quizTitle;
-                    
-                    // التأكد إنه ملعبهوش قبل كدة (حماية)
-                    if(localStorage.getItem(`played_${quizTitle}`)) {
-                        switchScreen('screen-closed');
-                        document.querySelector('#screen-closed h2').innerText = "لقد لعبت هذه الجولة بالفعل!";
-                    } else {
-                        switchScreen('screen-start');
-                    }
-                }
-            }
-        }
-
-        // --- 3. نظام اللعب (المحرك الأساسي) ---
-        window.startQuiz = () => {
-            currentQIndex = 0;
-            sessionScore = 0;
-            detailedResults = []; // تصفير مصفوفة النتائج
-            switchScreen('screen-playing');
-            loadQuestion();
+            let infoText = q.info ? `<p class="mt-4 text-sm text-yellow-300 bg-yellow-900/40 p-3 rounded-xl border border-yellow-700">${q.info}</p>` : '';
+            
+            document.getElementById('quiz-container').innerHTML = `
+                <div class="text-center bg-gray-900 w-full p-8 rounded-3xl border ${isCorrect ? 'border-green-600' : 'border-red-600'} shadow-2xl">
+                    <i class="fas ${isCorrect ? 'fa-check-circle text-green-500' : 'fa-times-circle text-red-500'} text-7xl mb-4 drop-shadow-lg"></i>
+                    <h2 class="text-3xl font-bold ${isCorrect ? 'text-green-500' : 'text-red-500'} mb-2">
+                        ${isCorrect ? 'إجابة صحيحة! 🔥' : 'إجابة خاطئة! 😔'}
+                    </h2>
+                    ${infoText}
+                    <button onclick="nextQuestion()" class="mt-8 bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-bold py-4 px-12 rounded-xl transition text-xl shadow-lg active:scale-95 w-full md:w-auto">استمرار <i class="fas fa-arrow-left mr-2"></i></button>
+                </div>
+            `;
         };
 
-        function loadQuestion() {
-            if (currentQIndex >= quizData.length) { endQuiz(); return; }
-            
-            isAnswering = false;
-            const q = quizData[currentQIndex];
-            document.getElementById('q-counter').innerText = `سؤال ${currentQIndex + 1} / ${quizData.length}`;
-            document.getElementById('question-text').innerText = q.q;
-            
-            const optionsDiv = document.getElementById('options-container');
-            optionsDiv.innerHTML = '';
-            
-            q.options.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn w-full text-right p-4 rounded-xl font-bold text-gray-200 block';
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(index, btn);
-                optionsDiv.appendChild(btn);
-            });
-
-            startTimer();
-        }
-
-        function startTimer() {
-            let time = 30;
-            const timerText = document.getElementById('timer-text');
-            const timerBar = document.getElementById('timer-bar');
-            
-            clearInterval(timerInterval);
-            timerText.innerText = time;
-            timerBar.style.width = '100%';
-
-            timerInterval = setInterval(() => {
-                time--;
-                timerText.innerText = time;
-                timerBar.style.width = `${(time/30)*100}%`;
-                
-                if (time <= 0) {
-                    clearInterval(timerInterval);
-                    checkAnswer(-1, null); // انتهى الوقت = إجابة خاطئة
-                }
-            }, 1000);
-        }
-
-        function checkAnswer(selectedIndex, clickedBtn) {
-            if (isAnswering) return;
-            isAnswering = true;
-            clearInterval(timerInterval);
-
-            const q = quizData[currentQIndex];
-            const isCorrect = (selectedIndex === parseInt(q.correctIndex));
-            
-            // تسجيل هل جاوب صح ولا غلط للمسؤول (لتظهر في الـ Logs)
-            detailedResults.push(isCorrect);
-
-            const buttons = document.querySelectorAll('.option-btn');
-            
-            // تلوين الإجابات
-            if (isCorrect) {
-                clickedBtn.classList.add('correct');
-                sessionScore += 10;
-            } else {
-                if (clickedBtn) clickedBtn.classList.add('wrong');
-                // إظهار الإجابة الصحيحة
-                if(buttons[parseInt(q.correctIndex)]) {
-                    buttons[parseInt(q.correctIndex)].classList.add('correct');
-                }
-            }
-
-            setTimeout(() => {
-                currentQIndex++;
-                loadQuestion();
-            }, 1500);
-        }
+        window.nextQuestion = () => { currentQuestion++; showQuestion(); };
 
         async function endQuiz() {
-            switchScreen('screen-result');
-            document.getElementById('final-score-text').innerText = sessionScore;
-            
-            // حفظ إن اللاعب لعب الجولة دي عشان ميلعبهاش تاني
-            localStorage.setItem(`played_${quizTitle}`, "true");
-
-            const userRef = doc(db, "users", localUser.id);
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-4"></i><p class="font-bold text-lg">جاري حفظ النتيجة في السيرفر...</p></div>`;
             
             try {
-                // 1. تحديث النقاط الإجمالية
-                await updateDoc(userRef, {
-                    score: increment(sessionScore),
-                    rounds: increment(1)
+                const userRef = doc(db, "users", currentUser.id);
+                // 1. تحديث النقاط + تسجيل إن اللاعب لعب اليوم ده (lastPlayedDay)
+                await updateDoc(userRef, { 
+                    score: increment(score),
+                    lastPlayedDay: activeDayNum 
                 });
-
-                // 2. إرسال التقرير التفصيلي لجدول الإدارة (Logs)
+                // 2. إرسال التفاصيل للوحة التحكم
                 await addDoc(collection(userRef, "game_logs"), {
-                    day: quizTitle,
-                    score: sessionScore,
-                    results: detailedResults, // مصفوفة الـ true/false
+                    day: activeDayNum,
+                    score: score,
+                    results: detailedResults,
                     timestamp: serverTimestamp()
                 });
 
-                // تحديث الدرجة في الهيدر
-                totalUserScore += sessionScore;
-                document.getElementById('user-score').innerText = totalUserScore;
-                
-            } catch (e) {
-                console.error("خطأ في حفظ النتيجة: ", e);
-            }
+                currentUser.score = (currentUser.score || 0) + score;
+                currentUser.lastPlayedDay = activeDayNum;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('player-score').innerText = currentUser.score;
+
+                container.innerHTML = `
+                    <div class="text-center bg-gray-900 w-full p-8 rounded-3xl border border-yellow-500 shadow-2xl">
+                        <i class="fas fa-trophy text-7xl text-yellow-500 mb-6 drop-shadow-xl"></i>
+                        <h2 class="text-3xl font-bold text-white mb-2">انتهت جولة اليوم بنجاح!</h2>
+                        <p class="text-gray-300 mb-8 text-lg">جمعت <span class="text-yellow-500 font-black text-4xl mx-2">${score}</span> نقاط من ${quizData.length}</p>
+                        <p class="text-sm text-green-400 font-bold mb-6">تم تسجيل نتيجتك، نلقاكم غداً.</p>
+                        <button onclick="window.location.reload()" class="bg-gray-800 border border-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-10 rounded-xl transition">العودة للرئيسية</button>
+                    </div>
+                `;
+            } catch(e) { container.innerHTML = `<p class="text-red-500">حدث خطأ في الشبكة! يرجى أخذ لقطة شاشة وإرسالها للإدارة.</p>`; }
         }
 
-        // دالة تبديل الشاشات
-        function switchScreen(screenId) {
-            const screens = ['screen-loading', 'screen-banned', 'screen-soon', 'screen-closed', 'screen-start', 'screen-playing', 'screen-result'];
-            screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        // تشغيل النظام عند فتح الصفحة
-        initializeDashboard();
-
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear(); window.location.href = "index.html";
+        });
     </script>
 </body>
 </html>
