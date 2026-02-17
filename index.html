@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>كويز الرمضاني | دخول</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -18,19 +19,22 @@
 
     <div class="ramadan-card p-6 rounded-xl text-center mb-8 max-w-md w-full border-r-4 border-yellow-500 shadow-lg">
         <p class="text-yellow-400 text-xs mb-2 italic">رسالة اليوم ✨</p>
-        <p class="text-lg font-bold" id="daily-message">أهلاً بكم في كويز الرمضاني..</p>
+        <p class="text-lg font-bold leading-relaxed" id="daily-message">أهلاً بكم في كويز الرمضاني.. جاري التحميل...</p>
     </div>
 
     <div class="ramadan-card p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
         <h2 class="text-2xl font-bold mb-6 text-yellow-500">سجل دخولك</h2>
-        <input type="password" id="password-input" placeholder="أدخل كود الدخول" class="w-full p-3 rounded bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500">
-        <button id="login-btn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-lg transition shadow-lg">دخول للمسابقة</button>
-        <p id="error-msg" class="text-red-500 mt-3 hidden text-xs font-bold">كود الدخول غير صحيح!</p>
+        
+        <input type="password" id="password-input" placeholder="أدخل كود الدخول" class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
+        
+        <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">دخول للمسابقة</button>
+        
+        <p id="error-msg" class="text-red-500 mt-4 hidden text-sm font-bold bg-red-900/30 py-2 rounded-lg border border-red-800"><i class="fas fa-exclamation-triangle ml-1"></i> كود الدخول غير صحيح!</p>
     </div>
 
     <div class="flex mt-10 gap-6">
-        <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-110 transition"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-8 h-8"></a>
-        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-110 transition"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8"></a>
+        <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-8 h-8"></a>
+        <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-110 transition drop-shadow-lg"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8"></a>
     </div>
 
     <script type="module">
@@ -41,30 +45,71 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // جلب رسالة اليوم من الإعدادات
         async function fetchMessage() {
             try {
                 const docSnap = await getDoc(doc(db, "settings", "dailyData"));
-                if (docSnap.exists()) document.getElementById('daily-message').innerText = docSnap.data().message;
-            } catch(e) {}
+                if (docSnap.exists() && docSnap.data().message) {
+                    document.getElementById('daily-message').innerText = docSnap.data().message;
+                } else {
+                    document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني، نتمنى لكم التوفيق!";
+                }
+            } catch(e) {
+                document.getElementById('daily-message').innerText = "أهلاً بكم في كويز الرمضاني!";
+            }
         }
         fetchMessage();
 
+        // ==========================================
+        // التعديل الجديد: كتابة الكود المحفوظ تلقائياً
+        // ==========================================
+        window.onload = () => {
+            const savedPassword = localStorage.getItem('userSecretCode'); // ندور على الكود في الذاكرة
+            if (savedPassword) {
+                // لو لقيناه، نكتبه جوه الخانة أوتوماتيك
+                document.getElementById('password-input').value = savedPassword;
+            }
+        };
+
+        // زرار الدخول
         document.getElementById('login-btn').addEventListener('click', async () => {
             const pass = document.getElementById('password-input').value;
             const btn = document.getElementById('login-btn');
-            btn.innerText = "جاري التحقق..";
             
-            const q = query(collection(db, "users"), where("password", "==", pass));
-            const querySnapshot = await getDocs(q);
+            if(!pass) {
+                document.getElementById('error-msg').innerText = "الرجاء إدخال الكود أولاً!";
+                document.getElementById('error-msg').classList.remove('hidden');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري التحقق..';
+            btn.disabled = true;
             
-            if (!querySnapshot.empty) {
-                querySnapshot.forEach((doc) => {
-                    localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
-                });
-                window.location.href = "dashboard.html";
-            } else {
+            try {
+                const q = query(collection(db, "users"), where("password", "==", pass));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((doc) => {
+                        // تسجيل الدخول نجح!
+                        // نحفظ بيانات اللاعب
+                        localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
+                        
+                        // التعديل الجديد: نحفظ الكود في الذاكرة عشان المرة الجاية
+                        localStorage.setItem('userSecretCode', pass);
+                    });
+                    window.location.href = "dashboard.html";
+                } else {
+                    document.getElementById('error-msg').innerText = "كود الدخول غير صحيح!";
+                    document.getElementById('error-msg').classList.remove('hidden');
+                    btn.innerText = "دخول للمسابقة";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                document.getElementById('error-msg').innerText = "حدث خطأ في الاتصال، حاول مرة أخرى.";
                 document.getElementById('error-msg').classList.remove('hidden');
                 btn.innerText = "دخول للمسابقة";
+                btn.disabled = false;
             }
         });
     </script>
