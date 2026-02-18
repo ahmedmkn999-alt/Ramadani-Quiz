@@ -3,114 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-    <title>كويز الرمضاني | دخول</title>
+    <title>كويز الرمضاني | تسجيل الدخول</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        
-        body { 
-            background-color: #050a15; 
-            color: white; 
-            font-family: 'Cairo', sans-serif; 
-            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png'); 
-            overflow-x: hidden;
-            margin: 0;
-        }
-
-        .ramadan-card { 
-            background: rgba(13, 27, 42, 0.9); 
-            border: 1px solid #b8860b; 
-            backdrop-filter: blur(10px); 
-        }
-
-        .main-logo {
-            filter: drop-shadow(0 0 15px rgba(184, 134, 11, 0.5));
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; background-image: radial-gradient(circle at top, #112240, #030712); }
+        .login-box { background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 relative">
+<body class="p-4">
 
-    <div class="relative z-20 flex flex-col items-center w-full max-w-sm">
+    <div class="login-box p-8 rounded-3xl w-full max-w-sm text-center">
+        <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-24 h-24 mx-auto rounded-full border-2 border-yellow-500 mb-6 shadow-[0_0_15px_rgba(212,175,55,0.5)]">
+        <h1 class="text-2xl font-black text-yellow-500 mb-2">أهلاً بك يا بطل</h1>
+        <p class="text-gray-400 text-sm mb-6">أدخل بياناتك للبدء في التحدي</p>
+
+        <input type="text" id="login-name" placeholder="اسمك كاملاً..." class="w-full p-4 bg-gray-800 rounded-xl mb-4 text-white border border-gray-700 outline-none focus:border-yellow-500">
+        <input type="password" id="login-pass" placeholder="كلمة السر..." class="w-full p-4 bg-gray-800 rounded-xl mb-6 text-white border border-gray-700 outline-none focus:border-yellow-500 text-center tracking-widest font-bold">
         
-        <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="main-logo w-36 h-36 object-contain mb-6 rounded-full border-4 border-yellow-600">
-
-        <div class="ramadan-card p-6 rounded-2xl text-center mb-8 w-full border-r-4 border-yellow-500 shadow-2xl">
-            <p class="text-yellow-400 text-[10px] mb-2 font-bold uppercase tracking-widest">رسالة اليوم ✨</p>
-            <p class="text-md font-bold leading-relaxed text-gray-100" id="daily-message">🌙 جاري تحميل بركات اليوم...</p>
-        </div>
-
-        <div class="ramadan-card p-8 rounded-3xl shadow-2xl w-full text-center border-t-4 border-yellow-600">
-            <h2 class="text-xl font-bold mb-6 text-yellow-500">سجل دخولك للمنافسة</h2>
-            
-            <input type="password" id="password-input" placeholder="أدخل كود الدخول" 
-                   class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-center text-white mb-4 focus:outline-none focus:border-yellow-500 font-bold tracking-widest text-lg transition shadow-inner">
-            
-            <button id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-lg transform active:scale-95">
-                دخول للمسابقة
-            </button>
-            
-            <p id="error-msg" class="text-red-400 mt-4 hidden text-xs font-bold bg-red-900/20 py-2 rounded-lg border border-red-900/50">
-                <i class="fas fa-exclamation-circle ml-1"></i> كود الدخول غير صحيح!
-            </p>
-        </div>
-
-        <div class="flex mt-10 gap-8">
-            <a href="https://www.facebook.com/share/1GmFwuYWZv/" target="_blank" class="hover:scale-125 transition duration-300"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" class="w-7 h-7"></a>
-            <a href="https://chat.whatsapp.com/D5dKR9EdHZjDPgrFpHl28J" target="_blank" class="hover:scale-125 transition duration-300"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-7 h-7"></a>
-        </div>
+        <button onclick="loginUser()" id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition text-lg">دخول الملعب ⚽</button>
+        <p id="error-msg" class="text-red-500 text-xs mt-4 font-bold hidden"></p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc, initializeFirestore, persistentLocalCache } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
-            projectId: "ramadan-87817", 
-            appId: "1:343525703258:web:6776b4857425df8bcca263" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, { localCache: persistentLocalCache() });
+        if (localStorage.getItem('currentUser')) window.location.replace('dashboard.html');
 
-        async function fetchMessage() {
-            try {
-                const docSnap = await getDoc(doc(db, "settings", "dailyData"));
-                if (docSnap.exists()) document.getElementById('daily-message').innerText = docSnap.data().message;
-            } catch(e) { document.getElementById('daily-message').innerText = "رمضان كريم! جاهز للتحدي؟"; }
-        }
-        fetchMessage();
+        function loginUser() {
+            let n = document.getElementById('login-name').value.trim();
+            let p = document.getElementById('login-pass').value.trim();
+            let err = document.getElementById('error-msg');
+            let btn = document.getElementById('login-btn');
 
-        window.onload = () => {
-            const saved = localStorage.getItem('userSecretCode');
-            if (saved) document.getElementById('password-input').value = saved;
-        };
+            if (!n || !p) { err.innerText = "⚠️ برجاء كتابة الاسم وكلمة السر!"; err.classList.remove('hidden'); return; }
 
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const pass = document.getElementById('password-input').value;
-            const btn = document.getElementById('login-btn');
-            const err = document.getElementById('error-msg');
-            
-            if(!pass) return;
+            btn.innerText = "جاري التحقق...";
+            err.classList.add('hidden');
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; err.classList.add('hidden');
-            
-            try {
-                const q = query(collection(db, "users"), where("password", "==", pass));
-                const snap = await getDocs(q);
-                
-                if (!snap.empty) {
-                    snap.forEach((doc) => {
-                        localStorage.setItem('currentUser', JSON.stringify({id: doc.id, ...doc.data()}));
-                        localStorage.setItem('userSecretCode', pass);
-                    });
-                    window.location.href = "dashboard.html";
+            db.collection("users").where("name", "==", n).where("password", "==", p).get()
+            .then(snap => {
+                if (snap.empty) {
+                    err.innerText = "❌ البيانات خاطئة، راجع الإدارة!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽";
                 } else {
-                    err.classList.remove('hidden'); btn.innerText = "دخول للمسابقة"; btn.disabled = false;
+                    let userData = snap.docs[0].data();
+                    userData.id = snap.docs[0].id;
+                    if (userData.isBanned) {
+                        err.innerText = "⛔ حسابك محظور من اللعب!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽";
+                    } else {
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        window.location.replace('dashboard.html');
+                    }
                 }
-            } catch (e) { alert("مشكلة في الشبكة!"); btn.disabled = false; }
-        });
+            }).catch(e => { err.innerText = "خطأ في الشبكة!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽"; });
+        }
     </script>
 </body>
 </html>
