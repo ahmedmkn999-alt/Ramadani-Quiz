@@ -17,50 +17,76 @@
     <div class="login-box p-8 rounded-3xl w-full max-w-sm text-center">
         <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-24 h-24 mx-auto rounded-full border-2 border-yellow-500 mb-6 shadow-[0_0_15px_rgba(212,175,55,0.5)]">
         <h1 class="text-2xl font-black text-yellow-500 mb-2">أهلاً بك يا بطل</h1>
-        <p class="text-gray-400 text-sm mb-6">أدخل بياناتك للبدء في التحدي</p>
+        <p class="text-gray-400 text-sm mb-8">أدخل كود الدخول للبدء في التحدي</p>
 
-        <input type="text" id="login-name" placeholder="اسمك كاملاً..." class="w-full p-4 bg-gray-800 rounded-xl mb-4 text-white border border-gray-700 outline-none focus:border-yellow-500">
-        <input type="password" id="login-pass" placeholder="كلمة السر..." class="w-full p-4 bg-gray-800 rounded-xl mb-6 text-white border border-gray-700 outline-none focus:border-yellow-500 text-center tracking-widest font-bold">
+        <input type="password" id="login-pass" onkeypress="if(event.key === 'Enter') loginUser()" placeholder="كود الدخول (كلمة السر)..." class="w-full p-4 bg-gray-800 rounded-xl mb-6 text-white border border-gray-700 outline-none focus:border-yellow-500 text-center tracking-widest font-black text-xl transition">
         
         <button onclick="loginUser()" id="login-btn" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition text-lg">دخول الملعب ⚽</button>
-        <p id="error-msg" class="text-red-500 text-xs mt-4 font-bold hidden"></p>
+        <p id="error-msg" class="text-red-500 text-sm mt-4 font-bold hidden"></p>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
     <script>
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
+        // 1. لو هو مسجل دخول بالفعل، وديه للداشبورد فوراً
         if (localStorage.getItem('currentUser')) window.location.replace('dashboard.html');
 
+        // 2. ميزة "تذكرني": استرجاع كلمة السر لو كان كتبها قبل كده
+        window.onload = function() {
+            let savedPass = localStorage.getItem('savedUserPass');
+            if(savedPass) {
+                document.getElementById('login-pass').value = savedPass;
+            }
+        };
+
         function loginUser() {
-            let n = document.getElementById('login-name').value.trim();
             let p = document.getElementById('login-pass').value.trim();
             let err = document.getElementById('error-msg');
             let btn = document.getElementById('login-btn');
 
-            if (!n || !p) { err.innerText = "⚠️ برجاء كتابة الاسم وكلمة السر!"; err.classList.remove('hidden'); return; }
+            if (!p) { 
+                err.innerText = "⚠️ برجاء كتابة كود الدخول!"; 
+                err.classList.remove('hidden'); 
+                return; 
+            }
 
             btn.innerText = "جاري التحقق...";
             err.classList.add('hidden');
 
-            db.collection("users").where("name", "==", n).where("password", "==", p).get()
+            // حفظ كلمة السر في المتصفح عشان تفضل مكتوبة المرة الجاية
+            localStorage.setItem('savedUserPass', p);
+
+            // البحث في الداتا بيز بكلمة السر فقط
+            db.collection("users").where("password", "==", p).get()
             .then(snap => {
                 if (snap.empty) {
-                    err.innerText = "❌ البيانات خاطئة، راجع الإدارة!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽";
+                    err.innerText = "❌ كود الدخول غير صحيح!"; 
+                    err.classList.remove('hidden'); 
+                    btn.innerText = "دخول الملعب ⚽";
                 } else {
                     let userData = snap.docs[0].data();
                     userData.id = snap.docs[0].id;
+                    
                     if (userData.isBanned) {
-                        err.innerText = "⛔ حسابك محظور من اللعب!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽";
+                        err.innerText = "⛔ حسابك محظور من اللعب!"; 
+                        err.classList.remove('hidden'); 
+                        btn.innerText = "دخول الملعب ⚽";
                     } else {
+                        // حفظ بيانات اللاعب والدخول
                         localStorage.setItem('currentUser', JSON.stringify(userData));
                         window.location.replace('dashboard.html');
                     }
                 }
-            }).catch(e => { err.innerText = "خطأ في الشبكة!"; err.classList.remove('hidden'); btn.innerText = "دخول الملعب ⚽"; });
+            }).catch(e => { 
+                err.innerText = "خطأ في الاتصال بالشبكة!"; 
+                err.classList.remove('hidden'); 
+                btn.innerText = "دخول الملعب ⚽"; 
+            });
         }
     </script>
 </body>
