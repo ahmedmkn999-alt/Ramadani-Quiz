@@ -14,16 +14,15 @@
         .gold-text { background: linear-gradient(to right, #ffd700, #d4af37, #ffdf00); -webkit-background-clip: text; color: transparent; }
         .tab-btn { transition: 0.4s; cursor: pointer; }
         .tab-btn.active { background: linear-gradient(90deg, #b8860b, #ffd700); color: #000; font-weight: 900; transform: scale(1.02); }
-        .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; }
+        .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
         .quiz-box { width: 100%; max-width: 500px; background: rgba(17, 24, 39, 0.9); border: 2px solid #b8860b; border-radius: 30px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .opt-btn { background: #1e293b; border: 1px solid #334155; transition: all 0.2s; width: 100%; text-align: right; padding: 18px; border-radius: 16px; font-weight: bold; margin-bottom: 12px; font-size: 15px; color: #e2e8f0; }
-        .opt-btn:active { background: #b8860b; color: black; transform: scale(0.95); }
+        .opt-btn { background: #1e293b; border: 1px solid #334155; transition: all 0.2s; width: 100%; text-align: right; padding: 18px; border-radius: 16px; font-weight: bold; margin-bottom: 12px; font-size: 15px; color: #e2e8f0; cursor: pointer; }
+        .opt-btn:active { transform: scale(0.97); }
         
-        /* شريط الوقت */
-        #timer-bar-container { width: 100%; height: 6px; background: #334155; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+        #timer-bar-container { width: 100%; height: 8px; background: #334155; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
         #timer-bar { height: 100%; background: #22c55e; width: 100%; transition: width 1s linear, background-color 0.3s; }
     </style>
     
@@ -44,21 +43,21 @@
 
     <div id="champ-flying-popup" class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/80 backdrop-blur-md transition-opacity duration-700" style="display:none; opacity: 0;">
         <div id="champ-popup-card" class="bg-gradient-to-b from-yellow-600 to-yellow-900 p-1 rounded-3xl shadow-[0_0_50px_rgba(212,175,55,0.8)] transform scale-50 transition-transform duration-700 w-11/12 max-w-sm">
-            <div class="bg-gray-900 rounded-[22px] p-8 text-center border border-yellow-500/50 relative overflow-hidden">
-                <i class="fas fa-crown text-7xl text-yellow-400 mb-6 drop-shadow-md animate-bounce relative z-10"></i>
-                <h2 class="text-3xl font-black text-white mb-2 relative z-10">تحية لبطل اليوم!</h2>
-                <div class="bg-black/40 p-4 rounded-2xl border border-yellow-700/50 relative z-10 mt-4">
+            <div class="bg-gray-900 rounded-[22px] p-8 text-center border border-yellow-500/50">
+                <i class="fas fa-crown text-7xl text-yellow-400 mb-6 animate-bounce"></i>
+                <h2 class="text-3xl font-black text-white mb-2">تحية لبطل اليوم!</h2>
+                <div class="bg-black/40 p-4 rounded-2xl border border-yellow-700/50 mt-4">
                     <p id="champ-popup-text" class="text-yellow-400 font-bold text-xl leading-relaxed"></p>
                 </div>
-                <button onclick="document.getElementById('champ-flying-popup').style.display='none'" class="mt-6 bg-yellow-600 text-black px-6 py-2 rounded-xl font-bold">متابعة</button>
+                <button onclick="document.getElementById('champ-flying-popup').style.display='none'" class="mt-6 w-full bg-yellow-600 hover:bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold transition">استمرار للبطولة</button>
             </div>
         </div>
     </div>
 
-    <div id="daily-msg-box" class="max-w-lg mx-auto bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-500/50 p-4 rounded-2xl mb-4 text-center text-sm text-blue-200 hidden shadow-lg font-bold"></div>
+    <div id="daily-msg-box" class="max-w-lg mx-auto bg-gradient-to-r from-blue-900/60 to-purple-900/60 border border-blue-500/50 p-4 rounded-2xl mb-4 text-center text-sm text-blue-200 hidden shadow-lg font-bold"></div>
 
     <div class="flex justify-between items-center max-w-lg mx-auto mb-6">
-        <button onclick="window.logoutUser()" class="bg-gray-800/80 text-red-400 border border-red-900/50 px-5 py-2 rounded-xl text-xs font-black shadow-lg"><i class="fas fa-power-off ml-1"></i> خروج</button>
+        <button onclick="logoutUser()" class="bg-gray-800/80 text-red-400 border border-red-900/50 px-5 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-900 hover:text-white transition"><i class="fas fa-power-off ml-1"></i> خروج</button>
         <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-14 h-14 rounded-full border-2 border-yellow-500 shadow-[0_0_15px_rgba(184,134,11,0.5)]">
     </div>
 
@@ -85,142 +84,140 @@
     </header>
 
     <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-8 max-w-lg mx-auto border border-gray-700 shadow-xl">
-        <button onclick="window.showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3.5 text-sm rounded-xl font-bold">الخريطة 🗺️</button>
-        <button onclick="window.showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3.5 text-sm rounded-xl font-bold">المجموعة 🏆</button>
+        <button onclick="showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3.5 text-sm rounded-xl font-bold">الخريطة 🗺️</button>
+        <button onclick="showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3.5 text-sm rounded-xl font-bold">المجموعة 🏆</button>
     </div>
 
-    <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"><div class="text-center p-10"><i class="fas fa-spinner fa-spin text-yellow-500 text-4xl"></i></div></div>
+    <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10">
+        <div class="text-center p-10"><i class="fas fa-spinner fa-spin text-yellow-500 text-4xl"></i><p class="mt-4 text-gray-400">جاري تحميل البيانات...</p></div>
+    </div>
 
     <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
         <div class="glass-card p-6 rounded-3xl">
             <h3 class="text-center text-white font-black mb-6 text-lg border-b border-gray-700 pb-3">الترتيب العام لمجموعتك</h3>
-            <div id="group-list" class="space-y-3"><div class="text-center text-gray-500 text-sm">جاري تحميل الترتيب...</div></div>
+            <div id="group-list" class="space-y-3"><div class="text-center text-gray-500 text-sm">جاري التحميل...</div></div>
         </div>
     </div>
 
     <div id="quiz-overlay">
-        <div class="quiz-box" id="quiz-content">
-            </div>
+        <div class="quiz-box" id="quiz-content"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // تهيئة قاعدة البيانات
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // التحقق من تسجيل الدخول
+        // فحص وتأمين بيانات المستخدم
         let user = null;
         try { 
             user = JSON.parse(localStorage.getItem('currentUser')); 
+            user.id = user.id || user.uid; // تأكيد وجود الـ ID
             if (!user || !user.id) throw new Error(); 
         } catch(e) { window.location.replace("index.html"); }
 
-        // وضع بيانات المستخدم في الهيدر
         document.getElementById('p-name').innerText = user.name || "مستخدم";
         document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
         
-        // المتغيرات الأساسية للعبة
         let myLogs = {}, adminDay = 1, adminStatus = "closed";
         let currentQuizQuestions = [], currentQuestionIndex = 0, currentScore = 0;
         let timerInterval, timeLeft = 20, isQuizActive = false, currentQuizDay = 0;
 
-        // بدء تشغيل النظام عند فتح الصفحة
         function initApp() {
-            // 1. جلب بيانات المستخدم الحية
+            // تحديث سكور المستخدم الحي
             db.collection("users").doc(user.id).onSnapshot(doc => {
                 if(doc.exists) {
                     user.score = doc.data().score || 0;
                     document.getElementById('p-score').innerText = user.score;
-                    if(doc.data().isBanned) { alert("تم حظر حسابك من قبل الإدارة."); window.logoutUser(); }
+                    if(doc.data().isBanned) { alert("تم حظر حسابك!"); logoutUser(); }
                 }
             });
 
-            // 2. رسالة البطل المنبثقة
+            // جلب رسالة البطل
             db.collection("settings").doc("champData").get().then(s => {
-                if(s.exists && s.data().message && s.data().message.trim() !== "") {
+                if(s.exists && s.data().message) {
                     if(!sessionStorage.getItem('champSeen')) {
-                        let pop = document.getElementById('champ-flying-popup');
-                        let card = document.getElementById('champ-popup-card');
                         document.getElementById('champ-popup-text').innerText = s.data().message;
+                        let pop = document.getElementById('champ-flying-popup');
                         pop.style.display = 'flex';
                         requestAnimationFrame(() => {
                             pop.style.opacity = '1';
-                            card.classList.remove('scale-50'); card.classList.add('scale-100');
+                            document.getElementById('champ-popup-card').classList.replace('scale-50', 'scale-100');
                         });
                         sessionStorage.setItem('champSeen', 'true');
                     }
                 }
             });
 
-            // 3. شريط الأخبار اليومي
+            // جلب الشريط الإخباري
             db.collection("settings").doc("dailyData").onSnapshot(s => {
-                if(s.exists && s.data().message && s.data().message.trim() !== "") {
+                if(s.exists && s.data().message) {
                     let b = document.getElementById('daily-msg-box');
                     b.innerText = s.data().message; b.classList.remove('hidden');
                 }
             });
 
-            // 4. جلب سجلات لعب المستخدم (عشان نقفل الأيام اللي لعبها)
+            // فصل الأكواد عشان الخريطة تحمل فوراً
+            fetchGameLogsAndStatus();
+            fetchLeaderboard();
+        }
+
+        // جلب الأيام اللي لعبها + حالة لوحة التحكم
+        function fetchGameLogsAndStatus() {
             db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
                 myLogs = {};
                 snap.forEach(d => myLogs[d.data().day] = d.data().score);
                 let pCount = Object.keys(myLogs).length;
-                document.getElementById('progress-text').innerText = `${pCount} / 29 جولة`;
-                document.getElementById('progress-bar').style.width = `${(pCount/29)*100}%`;
-                
-                // 5. جلب حالة الموقع من الكنترول (مفتوح ولا قريباً) ورسم الخريطة
-                db.collection("settings").doc("global_status").onSnapshot(doc => {
-                    if(doc.exists) { 
-                        adminDay = doc.data().currentDay; 
-                        adminStatus = doc.data().status; 
-                    }
-                    renderMap();
-                });
+                document.getElementById('progress-text').innerText = pCount + " / 29 جولة";
+                document.getElementById('progress-bar').style.width = ((pCount/29)*100) + "%";
+                renderMap(); // رسم بعد ما نعرف لعب إيه
             });
 
-            // 6. جلب الترتيب للمجموعة الخاصة به
-            fetchLeaderboard();
+            db.collection("settings").doc("global_status").onSnapshot(doc => {
+                if(doc.exists) { 
+                    adminDay = doc.data().currentDay; 
+                    adminStatus = doc.data().status; 
+                }
+                renderMap(); // رسم لما حالة اللوحة تتغير
+            });
         }
 
-        // رسم الخريطة (الـ Arena)
+        // رسم الخريطة والأيام
         function renderMap() {
             let container = document.getElementById('view-arena'); 
             let html = '';
             
-            // حالة "قريباً" من الكنترول
             if(adminStatus === "soon") {
-                container.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center border border-blue-500/50"><i class="fas fa-clock text-5xl text-blue-400 mb-4 animate-pulse"></i><h2 class="text-xl font-bold text-white mb-2">جولة اليوم لم تبدأ بعد</h2><p class="text-gray-400 text-sm">يرجى الانتظار، سيتم تفعيل الجولة قريباً من قبل الإدارة ⏳</p></div>`;
+                container.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center border border-blue-500/50"><i class="fas fa-clock text-5xl text-blue-400 mb-4 animate-pulse"></i><h2 class="text-xl font-bold text-white mb-2">جولة اليوم لم تبدأ بعد</h2><p class="text-gray-400 text-sm">سيتم تفعيل الجولة قريباً من قبل الإدارة ⏳</p></div>`;
                 return;
             }
 
-            // رسم 29 يوم
             for (let i = 1; i <= 29; i++) {
                 let isPlayed = myLogs[i] !== undefined; 
                 let isActive = (i === adminDay && adminStatus === 'active');
                 
                 if (isPlayed) {
-                    // لعبها وخلصها
                     html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-l-4 border-l-green-500 mb-4"><div class="flex items-center gap-4"><div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div><div><p class="font-bold text-gray-300">الجولة ${i}</p><p class="text-[10px] text-green-400">مكتملة</p></div></div><p class="font-black text-2xl text-yellow-500">${myLogs[i]} <span class="text-[10px] text-gray-500">نقطة</span></p></div>`;
                 } 
                 else if (isActive) {
-                    // الجولة الحالية المفتوحة (الزرار بيشغل دالة openQuiz)
-                    html += `<div onclick="window.openQuiz(${i})" class="day-box day-active p-6 rounded-2xl flex justify-between cursor-pointer mb-4 transform hover:scale-105 transition"><div class="flex items-center gap-4"><div class="bg-gradient-to-r from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black shadow-lg"><i class="fas fa-play text-2xl ml-1"></i></div><div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-[10px] text-yellow-400 font-bold animate-pulse">متاحة الآن - اضغط للبدء</p></div></div><i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-60"></i></div>`;
+                    html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4"><div class="flex items-center gap-4"><div class="bg-gradient-to-r from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black shadow-lg"><i class="fas fa-play text-2xl ml-1"></i></div><div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-[10px] text-yellow-400 font-bold animate-pulse mt-1">اضغط هنا لبدء التحدي</p></div></div><i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-60"></i></div>`;
                 } 
                 else {
-                    // مقفولة
                     html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-50 mb-4"><div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock"></i></div><p class="font-bold text-sm text-gray-500">الجولة ${i}</p></div>`;
                 }
             }
             container.innerHTML = html;
         }
 
-        // جلب ترتيب مجموعة المستخدم (Leaderboard)
+        // جلب الترتيب
         function fetchLeaderboard() {
-            db.collection("users").where("group", "==", user.group).onSnapshot(snap => {
+            let uGroup = user.group || "";
+            if(!uGroup) return; // لو مفيش مجموعة
+
+            db.collection("users").where("group", "==", uGroup).onSnapshot(snap => {
                 let teamsData = {};
                 snap.forEach(doc => {
                     let u = doc.data();
@@ -229,10 +226,9 @@
                     teamsData[tName] += (u.score || 0);
                 });
 
-                // ترتيب من الأكبر للأصغر
                 let sortedTeams = Object.keys(teamsData).map(k => ({name: k, score: teamsData[k]})).sort((a,b) => b.score - a.score);
-                
                 let html = '';
+                
                 sortedTeams.forEach((t, i) => {
                     let rankStyle = i === 0 ? "border-l-4 border-l-yellow-500 bg-yellow-900/20" : "border border-gray-800";
                     let rankIcon = i === 0 ? '👑' : (i+1);
@@ -246,62 +242,56 @@
                         <span class="font-black text-yellow-500 text-xl">${t.score} <span class="text-[10px] text-gray-500">ن</span></span>
                     </div>`;
                 });
-                document.getElementById('group-list').innerHTML = html || "<p class="text-center text-gray-500">لا يوجد بيانات بعد.</p>";
+                
+                // هنا حلينا مشكلة الأقواس (استخدمنا الباك تيك `)
+                document.getElementById('group-list').innerHTML = html || `<p class="text-center text-gray-500 text-sm">لا توجد بيانات.</p>`;
             });
         }
 
-        // ==========================================
-        // نظام الامتحان والكويز (The Core Engine)
-        // ==========================================
+        // =======================
+        // نظام الامتحان و العداد
+        // =======================
 
         window.openQuiz = function(dayNumber) {
-            if(isQuizActive) return; // لو بيمتحن ميفتحش تاني
+            if(isQuizActive) return; 
             
-            // إظهار شاشة تحميل
             document.getElementById('quiz-overlay').style.display = 'flex';
-            document.getElementById('quiz-content').innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-4"></i><p class="font-bold text-white">جاري تجهيز الأسئلة...</p></div>`;
+            document.getElementById('quiz-content').innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-5xl text-yellow-500 mb-4"></i><p class="font-bold text-white">تجهيز الأسئلة...</p></div>`;
             
             currentQuizDay = dayNumber;
-            let userVariant = user.quizVar || 0; // النسخة اللي متحدداله من الكنترول
+            let userVariant = user.quizVar || 0; 
 
-            // سحب أسئلة اليوم من الخزنة
             db.collection("quizzes_pool").doc("day_" + dayNumber).get().then(doc => {
                 if(doc.exists && doc.data().variations && doc.data().variations[userVariant] && doc.data().variations[userVariant].questions) {
                     currentQuizQuestions = doc.data().variations[userVariant].questions;
                     
                     if(currentQuizQuestions.length === 0) {
-                        alert("الإدارة لم تقم بإضافة أسئلة لهذه الجولة بعد!");
+                        alert("لا توجد أسئلة، الإدارة لم تنشرها بعد.");
                         document.getElementById('quiz-overlay').style.display = 'none';
                         return;
                     }
 
-                    // تجهيز الامتحان للبدء
-                    currentQuestionIndex = 0;
-                    currentScore = 0;
-                    isQuizActive = true;
+                    currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
                     showQuestion();
                 } else {
-                    alert("عذراً، لم يتم العثور على أسئلة لهذه الجولة.");
+                    alert("عفواً، لم يتم العثور على الأسئلة.");
                     document.getElementById('quiz-overlay').style.display = 'none';
                 }
             }).catch(e => {
-                alert("خطأ في الاتصال بالسيرفر!");
+                alert("خطأ في الاتصال بالشبكة!");
                 document.getElementById('quiz-overlay').style.display = 'none';
             });
         };
 
         function showQuestion() {
-            if (currentQuestionIndex >= currentQuizQuestions.length) {
-                finishQuiz();
-                return;
-            }
+            if (currentQuestionIndex >= currentQuizQuestions.length) { finishQuiz(); return; }
 
             let qData = currentQuizQuestions[currentQuestionIndex];
-            timeLeft = 20; // 20 ثانية لكل سؤال
+            timeLeft = 20; // الوقت 20 ثانية
             
             let html = `
                 <div class="flex justify-between items-center mb-4 text-xs font-bold">
-                    <span class="text-yellow-500 bg-yellow-900/30 px-3 py-1 rounded-lg">السؤال ${currentQuestionIndex + 1} من ${currentQuizQuestions.length}</span>
+                    <span class="text-yellow-500 bg-yellow-900/30 px-3 py-1 rounded-lg">سؤال ${currentQuestionIndex + 1} / ${currentQuizQuestions.length}</span>
                     <span class="text-red-400 bg-red-900/30 px-3 py-1 rounded-lg flex items-center gap-1"><i class="fas fa-clock"></i> <span id="timer-text">${timeLeft}</span> ث</span>
                 </div>
                 <div id="timer-bar-container"><div id="timer-bar"></div></div>
@@ -320,4 +310,22 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            let bar = do
+            let bar = document.getElementById('timer-bar');
+            let txt = document.getElementById('timer-text');
+            bar.style.width = "100%"; bar.style.backgroundColor = "#22c55e";
+
+            timerInterval = setInterval(() => {
+                timeLeft--; txt.innerText = timeLeft;
+                bar.style.width = ((timeLeft / 20) * 100) + "%";
+                
+                if(timeLeft <= 10) bar.style.backgroundColor = "#eab308";
+                if(timeLeft <= 5) bar.style.backgroundColor = "#ef4444";
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitAnswer(-1); // الوقت خلص = غلط
+                }
+            }, 1000);
+        }
+
+        window.submitAnswer
