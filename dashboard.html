@@ -104,15 +104,14 @@
 
         let myLogs = {}, adminDay = 1, adminStatus = "closed";
         let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
+        let isQuizActive = false; // متغير لمعرفة هل اللاعب داخل الكويز حالياً أم لا
 
         // دالة التهيئة الأساسية
         function init() {
-            // جلب البيانات من الفايربيز
             db.collection("users").doc(user.id).onSnapshot(doc => {
                 if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
             });
 
-            // جلب رسالة البطل
             db.collection("settings").doc("champData").get().then(s => {
                 if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
                     document.getElementById('champ-popup-text').innerText = s.data().message;
@@ -126,7 +125,6 @@
                 }
             });
 
-            // تحديث الخريطة
             db.collection("settings").doc("global_status").onSnapshot(doc => {
                 if(doc.exists) {
                     adminDay = doc.data().currentDay;
@@ -154,8 +152,7 @@
             for (let i = 1; i <= 29; i++) {
                 let isPlayed = myLogs[i] !== undefined;
                 let isActive = (i === adminDay && adminStatus === 'active');
-                let isSoon = (i === adminDay && adminStatus === 'soon');
-
+                
                 if (isPlayed) {
                     html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-l-4 border-l-green-500 mb-4">
                         <div class="flex items-center gap-4">
@@ -211,17 +208,28 @@
             });
         }
 
-        // --- نظام الكويز ---
+        // --- نظام الكويز القوي ---
         function openQuiz(day) {
+            // منع الدخول لو لعب الجولة دي قبل كده
+            if (myLogs[day] !== undefined) {
+                alert("أنت لعبت الجولة دي خلاص يا بطل، مفيش إعادة!");
+                return;
+            }
+
+            isQuizActive = true;
+            history.pushState(null, null, location.href); // فخ لمنع زرار الرجوع
+
             document.getElementById('quiz-overlay').style.display = 'flex';
-            document.getElementById('quiz-content').innerHTML = '<p class="text-center">جاري التحميل...</p>';
+            document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold">جاري تحميل التحدي...</p>';
             
             db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
                 if(doc.exists) {
-                    // اختيار النسخة 0 افتراضياً أو حسب نسخة اليوزر
                     currentQuestions = doc.data().variations[0].questions;
                     currentIndex = 0; sessionScore = 0;
                     showQuestion();
+                } else {
+                    document.getElementById('quiz-content').innerHTML = '<p class="text-center text-red-500">مفيش أسئلة متاحة حالياً!</p>';
+                    setTimeout(() => location.reload(), 2000);
                 }
             });
         }
@@ -234,10 +242,10 @@
             
             let html = `
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-xs text-gray-400">سؤال ${currentIndex+1} / ${currentQuestions.length}</span>
-                    <span id="timer" class="text-red-500 font-bold">${timeLeft}s</span>
+                    <span class="text-xs text-gray-400 font-bold">سؤال ${currentIndex+1} من ${currentQuestions.length}</span>
+                    <span id="timer" class="text-red-500 font-black text-lg">${timeLeft}s</span>
                 </div>
-                <h3 class="text-xl font-bold text-center mb-8">${q.q}</h3>
+                <h3 class="text-xl font-bold text-center mb-8 leading-relaxed">${q.q}</h3>
                 <div class="space-y-3">
                     ${q.options.map((opt, i) => `
                         <button onclick="handleAnswer(${i})" class="opt-btn">
@@ -253,39 +261,52 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timer').innerText = timeLeft + "s";
-                if(timeLeft <= 0) handleAnswer(-1);
+                if(timeLeft <= 0) handleAnswer(-1); // الوقت خلص
             }, 1000);
         }
 
         window.handleAnswer = function(i) {
             clearInterval(timerInterval);
-            if(i === currentQuestions[currentIndex].correctIndex) sessionScore++;
+            if(i !== -1 && i === currentQuestions[currentIndex].correctIndex) {
+                sessionScore++; // النقطة بتتحسب هنا بس
+            }
             currentIndex++;
             showQuestion();
         }
 
-        function endQuiz() {
-            document.getElementById('quiz-content').innerHTML = '<p class="text-center">جاري حفظ النتيجة...</p>';
+        function endQuiz(isForceExit = false) {
+            if (!isQuizActive) return; // عشان ميحفظش مرتين
+            isQuizActive = false; // فك قفل الكويز
+            clearInterval(timerInterval);
             
-            // تحديث السكور الكلي
+            if (!isForceExit) {
+                document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 text-xl animate-pulse">جاري تسجيل النتيجة في السيرفر...</p>';
+            }
+
+            // حفظ النتيجة النهائية أو حتى نتيجة الهروب
             db.collection("users").doc(user.id).update({
                 score: firebase.firestore.FieldValue.increment(sessionScore)
             }).then(() => {
-                // حفظ اللوج
                 return db.collection("users").doc(user.id).collection("game_logs").doc("day_"+adminDay).set({
                     day: adminDay,
                     score: sessionScore,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }).then(() => {
-                if(window.confetti) confetti();
-                document.getElementById('quiz-content').innerHTML = `
-                    <div class="text-center">
-                        <h2 class="text-2xl font-bold mb-4">عاش يا بطل!</h2>
-                        <p class="mb-6">حصدت اليوم: ${sessionScore} نقطة</p>
-                        <button onclick="location.reload()" class="w-full bg-yellow-600 p-3 rounded-xl font-bold text-black">استمرار</button>
-                    </div>
-                `;
+                if (!isForceExit) {
+                    if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    document.getElementById('quiz-content').innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-trophy text-6xl text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]"></i>
+                            <h2 class="text-3xl font-black mb-2 text-white">عاش يا بطل!</h2>
+                            <p class="mb-6 text-gray-300">حصدت اليوم: <span class="text-3xl font-black text-yellow-400 mx-2">${sessionScore}</span> نقطة</p>
+                            <button onclick="location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 p-4 rounded-xl font-black text-black text-lg shadow-lg transform hover:scale-105 transition-all">العودة للمعسكر</button>
+                        </div>
+                    `;
+                }
+            }).catch(error => {
+                console.error("خطأ في حفظ النتيجة: ", error);
+                if(!isForceExit) alert("حصلت مشكلة في الاتصال، النتيجة متسجلتش!");
             });
         }
 
@@ -293,6 +314,25 @@
             localStorage.removeItem('currentUser');
             window.location.replace("index.html");
         }
+
+        // --- أحداث الحماية (Anti-Cheat Listeners) ---
+
+        // 1. منع الرجوع بالمتصفح (Back Button)
+        window.addEventListener('popstate', function(event) {
+            if (isQuizActive) {
+                alert("⚠️ تحذير: ممنوع الرجوع أثناء الاختبار! كمل التحدي.");
+                history.pushState(null, null, location.href); // حبس المستخدم في نفس الصفحة
+            }
+        });
+
+        // 2. حفظ النتيجة إجبارياً لو حاول يعمل ريفريش أو يقفل الصفحة
+        window.addEventListener('beforeunload', function (e) {
+            if (isQuizActive) {
+                endQuiz(true); // حفظ صامت وسريع للي قدر يحله
+                e.preventDefault();
+                e.returnValue = 'لو خرجت دلوقتي النتيجة هتتحفظ على وضعها الحالي، متأكد؟';
+            }
+        });
 
         init();
     </script>
