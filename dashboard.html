@@ -13,71 +13,60 @@
 
 <style>
 body{
-  background:#0f172a;
-  font-family:Tahoma;
   margin:0;
-  padding:20px;
+  background:linear-gradient(180deg,#0f172a,#020617);
+  font-family:Tajawal, sans-serif;
   color:white;
+  padding:15px;
 }
-.glass-card{
+.card{
   background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
   border:1px solid rgba(255,255,255,0.1);
 }
-.day-active{
+.btn-gold{
+  background:linear-gradient(90deg,#facc15,#eab308);
+  border:none;
+  padding:15px;
+  border-radius:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.day{
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:12px;
+}
+.locked{opacity:.4;background:#1e293b;}
+.active{
   background:linear-gradient(90deg,#facc15,#eab308);
   color:black;
   cursor:pointer;
-  transition:.3s;
 }
-.day-active:hover{ transform:scale(1.02); }
-
-#daily-msg-box{
-  background:#111827;
-  padding:12px;
-  margin-bottom:20px;
-  border-right:4px solid gold;
-  display:none;
-}
-
-.popup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.7);
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-.popup-card{
-  background:#1f2937;
-  padding:30px;
-  border-radius:15px;
-  text-align:center;
-  transform:scale(.5);
-  transition:.4s;
-}
+.soon{background:#1e3a8a;}
+.done{background:#064e3b;}
 </style>
 </head>
 <body>
 
 <h2>🔥 ساحة التحديات</h2>
 
-<div id="daily-msg-box"></div>
-
-<div id="view-arena"></div>
-
-<!-- رسالة البطل -->
-<div id="champ-popup" class="popup">
-  <div id="champ-card" class="popup-card">
-    <h3>👑 رسالة البطل</h3>
-    <p id="champ-text"></p>
-    <br>
-    <button onclick="closeChamp()">إغلاق</button>
-  </div>
+<div class="card">
+  <h3>إجمالي النقاط</h3>
+  <h1 id="totalScore">0</h1>
+  <p id="progressText">0 / 29 جولة</p>
 </div>
 
+<button class="btn-gold">🗺 خريطة المعارك</button>
+
+<br><br>
+
+<div id="arena"></div>
+
 <script>
-/* 🔥 بيانات Firebase بتاعتك */
 const firebaseConfig = {
   apiKey: "PUT-YOUR-KEY",
   authDomain: "PUT-YOUR-DOMAIN",
@@ -93,114 +82,71 @@ let myLogs = {};
 let adminDay = 1;
 let adminStatus = "closed";
 
-/* تسجيل دخول مؤقت */
 auth.signInAnonymously();
 
 auth.onAuthStateChanged(u=>{
   if(u){
-    user = u;
-    fetchAllData();
+    user=u;
+    loadData();
   }
 });
 
-function fetchAllData(){
+function loadData(){
 
-  // لوجات اللاعب
   db.collection("users")
   .doc(user.uid)
   .collection("game_logs")
   .onSnapshot(snap=>{
     myLogs={};
+    let total=0;
+
     snap.forEach(d=>{
       myLogs[d.data().day]=d.data().score;
+      total+=d.data().score;
     });
-    renderMap();
+
+    document.getElementById("totalScore").innerText=total;
+    document.getElementById("progressText").innerText=
+      Object.keys(myLogs).length+" / 29 جولة";
+
+    renderDays();
   });
 
-  // حالة اليوم
   db.collection("settings")
   .doc("global_status")
   .onSnapshot(doc=>{
     if(doc.exists){
-      adminDay = doc.data().currentDay || 1;
-      adminStatus = doc.data().status || "closed";
+      adminDay=doc.data().currentDay;
+      adminStatus=doc.data().status;
     }
-    renderMap();
-  });
-
-  // رسالة البطل
-  db.collection("settings")
-  .doc("champData")
-  .onSnapshot(doc=>{
-    if(doc.exists && doc.data().message){
-      if(!sessionStorage.getItem("champSeen")){
-        document.getElementById("champ-text").innerText = doc.data().message;
-        document.getElementById("champ-popup").style.display="flex";
-        setTimeout(()=>{
-          document.getElementById("champ-card").style.transform="scale(1)";
-        },100);
-        sessionStorage.setItem("champSeen","true");
-      }
-    }
-  });
-
-  // الشريط اليومي
-  db.collection("settings")
-  .doc("dailyData")
-  .onSnapshot(doc=>{
-    if(doc.exists && doc.data().message){
-      let box=document.getElementById("daily-msg-box");
-      box.innerText=doc.data().message;
-      box.style.display="block";
-    }
+    renderDays();
   });
 }
 
-function renderMap(){
-  let container=document.getElementById("view-arena");
+function renderDays(){
   let html="";
 
   for(let i=1;i<=29;i++){
 
-    let played=myLogs[i]!==undefined;
-    let active=(i===adminDay && adminStatus==="active");
-    let soon=(i===adminDay && adminStatus==="soon");
-
-    if(played){
-      html+=`
-      <div class="glass-card" style="padding:15px;margin-bottom:10px;border-right:4px solid #22c55e;">
-        ✅ الجولة ${i} - ${myLogs[i]} نقطة
-      </div>`;
+    if(myLogs[i]!==undefined){
+      html+=`<div class="day done">✅ الجولة ${i} - ${myLogs[i]} نقطة</div>`;
     }
-    else if(active){
-      html+=`
-      <div class="day-active" onclick="openQuiz(${i})" style="padding:15px;margin-bottom:10px;border-radius:10px;">
-        ▶ الجولة ${i} - اضغط للبدء
-      </div>`;
+    else if(i===adminDay && adminStatus==="active"){
+      html+=`<div class="day active" onclick="startQuiz(${i})">▶ الجولة ${i}</div>`;
     }
-    else if(soon){
-      html+=`
-      <div class="glass-card" style="padding:15px;margin-bottom:10px;border-right:4px solid #3b82f6;">
-        ⏳ الجولة ${i} - قريباً
-      </div>`;
+    else if(i===adminDay && adminStatus==="soon"){
+      html+=`<div class="day soon">⏳ الجولة ${i} قريباً</div>`;
     }
     else{
-      html+=`
-      <div class="glass-card" style="padding:15px;margin-bottom:10px;opacity:.4;">
-        🔒 الجولة ${i}
-      </div>`;
+      html+=`<div class="day locked">🔒 الجولة ${i}</div>`;
     }
   }
 
-  container.innerHTML=html;
+  document.getElementById("arena").innerHTML=html;
 }
 
-function openQuiz(day){
+function startQuiz(day){
   alert("فتح الجولة "+day);
-}
-
-function closeChamp(){
-  document.getElementById("champ-popup").style.display="none";
 }
 </script>
 
