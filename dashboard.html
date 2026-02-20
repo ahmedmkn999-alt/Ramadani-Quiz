@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <title>ملعب رمضان | التحدي الأكبر</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -18,24 +22,9 @@
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
-        .quiz-box { 
-            width: 100%; max-width: 450px; 
-            background: linear-gradient(145deg, #111827, #0f172a); 
-            border: 1px solid rgba(212, 175, 55, 0.3); 
-            border-radius: 24px; padding: 32px; 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 30px rgba(212, 175, 55, 0.15); 
-            position: relative; overflow: hidden; 
-        }
+        .quiz-box { width: 100%; max-width: 450px; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 30px rgba(212, 175, 55, 0.15); position: relative; overflow: hidden; }
         .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
-        
-        .opt-btn { 
-            background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(71, 85, 105, 0.5); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            width: 100%; text-align: right; padding: 16px 20px; 
-            border-radius: 16px; font-weight: 700; margin-bottom: 12px; 
-            font-size: 15px; color: #f8fafc; cursor: pointer; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .opt-btn { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(71, 85, 105, 0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; text-align: right; padding: 16px 20px; border-radius: 16px; font-weight: 700; margin-bottom: 12px; font-size: 15px; color: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .opt-btn:hover:not(:disabled) { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
         .opt-btn:active:not(:disabled) { transform: translateY(0); }
         .opt-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #64748b; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
@@ -67,7 +56,7 @@
             <div class="flex items-center gap-4">
                 <div class="bg-yellow-600 w-12 h-12 rounded-xl flex items-center justify-center text-black shadow-lg transform rotate-3"><i class="fas fa-shield-alt text-xl"></i></div>
                 <div>
-                    <h2 id="p-name" class="font-black text-white text-lg">جاري التحميل...</h2>
+                    <h2 id="p-name" class="font-black text-white text-lg">...</h2>
                     <p class="text-xs mt-1"><span id="p-group" class="text-yellow-500 font-bold bg-yellow-900/40 px-3 py-1 rounded-lg">...</span></p>
                 </div>
             </div>
@@ -85,7 +74,7 @@
     </header>
 
     <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-8 max-w-lg mx-auto border border-gray-700">
-        <button onclick="showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3 text-sm rounded-xl font-bold">الخريطة 🗺️</button>
+        <button onclick="showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3 text-sm rounded-xl font-bold">ال والخريطة 🗺️</button>
         <button onclick="showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3 text-sm rounded-xl font-bold">المجموعة 🏆</button>
     </div>
 
@@ -106,15 +95,9 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
     <script>
-        // =========================================================================
-        // إضافة مستخدم وهمي للتجربة (تخطّي تسجيل الدخول)
-        localStorage.setItem('currentUser', JSON.stringify({id: "test_user_123", name: "بطل التجربة", group: "المجموعة الأولى", team: "فردي", quizVar: 0}));
-        // =========================================================================
-
-        // إعدادات الفايربيز الجديدة المحدثة
+        // إعدادات الفايربيز الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
             authDomain: "ramadan-87817.firebaseapp.com",
@@ -127,24 +110,27 @@
         
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // تفعيل الإحصائيات (اختياري)
-        if (typeof firebase.analytics === 'function') { firebase.analytics(); }
 
-        let user = { id: null, name: "مستخدم", group: "عام", team: "فردي", quizVar: 0 }; 
+        // نظام حماية المستخدم: تأمين بيانات المستخدم حتى لو كانت مفقودة لتجنب الانهيار
+        let user = { id: "guest_999", name: "زائر للتجربة", group: "عام", team: "فردي", quizVar: 0 }; 
         try { 
-            let storedUser = JSON.parse(localStorage.getItem('currentUser')); 
+            let storedUser = localStorage.getItem('currentUser');
             if(storedUser) {
-                user.id = storedUser.id || storedUser.uid;
-                user.name = storedUser.name || "مستخدم";
-                user.group = storedUser.group || "عام"; 
-                user.team = storedUser.team || "فردي";
-                user.quizVar = storedUser.quizVar || 0;
+                let parsed = JSON.parse(storedUser);
+                if(parsed && (parsed.id || parsed.uid)) {
+                    user.id = parsed.id || parsed.uid;
+                    user.name = parsed.name || user.name;
+                    user.group = parsed.group || user.group;
+                    user.team = parsed.team || user.team;
+                    user.quizVar = parsed.quizVar || 0;
+                }
+            } else {
+                // زرع مستخدم وهمي إجبارياً لو الصفحة اتفتحت بدون تسجيل دخول
+                localStorage.setItem('currentUser', JSON.stringify(user));
             }
-            if (!user.id) throw new Error("No User ID"); 
-        } catch(e) { 
-            console.warn("User needs to login.");
-        }
+        } catch(e) { console.error("Error parsing user"); }
 
+        // وضع البيانات في الهيدر
         document.getElementById('p-name').innerText = user.name;
         document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
@@ -152,30 +138,42 @@
         let currentQuizQuestions = [], currentQuestionIndex = 0, currentScore = 0;
         let timerInterval, timeLeft = 20, isQuizActive = false;
 
-        // دالة لاكتشاف أخطاء الفايربيز وإظهارها لك بدلاً من كلمة "جاري التحميل"
-        function showErrorOnScreen(err) {
+        // دالة عرض الأخطاء لتعرف المشكلة فوراً على شاشة الموبايل
+        function showScreenError(msg) {
             document.getElementById('view-arena').innerHTML = `
-                <div class="bg-red-900/50 border border-red-500 p-6 rounded-2xl text-center max-w-md mx-auto mt-10">
-                    <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-                    <h3 class="text-white font-bold text-lg mb-2">مشكلة في الاتصال بقاعدة البيانات!</h3>
-                    <p class="text-red-300 text-xs mb-4 dir-ltr font-mono bg-black/40 p-2 rounded">${err.message}</p>
-                    <p class="text-gray-300 text-sm leading-relaxed">إذا كان الخطأ (Missing or insufficient permissions)، ادخل لموقع Firebase وعدّل الـ Rules في الـ Firestore إلى true.</p>
+                <div class="bg-red-900/60 border border-red-500 p-6 rounded-2xl text-center shadow-lg">
+                    <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
+                    <h3 class="text-white font-bold text-lg mb-2">مشكلة في قاعدة البيانات!</h3>
+                    <p class="text-gray-300 text-sm mb-4 leading-relaxed">${msg}</p>
+                    <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded-lg text-white font-bold">إعادة المحاولة</button>
                 </div>
             `;
         }
 
+        // تشغيل التطبيق
         function initApp() {
-            if(!user.id) return;
-
+            // جلب النقاط
             db.collection("users").doc(user.id).onSnapshot(doc => {
-                if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
-            }, err => showErrorOnScreen(err));
+                if(doc.exists) {
+                    document.getElementById('p-score').innerText = doc.data().score || 0;
+                } else {
+                    // إنشاء الحساب في الفايربيز تلقائياً لتجنب مشاكل القراءة
+                    db.collection("users").doc(user.id).set({ name: user.name, group: user.group, score: 0 }, { merge: true });
+                }
+            }, err => {
+                showScreenError("الفايربيز يرفض إرسال البيانات. يرجى تعديل الـ Rules في Firestore إلى allow read, write: if true;");
+            });
 
-            fetchGameLogsAndStatus();
-            fetchLeaderboard();
-        }
+            // جلب الإعدادات العامة (رقم الجولة اليوم)
+            db.collection("settings").doc("global_status").onSnapshot(doc => {
+                if(doc.exists) { 
+                    adminDay = doc.data().currentDay || 1; 
+                    adminStatus = doc.data().status || "active"; 
+                }
+                renderMap();
+            }, err => console.error("Global Status Error", err));
 
-        function fetchGameLogsAndStatus() {
+            // جلب اللوج (الجولات اللي لعبها)
             db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
                 myLogs = {};
                 snap.forEach(d => myLogs[d.data().day] = d.data().score);
@@ -183,21 +181,14 @@
                 document.getElementById('progress-text').innerText = pCount + " / 29 جولة";
                 document.getElementById('progress-bar').style.width = ((pCount/29)*100) + "%";
                 renderMap();
-            }, err => showErrorOnScreen(err));
+            }, err => console.error("Game Logs Error", err));
 
-            db.collection("settings").doc("global_status").onSnapshot(doc => {
-                if(doc.exists) { 
-                    adminDay = doc.data().currentDay || 1; 
-                    adminStatus = doc.data().status || "active"; 
-                }
-                renderMap();
-            }, err => console.warn(err));
+            fetchLeaderboard();
         }
 
         function renderMap() {
             let container = document.getElementById('view-arena'); 
-            // إذا كان هناك خطأ معروض بالفعل، لا تقم بمسحه
-            if(container.innerHTML.includes('مشكلة في الاتصال')) return; 
+            if(container.innerHTML.includes('مشكلة في قاعدة البيانات')) return; // لا تمسح رسالة الخطأ لو موجودة
 
             let html = '';
             for (let i = 1; i <= 29; i++) {
@@ -215,7 +206,7 @@
                     html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-50 mb-4"><div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock"></i></div><p class="font-bold text-sm text-gray-500">الجولة ${i}</p></div>`;
                 }
             }
-            container.innerHTML = html;
+            container.innerHTML = html || '<div class="text-center p-10 text-gray-400">لا توجد جولات متاحة</div>';
         }
 
         window.showTab = function(tab) {
@@ -225,6 +216,28 @@
             document.getElementById('btn-leader').classList.toggle('active', tab === 'leaderboard');
         }
 
+        function fetchLeaderboard() {
+            if(!user.group) return; 
+            db.collection("users").where("group", "==", user.group).onSnapshot(snap => {
+                let teams = {};
+                snap.forEach(doc => {
+                    let u = doc.data();
+                    let tName = (u.team && u.team !== "فردي") ? u.team : u.name;
+                    teams[tName] = (teams[tName] || 0) + (u.score || 0);
+                });
+                let sorted = Object.keys(teams).map(k => ({name: k, score: teams[k]})).sort((a,b) => b.score - a.score);
+                document.getElementById('group-list').innerHTML = sorted.map((t, i) => `
+                    <div class="p-4 rounded-xl flex justify-between items-center ${i===0?'bg-yellow-900/20 border border-yellow-500 shadow-lg':'bg-gray-800/80'}">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full ${i===0?'bg-yellow-500 text-black':'bg-black/50 text-gray-400'} flex items-center justify-center text-sm font-bold">${i===0?'<i class="fas fa-crown"></i>':i+1}</span>
+                            <span class="${i===0?'text-yellow-400 font-black':'text-white font-bold'}">${t.name}</span>
+                        </div>
+                        <span class="font-black text-yellow-500 text-xl">${t.score}</span>
+                    </div>`).join('');
+            }, err => console.log("Leaderboard error", err));
+        }
+
+        // ================= الأكواد الخاصة بالاختبار =================
         window.openQuiz = function(dayNumber) {
             if(isQuizActive) return;
             document.getElementById('quiz-overlay').style.display = 'flex';
@@ -234,7 +247,6 @@
                 if(doc.exists && doc.data().variations && doc.data().variations.length > 0) {
                     let userVariation = user.quizVar || 0;
                     if(userVariation >= doc.data().variations.length) userVariation = 0; 
-
                     currentQuizQuestions = doc.data().variations[userVariation].questions;
                     currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
                     showQuestion();
@@ -244,83 +256,33 @@
                 }
             }).catch(err => {
                 document.getElementById('quiz-overlay').style.display = 'none';
-                console.error(err);
-                alert('خطأ: ' + err.message);
+                alert('حدث خطأ أثناء تحميل الأسئلة.');
             });
         };
 
         function showQuestion() {
             if (currentQuestionIndex >= currentQuizQuestions.length) { 
-                clearInterval(timerInterval);
-                finishQuiz(); 
-                return; 
+                clearInterval(timerInterval); finishQuiz(); return; 
             }
-
             let qData = currentQuizQuestions[currentQuestionIndex];
             timeLeft = 20;
             
             let html = `
                 <div class="flex justify-between items-center mb-5">
-                    <div class="bg-gray-800 border border-gray-700 px-4 py-1.5 rounded-full text-xs font-bold text-gray-300">
-                        السؤال <span class="text-yellow-500">${currentQuestionIndex + 1}</span> من ${currentQuizQuestions.length}
-                    </div>
-                    <div class="bg-red-500/10 border border-red-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-red-400 flex items-center gap-2">
-                        <i class="fas fa-stopwatch animate-pulse"></i> <span id="timer-text">${timeLeft}</span> ث
-                    </div>
+                    <div class="bg-gray-800 border border-gray-700 px-4 py-1.5 rounded-full text-xs font-bold text-gray-300">السؤال <span class="text-yellow-500">${currentQuestionIndex + 1}</span> من ${currentQuizQuestions.length}</div>
+                    <div class="bg-red-500/10 border border-red-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-red-400 flex items-center gap-2"><i class="fas fa-stopwatch animate-pulse"></i> <span id="timer-text">${timeLeft}</span> ث</div>
                 </div>
-
-                <div class="bg-gray-800 h-1.5 rounded-full overflow-hidden mb-6">
-                    <div id="timer-bar" class="h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear" style="width: 100%;"></div>
-                </div>
-
+                <div class="bg-gray-800 h-1.5 rounded-full overflow-hidden mb-6"><div id="timer-bar" class="h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear" style="width: 100%;"></div></div>
                 <h3 class="text-xl font-black text-white mb-8 text-center leading-relaxed">${qData.q}</h3>
                 <div class="space-y-3">
             `;
-
             qData.options.forEach((opt, idx) => {
                 let letter = String.fromCharCode(65 + idx);
-                html += `
-                <button onclick="submitAnswer(${idx})" class="opt-btn group" id="opt-${idx}">
-                    <span>${opt}</span>
-                    <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 text-[10px]">
-                        <span>${letter}</span>
-                    </div>
-                </button>`;
+                html += `<button onclick="submitAnswer(${idx})" class="opt-btn group" id="opt-${idx}"><span>${opt}</span><div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 text-[10px]"><span>${letter}</span></div></button>`;
             });
             html += `</div>`;
-
             document.getElementById('quiz-content').innerHTML = html;
             startTimer();
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            let bar = document.getElementById('timer-bar');
-            let txt = document.getElementById('timer-text');
-            bar.style.width = "100%";
-            bar.className = "h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear";
-
-            timerInterval = setInterval(() => {
-                timeLeft--; 
-                if(txt) txt.innerText = timeLeft;
-                if(bar) bar.style.width = ((timeLeft / 20) * 100) + "%";
-
-                if(timeLeft <= 10 && timeLeft > 5) {
-                    if(bar) bar.className = "h-full bg-gradient-to-l from-yellow-400 to-yellow-600 transition-all duration-1000 ease-linear";
-                } else if(timeLeft <= 5) {
-                    if(bar) bar.className = "h-full bg-gradient-to-l from-red-500 to-red-700 transition-all duration-1000 ease-linear";
-                }
-
-                if (timeLeft <= 0) { 
-                    clearInterval(timerInterval); 
-                    submitAnswer(-1); 
-                }
-            }, 1000);
-        }
-
-        window.submitAnswer = function(selectedIndex) {
-            clearInterval(timerInterval); 
-            
-            let btns = document.querySelectorAll('.opt-btn');
-            btns.forEach(b => { 
-                b.disabled 
+     
