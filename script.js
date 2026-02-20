@@ -17,24 +17,20 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('ad_shown_once')) {
         let adScript = document.createElement('script');
         adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
-        adScript.async = true; // عشان ميأثرش على سرعة اللعبة
+        adScript.async = true; 
         document.body.appendChild(adScript);
-        
-        // تسجيل الإعلان في الذاكرة عشان ميظهرش تاني أبداً
         localStorage.setItem('ad_shown_once', 'true');
     }
     // ---------------------------------------
 
     setTimeout(() => {
         try {
-            // التحقق من تسجيل الدخول
             user = JSON.parse(localStorage.getItem('currentUser'));
             if(!user || !user.id) throw new Error();
 
             document.getElementById('p-name').innerText = user.name;
             document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
-            // التأكد من تحميل الفايربيز
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
@@ -43,18 +39,16 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            window.location.replace("index.html"); // لو مش مسجل بيرجعه لصفحة الدخول
+            window.location.replace("index.html"); 
         }
     }, 100);
 });
 
 function initFirebaseData() {
-    // جلب النقط
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
     });
 
-    // جلب الشريط الإخباري (الرسالة اليومية)
     db.collection("settings").doc("dailyData").onSnapshot(s => {
         let msgBox = document.getElementById('daily-msg-box');
         if(s.exists && s.data().message && s.data().message.trim() !== "") {
@@ -65,7 +59,6 @@ function initFirebaseData() {
         }
     });
 
-    // جلب رسالة البطل الطائرة
     db.collection("settings").doc("champData").get().then(s => {
         if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
             document.getElementById('champ-popup-text').innerText = s.data().message;
@@ -79,7 +72,6 @@ function initFirebaseData() {
         }
     });
 
-    // حالة الخريطة
     db.collection("settings").doc("global_status").onSnapshot(doc => {
         if(doc.exists) {
             adminDay = doc.data().currentDay;
@@ -108,6 +100,7 @@ function updateLogs() {
     });
 }
 
+// ---- التعديل الجديد هنا لرسم الخريطة وإظهار (قريباً) ----
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
@@ -116,6 +109,7 @@ function renderMap() {
     for (let i = 1; i <= 29; i++) {
         let isPlayed = myLogs[i] !== undefined;
         let isActive = (i === adminDay && adminStatus === 'active');
+        let isSoon = (i === adminDay && adminStatus === 'soon'); // إضافة حالة "قريباً"
         
         if (isPlayed) {
             html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4 transition-all">
@@ -123,7 +117,7 @@ function renderMap() {
                     <div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div>
                     <div><p class="font-bold text-gray-300">الجولة ${i}</p></div>
                 </div>
-                <p class="font-black text-2xl text-yellow-500">${myLogs[i]}</p>
+                <p class="font-black text-2xl text-green-400">${myLogs[i]}</p>
             </div>`;
         } else if (isActive) {
             html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
@@ -132,6 +126,15 @@ function renderMap() {
                     <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-yellow-400 font-bold mt-1">العب الآن!</p></div>
                 </div>
                 <i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-40"></i>
+            </div>`;
+        } else if (isSoon) {
+            // تصميم كارت "قريباً" الأنيق
+            html += `<div class="glass-card p-6 rounded-2xl flex justify-between mb-4 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                <div class="flex items-center gap-4">
+                    <div class="bg-blue-900/50 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center"><i class="fas fa-hourglass-half text-2xl animate-pulse"></i></div>
+                    <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-blue-400 font-bold mt-1">تفتح قريباً ⏳</p></div>
+                </div>
+                <i class="fas fa-lock text-blue-500/30 text-3xl opacity-40"></i>
             </div>`;
         } else {
             html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-40 mb-4 grayscale">
@@ -294,4 +297,3 @@ window.addEventListener('beforeunload', function (e) {
         e.returnValue = '';
     }
 });
-                
