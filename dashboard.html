@@ -23,6 +23,8 @@
         #timer-bar { transition: width 1s linear, background-color 0.3s; }
         .danger-pulse { animation: heartbeat 0.8s infinite; }
         @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        /* تحسين مظهر حاوية الإعلان */
+        .ad-container { margin: 20px auto; text-align: center; max-width: 100%; overflow: hidden; border-radius: 15px; }
     </style>
 </head>
 <body class="p-4 pb-24">
@@ -71,11 +73,15 @@
         </div>
     </header>
 
-    <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-8 max-w-lg mx-auto border border-gray-700 shadow-xl">
+    <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-4 max-w-lg mx-auto border border-gray-700 shadow-xl">
         <button onclick="window.showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3.5 text-sm rounded-xl font-bold">الخريطة 🗺️</button>
         <button onclick="window.showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3.5 text-sm rounded-xl font-bold">المجموعة 🏆</button>
     </div>
 
+    <div class="ad-container max-w-lg mx-auto mb-6">
+        <script async="async" data-cfasync="false" src="https://pl28752353.effectivegatecpm.com/822acf793499136f1edc7962e4436819/invoke.js"></script>
+        <div id="container-822acf793499136f1edc7962e4436819"></div>
+    </div>
     <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"><div class="text-center p-10"><i class="fas fa-spinner fa-spin text-yellow-500 text-4xl"></i></div></div>
 
     <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
@@ -107,17 +113,14 @@
         let myLogs = {}, adminDay = 1, adminStatus = "closed", qList = [], curIdx = 0, curSc = 0, timer, isQuizActive = false;
 
         function init() {
-            // 🟢 1. جلب وإظهار رسالة البطل الطائرة (الجديدة) 🟢
             db.collection("settings").doc("champData").get().then(s => {
                 if(s.exists && s.data().message && s.data().message.trim() !== "") {
-                    // عشان متظهرش للمستخدم غير مرة واحدة بس في كل جلسة دخول (عشان متزهقوش كل ما يفتح صفحة)
                     if(!sessionStorage.getItem('champSeen')) {
                         let pop = document.getElementById('champ-flying-popup');
                         let card = document.getElementById('champ-popup-card');
                         document.getElementById('champ-popup-text').innerText = s.data().message;
                         pop.style.display = 'flex';
                         
-                        // إطلاق الأنيميشن
                         requestAnimationFrame(() => {
                             pop.style.opacity = '1';
                             card.classList.remove('scale-50');
@@ -125,7 +128,6 @@
                             if(typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.3 }, zIndex: 6000 });
                         });
 
-                        // الإخفاء التلقائي بعد 3.5 ثواني
                         setTimeout(() => {
                             pop.style.opacity = '0';
                             card.classList.remove('scale-100');
@@ -137,7 +139,6 @@
                 }
             });
 
-            // 2. الشريط الأزرق العادي
             db.collection("settings").doc("dailyData").get().then(s => {
                 if(s.exists && s.data().message && s.data().message.trim() !== "") {
                     let b = document.getElementById('daily-msg-box');
@@ -247,18 +248,5 @@
                     let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>(b.score||0)-(a.score||0));
                     let html = '';
                     m.forEach((u, i) => {
-                        let rankIcon = i===0 ? '<i class="fas fa-medal text-yellow-400 text-2xl drop-shadow-md"></i>' : i===1 ? '<i class="fas fa-medal text-gray-300 text-xl"></i>' : i===2 ? '<i class="fas fa-medal text-orange-400 text-xl"></i>' : `<span class="text-gray-500 font-bold ml-2">${i+1}</span>`;
-                        let isMe = u.name === user.name ? 'bg-gradient-to-r from-blue-900/40 to-gray-900 border border-blue-500/50 scale-[1.02]' : 'bg-gray-800/50 border border-gray-700/50';
-                        html += `<div class="flex justify-between items-center p-4 rounded-2xl mb-3 transition ${isMe}"><div class="flex items-center gap-3"><div class="w-8 text-center">${rankIcon}</div><div><p class="${u.name===user.name?'text-white font-black':'text-gray-200 font-bold'} text-sm">${u.name}</p><p class="text-[10px] text-blue-400 mt-0.5">${u.team}</p></div></div><span class="font-black text-2xl gold-text">${u.score||0}</span></div>`;
-                    });
-                    document.getElementById('group-list').innerHTML = html;
-                });
-            }
-        }
-
-        window.logoutUser = function() { if(isQuizActive) return alert("ممنوع الخروج أثناء الكويز!"); sessionStorage.removeItem('champSeen'); localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
-        document.addEventListener("visibilitychange", () => { if (document.hidden && isQuizActive) { alert("⚠️ تم إنهاء الاختبار لأنك خرجت من الصفحة!"); isQuizActive = false; clearInterval(timer); window.endQ(); } });
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+                        let isMe = u.id === user.id;
+                        let rankIcon = i===0 ? '<i class="fas fa-medal text-yellow-400 text-2xl drop-sh
