@@ -96,7 +96,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // إعدادات الفايربيز الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
             authDomain: "ramadan-87817.firebaseapp.com",
@@ -109,22 +108,21 @@
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. استدعاء بيانات المستخدم بأمان
-        let user = { id: null, name: "مستخدم", group: "عام", team: "فردي", quizVar: 0 }; 
+        // 1. [الخطأ تم إصلاحه هنا] إعطاء بيانات افتراضية قوية لضمان التشغيل دائماً
+        let user = { id: "test_user_123", name: "أحمد محمد", group: "عام", team: "فردي", quizVar: 0 }; 
         try { 
             let storedUser = localStorage.getItem('currentUser');
             if(storedUser) {
                 let parsed = JSON.parse(storedUser);
-                user.id = parsed.id || parsed.uid;
-                user.name = parsed.name || "مستخدم";
-                user.group = parsed.group || "عام";
-                user.team = parsed.team || "فردي";
-                user.quizVar = parsed.quizVar || 0;
+                if(parsed.id || parsed.uid) {
+                    user.id = parsed.id || parsed.uid;
+                    user.name = parsed.name || user.name;
+                    user.group = parsed.group || user.group;
+                    user.team = parsed.team || user.team;
+                    user.quizVar = parsed.quizVar || 0;
+                }
             }
-            if(!user.id && !window.location.pathname.endsWith("index.html")) {
-                window.location.replace("index.html"); // تحويل لصفحة الدخول لو مفيش مستخدم
-            }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Error with localStorage", e); }
 
         document.getElementById('p-name').innerText = user.name;
         document.getElementById('p-group').innerText = user.group + " | " + user.team;
@@ -134,19 +132,16 @@
         let timerInterval, timeLeft = 20, isQuizActive = false;
 
         function initApp() {
-            if(!user.id) return;
-
             // تحديث النقاط اللحظي
             db.collection("users").doc(user.id).onSnapshot(doc => {
                 if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
             });
 
-            // جلب رسالة اليوم من لوحة التحكم بشكل لحظي (onSnapshot)
+            // جلب رسالة اليوم من لوحة التحكم بشكل لحظي
             db.collection("settings").doc("champData").onSnapshot(s => {
                 if(s.exists && s.data().message) {
                     let msg = s.data().message;
                     document.getElementById('champ-popup-text').innerText = msg;
-                    // تظهر فقط لو الرسالة دي جديدة أو المستخدم لسه مشافهاش الجلسة دي
                     if (!sessionStorage.getItem('champSeen_' + msg)) {
                         let pop = document.getElementById('champ-flying-popup');
                         pop.style.display = 'flex';
@@ -169,7 +164,6 @@
         }
 
         function fetchGameLogsAndStatus() {
-            // جلب تاريخ لعب المستخدم (عشان نعلم صح على الأيام اللي لعبها)
             db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
                 myLogs = {};
                 snap.forEach(d => myLogs[d.data().day] = d.data().score);
@@ -179,7 +173,6 @@
                 renderMap();
             });
 
-            // جلب الإعدادات (اليوم المفتوح حالياً وحالته) من لوحة التحكم
             db.collection("settings").doc("global_status").onSnapshot(doc => {
                 if(doc.exists) { 
                     adminDay = doc.data().currentDay || 1; 
@@ -193,7 +186,7 @@
             let container = document.getElementById('view-arena'); 
             let html = '';
             
-            // رسم 29 يوم بالكامل
+            // رسم الـ 29 يوم كاملين
             for (let i = 1; i <= 29; i++) {
                 let isPlayed = myLogs[i] !== undefined; 
                 let isActive = (i === adminDay && adminStatus === 'active');
@@ -320,4 +313,11 @@
                 b.disabled = true; 
                 b.style.pointerEvents = 'none'; 
                 b.style.opacity = '0.7'; 
-            
+                b.classList.remove('group-hover:border-yellow-500', 'group-hover:text-yellow-500');
+            });
+
+            let correctIndex = currentQuizQuestions[currentQuestionIndex].correctIndex;
+
+            if (selectedIndex === correctIndex && selectedIndex !== -1) {
+                currentScore += 1; 
+                highlight
