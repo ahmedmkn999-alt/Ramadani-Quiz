@@ -107,12 +107,16 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // =========================================================================
+        // إضافة مستخدم وهمي للتجربة (احذف هذا السطر عند ربط الصفحة بتسجيل الدخول)
+        localStorage.setItem('currentUser', JSON.stringify({id: "test_user_123", name: "بطل التجربة", group: "المجموعة الأولى", team: "فردي", quizVar: 0}));
+        // =========================================================================
+
         // إعدادات الفايربيز
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. تأمين قراءة بيانات المستخدم لمنع الأخطاء اللانهائية
         let user = { id: null, name: "مستخدم", group: "عام", team: "فردي", quizVar: 0 }; 
         try { 
             let storedUser = JSON.parse(localStorage.getItem('currentUser')); 
@@ -218,10 +222,9 @@
             document.getElementById('quiz-content').innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-3"></i><p>جاري تحميل الأسئلة...</p></div>`;
             
             db.collection("quizzes_pool").doc("day_" + dayNumber).get().then(doc => {
-                // 2. تأمين استدعاء الأسئلة في حال لم يجد متغيرات
                 if(doc.exists && doc.data().variations && doc.data().variations.length > 0) {
                     let userVariation = user.quizVar || 0;
-                    if(userVariation >= doc.data().variations.length) userVariation = 0; // حماية إضافية
+                    if(userVariation >= doc.data().variations.length) userVariation = 0; 
 
                     currentQuizQuestions = doc.data().variations[userVariation].questions;
                     currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
@@ -233,12 +236,11 @@
             }).catch(err => {
                 document.getElementById('quiz-overlay').style.display = 'none';
                 console.error(err);
-                alert('حدث خطأ في الاتصال بالإنترنت.');
+                alert('حدث خطأ في الاتصال بالإنترنت أو تم رفض الصلاحية.');
             });
         };
 
         function showQuestion() {
-            // 3. منع الانفنتي لوب (Infinite Loop) هنا
             if (currentQuestionIndex >= currentQuizQuestions.length) { 
                 clearInterval(timerInterval);
                 finishQuiz(); 
@@ -308,7 +310,7 @@
         }
 
         window.submitAnswer = function(selectedIndex) {
-            clearInterval(timerInterval); // إيقاف التايمر فوراً لتجنب التكرار
+            clearInterval(timerInterval); 
             
             let btns = document.querySelectorAll('.opt-btn');
             btns.forEach(b => { 
@@ -325,10 +327,4 @@
                 highlightButton(selectedIndex, 'correct');
             } else {
                 if (selectedIndex !== -1) highlightButton(selectedIndex, 'wrong');
-                highlightButton(correctIndex, 'correct');
-            }
-
-            // انتقال آمن للسؤال التالي
-            setTimeout(() => {
-                currentQuestionIndex++;
-             
+     
