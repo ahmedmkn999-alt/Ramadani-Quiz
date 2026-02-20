@@ -13,24 +13,23 @@ let isQuizActive = false;
 // دالة التشغيل التي تبدأ بعد تحميل الصفحة
 window.addEventListener('DOMContentLoaded', () => {
     
-    // --- كود تشغيل الإعلان مرة واحدة فقط ---
-    if (!localStorage.getItem('ad_shown_once')) {
-        let adScript = document.createElement('script');
-        adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
-        adScript.async = true; 
-        document.body.appendChild(adScript);
-        localStorage.setItem('ad_shown_once', 'true');
-    }
-    // ---------------------------------------
+    // --- كود تشغيل الإعلان مع كل تحميل للصفحة (لزيادة الأرباح) ---
+    let adScript = document.createElement('script');
+    adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
+    adScript.async = true; // عشان ميأثرش على سرعة اللعبة
+    document.body.appendChild(adScript);
+    // -------------------------------------------------------------
 
     setTimeout(() => {
         try {
+            // التحقق من تسجيل الدخول
             user = JSON.parse(localStorage.getItem('currentUser'));
             if(!user || !user.id) throw new Error();
 
             document.getElementById('p-name').innerText = user.name;
             document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
+            // التأكد من تحميل الفايربيز
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
@@ -39,16 +38,18 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            window.location.replace("index.html"); 
+            window.location.replace("index.html"); // لو مش مسجل بيرجعه لصفحة الدخول
         }
     }, 100);
 });
 
 function initFirebaseData() {
+    // جلب النقط
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
     });
 
+    // جلب الشريط الإخباري (الرسالة اليومية)
     db.collection("settings").doc("dailyData").onSnapshot(s => {
         let msgBox = document.getElementById('daily-msg-box');
         if(s.exists && s.data().message && s.data().message.trim() !== "") {
@@ -59,6 +60,7 @@ function initFirebaseData() {
         }
     });
 
+    // جلب رسالة البطل الطائرة
     db.collection("settings").doc("champData").get().then(s => {
         if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
             document.getElementById('champ-popup-text').innerText = s.data().message;
@@ -72,6 +74,7 @@ function initFirebaseData() {
         }
     });
 
+    // حالة الخريطة
     db.collection("settings").doc("global_status").onSnapshot(doc => {
         if(doc.exists) {
             adminDay = doc.data().currentDay;
@@ -100,7 +103,6 @@ function updateLogs() {
     });
 }
 
-// ---- التعديل الجديد هنا لرسم الخريطة وإظهار (قريباً) ----
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
