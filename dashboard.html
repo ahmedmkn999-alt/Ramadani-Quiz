@@ -43,7 +43,7 @@
         .opt-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #64748b; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     </style>
 </head>
-<body class="p-4 pb-24" onload="initApp()">
+<body class="p-4 pb-24">
 
     <div id="champ-flying-popup" class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/80 backdrop-blur-md transition-opacity duration-700" style="display:none; opacity: 0;">
         <div id="champ-popup-card" class="bg-gradient-to-b from-yellow-600 to-yellow-900 p-1 rounded-3xl shadow-[0_0_50px_rgba(212,175,55,0.8)] transform scale-50 transition-transform duration-700 w-11/12 max-w-sm">
@@ -70,7 +70,7 @@
             <div class="flex items-center gap-4">
                 <div class="bg-yellow-600 w-12 h-12 rounded-xl flex items-center justify-center text-black shadow-lg transform rotate-3"><i class="fas fa-shield-alt text-xl"></i></div>
                 <div>
-                    <h2 id="p-name" class="font-black text-white text-lg">...</h2>
+                    <h2 id="p-name" class="font-black text-white text-lg">جاري التحميل...</h2>
                     <p class="text-xs mt-1"><span id="p-group" class="text-yellow-500 font-bold bg-yellow-900/40 px-3 py-1 rounded-lg">...</span></p>
                 </div>
             </div>
@@ -92,7 +92,10 @@
         <button onclick="showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3 text-sm rounded-xl font-bold">المجموعة 🏆</button>
     </div>
 
-    <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"></div>
+    <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10">
+        <div class="text-center p-10"><i class="fas fa-spinner fa-spin text-yellow-500 text-4xl"></i><p class="mt-4 text-gray-400">جاري تحميل البيانات...</p></div>
+    </div>
+    
     <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
         <div class="glass-card p-6 rounded-3xl">
             <h3 class="text-center text-white font-black mb-6 border-b border-gray-700 pb-3">ترتيب مجموعتك</h3>
@@ -112,20 +115,29 @@
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let user = null;
+        let user = { name: "مستخدم", group: "", team: "فردي" }; 
         try { 
-            user = JSON.parse(localStorage.getItem('currentUser')); 
-            if (!user || !user.id) throw new Error(); 
-        } catch(e) { window.location.replace("index.html"); }
+            let storedUser = JSON.parse(localStorage.getItem('currentUser')); 
+            if(storedUser) {
+                user = storedUser;
+                user.id = user.id || user.uid; // تم استرجاع هذا السطر لضمان عمل الحساب
+            }
+            if (!user.id) throw new Error("No User ID"); 
+        } catch(e) { 
+            window.location.replace("index.html"); 
+        }
+
+        // إظهار بيانات المستخدم فوراً
+        document.getElementById('p-name').innerText = user.name || "مستخدم";
+        document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
 
         let myLogs = {}, adminDay = 1, adminStatus = "closed";
         let currentQuizQuestions = [], currentQuestionIndex = 0, currentScore = 0;
         let timerInterval, timeLeft = 20, isQuizActive = false;
 
         function initApp() {
-            document.getElementById('p-name').innerText = user.name;
-            document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
-            
+            if(!user.id) return;
+
             db.collection("users").doc(user.id).onSnapshot(doc => {
                 if(doc.exists) {
                     document.getElementById('p-score').innerText = doc.data().score || 0;
@@ -188,7 +200,7 @@
             container.innerHTML = html;
         }
 
-        function showTab(tab) {
+        window.showTab = function(tab) {
             document.getElementById('view-arena').classList.toggle('hidden', tab !== 'arena');
             document.getElementById('view-leaderboard').classList.toggle('hidden', tab !== 'leaderboard');
             document.getElementById('btn-arena').classList.toggle('active', tab === 'arena');
@@ -233,7 +245,7 @@
             `;
 
             qData.options.forEach((opt, idx) => {
-                let letter = String.fromCharCode(65 + idx); // A, B, C, D
+                let letter = String.fromCharCode(65 + idx);
                 html += `
                 <button onclick="submitAnswer(${idx})" class="opt-btn group" id="opt-${idx}">
                     <span>${opt}</span>
@@ -282,7 +294,7 @@
             });
 
             if (selectedIndex === correctIndex && selectedIndex !== -1) {
-                currentScore += 1; // تعديل النقاط لتصبح نقطة واحدة فقط
+                currentScore += 1; 
                 let btn = document.getElementById('opt-' + selectedIndex);
                 btn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; btn.style.borderColor = '#16a34a'; btn.style.opacity = '1';
                 btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
@@ -302,12 +314,4 @@
             }
 
             setTimeout(() => {
-                currentQuestionIndex++;
-                showQuestion();
-            }, 1500); // تأخير ثانية ونص عشان اللاعب يلحق يشوف الإجابة الصح
-        };
-
-        function finishQuiz() {
-            isQuizActive = false;
-            db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(currentScore) });
-            db.collection("users").doc(user.id).collection("game_logs").add({ day: adminDa
+      
