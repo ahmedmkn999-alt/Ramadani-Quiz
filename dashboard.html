@@ -39,6 +39,7 @@
         .opt-btn:hover:not(:disabled) { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
         .opt-btn:active:not(:disabled) { transform: translateY(0); }
         .opt-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #64748b; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .dir-ltr { direction: ltr; text-align: left; }
     </style>
 </head>
 <body class="p-4 pb-24">
@@ -105,17 +106,29 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
     <script>
         // =========================================================================
-        // إضافة مستخدم وهمي للتجربة (احذف هذا السطر عند ربط الصفحة بتسجيل الدخول)
+        // إضافة مستخدم وهمي للتجربة (تخطّي تسجيل الدخول)
         localStorage.setItem('currentUser', JSON.stringify({id: "test_user_123", name: "بطل التجربة", group: "المجموعة الأولى", team: "فردي", quizVar: 0}));
         // =========================================================================
 
-        // إعدادات الفايربيز
-        const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
+        // إعدادات الفايربيز الجديدة المحدثة
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8",
+            authDomain: "ramadan-87817.firebaseapp.com",
+            projectId: "ramadan-87817",
+            storageBucket: "ramadan-87817.firebasestorage.app",
+            messagingSenderId: "343525703258",
+            appId: "1:343525703258:web:6776b4857425df8bcca263",
+            measurementId: "G-YM18TG6ZGR"
+        };
+        
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        // تفعيل الإحصائيات (اختياري)
+        if (typeof firebase.analytics === 'function') { firebase.analytics(); }
 
         let user = { id: null, name: "مستخدم", group: "عام", team: "فردي", quizVar: 0 }; 
         try { 
@@ -129,14 +142,9 @@
             }
             if (!user.id) throw new Error("No User ID"); 
         } catch(e) { 
-            if (!window.location.pathname.endsWith("index.html")) {
-                window.location.replace("index.html"); 
-            } else {
-                console.warn("User needs to login.");
-            }
+            console.warn("User needs to login.");
         }
 
-        // عرض بيانات المستخدم في الواجهة
         document.getElementById('p-name').innerText = user.name;
         document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
@@ -144,25 +152,24 @@
         let currentQuizQuestions = [], currentQuestionIndex = 0, currentScore = 0;
         let timerInterval, timeLeft = 20, isQuizActive = false;
 
+        // دالة لاكتشاف أخطاء الفايربيز وإظهارها لك بدلاً من كلمة "جاري التحميل"
+        function showErrorOnScreen(err) {
+            document.getElementById('view-arena').innerHTML = `
+                <div class="bg-red-900/50 border border-red-500 p-6 rounded-2xl text-center max-w-md mx-auto mt-10">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                    <h3 class="text-white font-bold text-lg mb-2">مشكلة في الاتصال بقاعدة البيانات!</h3>
+                    <p class="text-red-300 text-xs mb-4 dir-ltr font-mono bg-black/40 p-2 rounded">${err.message}</p>
+                    <p class="text-gray-300 text-sm leading-relaxed">إذا كان الخطأ (Missing or insufficient permissions)، ادخل لموقع Firebase وعدّل الـ Rules في الـ Firestore إلى true.</p>
+                </div>
+            `;
+        }
+
         function initApp() {
             if(!user.id) return;
 
             db.collection("users").doc(user.id).onSnapshot(doc => {
-                if(doc.exists) {
-                    document.getElementById('p-score').innerText = doc.data().score || 0;
-                    if(doc.data().isBanned) { alert("تم حظر حسابك!"); logoutUser(); }
-                }
-            });
-
-            db.collection("settings").doc("champData").get().then(s => {
-                if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
-                    document.getElementById('champ-popup-text').innerText = s.data().message;
-                    let pop = document.getElementById('champ-flying-popup');
-                    pop.style.display = 'flex';
-                    setTimeout(() => { pop.style.opacity = '1'; document.getElementById('champ-popup-card').classList.replace('scale-50', 'scale-100'); }, 100);
-                    sessionStorage.setItem('champSeen', 'true');
-                }
-            });
+                if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
+            }, err => showErrorOnScreen(err));
 
             fetchGameLogsAndStatus();
             fetchLeaderboard();
@@ -176,21 +183,23 @@
                 document.getElementById('progress-text').innerText = pCount + " / 29 جولة";
                 document.getElementById('progress-bar').style.width = ((pCount/29)*100) + "%";
                 renderMap();
-            });
+            }, err => showErrorOnScreen(err));
 
             db.collection("settings").doc("global_status").onSnapshot(doc => {
                 if(doc.exists) { 
-                    adminDay = doc.data().currentDay; 
-                    adminStatus = doc.data().status; 
+                    adminDay = doc.data().currentDay || 1; 
+                    adminStatus = doc.data().status || "active"; 
                 }
                 renderMap();
-            });
+            }, err => console.warn(err));
         }
 
         function renderMap() {
             let container = document.getElementById('view-arena'); 
+            // إذا كان هناك خطأ معروض بالفعل، لا تقم بمسحه
+            if(container.innerHTML.includes('مشكلة في الاتصال')) return; 
+
             let html = '';
-            
             for (let i = 1; i <= 29; i++) {
                 let isPlayed = myLogs[i] !== undefined; 
                 let isActive = (i === adminDay && adminStatus === 'active');
@@ -236,7 +245,7 @@
             }).catch(err => {
                 document.getElementById('quiz-overlay').style.display = 'none';
                 console.error(err);
-                alert('حدث خطأ في الاتصال بالإنترنت أو تم رفض الصلاحية.');
+                alert('خطأ: ' + err.message);
             });
         };
 
@@ -304,7 +313,7 @@
 
                 if (timeLeft <= 0) { 
                     clearInterval(timerInterval); 
-                    submitAnswer(-1); // الوقت انتهى
+                    submitAnswer(-1); 
                 }
             }, 1000);
         }
@@ -314,17 +323,4 @@
             
             let btns = document.querySelectorAll('.opt-btn');
             btns.forEach(b => { 
-                b.disabled = true; 
-                b.style.pointerEvents = 'none'; 
-                b.style.opacity = '0.7'; 
-                b.classList.remove('group-hover:border-yellow-500', 'group-hover:text-yellow-500');
-            });
-
-            let correctIndex = currentQuizQuestions[currentQuestionIndex].correctIndex;
-
-            if (selectedIndex === correctIndex && selectedIndex !== -1) {
-                currentScore += 1; 
-                highlightButton(selectedIndex, 'correct');
-            } else {
-                if (selectedIndex !== -1) highlightButton(selectedIndex, 'wrong');
-     
+                b.disabled 
