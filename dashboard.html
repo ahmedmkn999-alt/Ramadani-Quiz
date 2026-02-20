@@ -62,9 +62,11 @@
     <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"><div class="text-center p-10"><i class="fas fa-spinner fa-spin text-yellow-500 text-4xl"></i></div></div>
 
     <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
+        
+        <div id="overall-champion" class="mb-6"></div>
+
         <div class="glass-card p-6 rounded-3xl">
-            <div class="flex justify-center mb-6"><i class="fas fa-trophy text-4xl gold-text"></i></div>
-            <h3 class="text-center text-white font-black mb-6 text-lg">الترتيب العام لمجموعتك</h3>
+            <h3 class="text-center text-white font-black mb-6 text-lg border-b border-gray-700 pb-3">الترتيب العام لمجموعتك</h3>
             <div id="group-list" class="space-y-3"></div>
         </div>
     </div>
@@ -175,11 +177,36 @@
             
             if(v==='leaderboard') {
                 document.getElementById('group-list').innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-2xl text-yellow-500"></i></div>';
+                
+                // 1. جلب الأول على المنصة (بطل الأبطال)
+                db.collection("users").orderBy("score", "desc").limit(1).get().then(snap => {
+                    if(!snap.empty) {
+                        let topUser = snap.docs[0].data();
+                        document.getElementById('overall-champion').innerHTML = `
+                            <div class="bg-gradient-to-r from-yellow-600 to-yellow-400 p-1 rounded-3xl shadow-[0_0_20px_rgba(212,175,55,0.4)] animate-pulse">
+                                <div class="bg-gray-900 rounded-[22px] p-5 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="bg-yellow-500/20 text-yellow-500 w-12 h-12 rounded-full flex justify-center items-center text-2xl"><i class="fas fa-crown"></i></div>
+                                        <div>
+                                            <p class="text-[10px] text-yellow-500 font-bold mb-0.5">بطل الأبطال (الأول على المنصة) 👑</p>
+                                            <p class="font-black text-white text-md">${topUser.name || '---'}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <span class="font-black text-3xl gold-text">${topUser.score || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                // 2. جلب ترتيب المجموعة
                 db.collection("users").where("group", "==", user.group).get().then(snap => {
                     let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>(b.score||0)-(a.score||0));
                     let html = '';
                     m.forEach((u, i) => {
-                        let rankIcon = i===0 ? '<i class="fas fa-crown text-yellow-400 text-2xl drop-shadow-md"></i>' : i===1 ? '<i class="fas fa-medal text-gray-300 text-xl"></i>' : i===2 ? '<i class="fas fa-medal text-orange-400 text-xl"></i>' : `<span class="text-gray-500 font-bold ml-2">${i+1}</span>`;
+                        let rankIcon = i===0 ? '<i class="fas fa-medal text-yellow-400 text-2xl drop-shadow-md"></i>' : i===1 ? '<i class="fas fa-medal text-gray-300 text-xl"></i>' : i===2 ? '<i class="fas fa-medal text-orange-400 text-xl"></i>' : `<span class="text-gray-500 font-bold ml-2">${i+1}</span>`;
                         let isMe = u.name === user.name ? 'bg-gradient-to-r from-blue-900/40 to-gray-900 border border-blue-500/50 scale-[1.02]' : 'bg-gray-800/50 border border-gray-700/50';
                         html += `<div class="flex justify-between items-center p-4 rounded-2xl mb-3 transition ${isMe}"><div class="flex items-center gap-3"><div class="w-8 text-center">${rankIcon}</div><div><p class="${u.name===user.name?'text-white font-black':'text-gray-200 font-bold'} text-sm">${u.name}</p><p class="text-[10px] text-blue-400 mt-0.5">${u.team}</p></div></div><span class="font-black text-2xl gold-text">${u.score||0}</span></div>`;
                     });
