@@ -227,7 +227,13 @@
         };
 
         function showQuestion() {
-            if (currentQuestionIndex >= currentQuizQuestions.length) { finishQuiz(); return; }
+            // تصحيح: التحقق من نهاية الأسئلة قبل البدء
+            if (currentQuestionIndex >= currentQuizQuestions.length) { 
+                clearInterval(timerInterval);
+                finishQuiz(); 
+                return; 
+            }
+
             let qData = currentQuizQuestions[currentQuestionIndex];
             timeLeft = 20;
             
@@ -282,35 +288,48 @@
                     bar.className = "h-full bg-gradient-to-l from-red-500 to-red-700 transition-all duration-1000 ease-linear";
                 }
 
-                if (timeLeft <= 0) { clearInterval(timerInterval); submitAnswer(-1); }
+                if (timeLeft <= 0) { 
+                    clearInterval(timerInterval); 
+                    submitAnswer(-1); 
+                }
             }, 1000);
         }
 
         window.submitAnswer = function(selectedIndex) {
             clearInterval(timerInterval);
-            let correctIndex = currentQuizQuestions[currentQuestionIndex].correctIndex;
-            let btns = document.querySelectorAll('.opt-btn');
             
+            let btns = document.querySelectorAll('.opt-btn');
             btns.forEach(b => { 
                 b.disabled = true; 
+                b.style.pointerEvents = 'none'; 
                 b.style.opacity = '0.7'; 
-                b.style.cursor = 'default';
                 b.classList.remove('group-hover:border-yellow-500', 'group-hover:text-yellow-500');
             });
 
+            let correctIndex = currentQuizQuestions[currentQuestionIndex].correctIndex;
+
             if (selectedIndex === correctIndex && selectedIndex !== -1) {
                 currentScore += 1; 
-                let btn = document.getElementById('opt-' + selectedIndex);
-                btn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; btn.style.borderColor = '#16a34a'; btn.style.opacity = '1';
+                highlightButton(selectedIndex, 'correct');
+            } else {
+                if (selectedIndex !== -1) highlightButton(selectedIndex, 'wrong');
+                highlightButton(correctIndex, 'correct');
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 1500); 
+        };
+
+        function highlightButton(index, type) {
+            let btn = document.getElementById('opt-' + index);
+            if (!btn) return;
+            if (type === 'correct') {
+                btn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)';
+                btn.style.borderColor = '#16a34a';
+                btn.style.opacity = '1';
                 btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
                 btn.querySelector('.opt-circle').style.borderColor = '#16a34a';
-            } else if (selectedIndex !== -1) {
-                let btn = document.getElementById('opt-' + selectedIndex);
-                btn.style.backgroundColor = 'rgba(220, 38, 38, 0.2)'; btn.style.borderColor = '#dc2626'; btn.style.opacity = '1';
-                btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-times text-red-500 text-sm"></i>';
-                btn.querySelector('.opt-circle').style.borderColor = '#dc2626';
-                
-                let correctBtn = document.getElementById('opt-' + correctIndex);
-                if(correctBtn) {
-                    correctBtn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; correctBtn.style.borderColor = '#16a34a'; correctBtn.style.opacity = '1';
-                    corre
+            } else {
+           
