@@ -247,4 +247,18 @@
                     let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>(b.score||0)-(a.score||0));
                     let html = '';
                     m.forEach((u, i) => {
-                        let rankIcon = i===0 ? '<i class="fas fa-medal text-yellow-400 text-2xl drop-shadow-md"></i>' : i===1 ? '<i class="fas fa-medal text-gray-300 text-xl"></i>' : i===2 ? '<i class="fas fa-medal text-orange-400 text-xl"></i>' : `<span class="text-gray-500 font-bold
+                        let rankIcon = i===0 ? '<i class="fas fa-medal text-yellow-400 text-2xl drop-shadow-md"></i>' : i===1 ? '<i class="fas fa-medal text-gray-300 text-xl"></i>' : i===2 ? '<i class="fas fa-medal text-orange-400 text-xl"></i>' : `<span class="text-gray-500 font-bold ml-2">${i+1}</span>`;
+                        let isMe = u.name === user.name ? 'bg-gradient-to-r from-blue-900/40 to-gray-900 border border-blue-500/50 scale-[1.02]' : 'bg-gray-800/50 border border-gray-700/50';
+                        html += `<div class="flex justify-between items-center p-4 rounded-2xl mb-3 transition ${isMe}"><div class="flex items-center gap-3"><div class="w-8 text-center">${rankIcon}</div><div><p class="${u.name===user.name?'text-white font-black':'text-gray-200 font-bold'} text-sm">${u.name}</p><p class="text-[10px] text-blue-400 mt-0.5">${u.team}</p></div></div><span class="font-black text-2xl gold-text">${u.score||0}</span></div>`;
+                    });
+                    document.getElementById('group-list').innerHTML = html;
+                });
+            }
+        }
+
+        window.logoutUser = function() { if(isQuizActive) return alert("ممنوع الخروج أثناء الكويز!"); sessionStorage.removeItem('champSeen'); localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
+        document.addEventListener("visibilitychange", () => { if (document.hidden && isQuizActive) { alert("⚠️ تم إنهاء الاختبار لأنك خرجت من الصفحة!"); isQuizActive = false; clearInterval(timer); window.endQ(); } });
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
