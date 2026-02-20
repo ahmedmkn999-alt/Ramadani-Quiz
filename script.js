@@ -12,6 +12,19 @@ let isQuizActive = false;
 
 // دالة التشغيل التي تبدأ بعد تحميل الصفحة
 window.addEventListener('DOMContentLoaded', () => {
+    
+    // --- كود تشغيل الإعلان مرة واحدة فقط ---
+    if (!localStorage.getItem('ad_shown_once')) {
+        let adScript = document.createElement('script');
+        adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
+        adScript.async = true; // عشان ميأثرش على سرعة اللعبة
+        document.body.appendChild(adScript);
+        
+        // تسجيل الإعلان في الذاكرة عشان ميظهرش تاني أبداً
+        localStorage.setItem('ad_shown_once', 'true');
+    }
+    // ---------------------------------------
+
     setTimeout(() => {
         try {
             // التحقق من تسجيل الدخول
@@ -30,7 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            window.location.replace("index.html"); // لو مش مسجل بيرجعه
+            window.location.replace("index.html"); // لو مش مسجل بيرجعه لصفحة الدخول
         }
     }, 100);
 });
@@ -281,3 +294,4 @@ window.addEventListener('beforeunload', function (e) {
         e.returnValue = '';
     }
 });
+                
