@@ -120,14 +120,13 @@
             let storedUser = JSON.parse(localStorage.getItem('currentUser')); 
             if(storedUser) {
                 user = storedUser;
-                user.id = user.id || user.uid; // تم استرجاع هذا السطر لضمان عمل الحساب
+                user.id = user.id || user.uid;
             }
             if (!user.id) throw new Error("No User ID"); 
         } catch(e) { 
             window.location.replace("index.html"); 
         }
 
-        // إظهار بيانات المستخدم فوراً
         document.getElementById('p-name').innerText = user.name || "مستخدم";
         document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
 
@@ -217,7 +216,13 @@
                     currentQuizQuestions = doc.data().variations[user.quizVar || 0].questions;
                     currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
                     showQuestion();
+                } else {
+                    document.getElementById('quiz-overlay').style.display = 'none';
+                    alert('عفواً، لا توجد أسئلة لهذه الجولة بعد.');
                 }
+            }).catch(err => {
+                document.getElementById('quiz-overlay').style.display = 'none';
+                alert('حدث خطأ في الاتصال بالإنترنت.');
             });
         };
 
@@ -308,10 +313,4 @@
                 let correctBtn = document.getElementById('opt-' + correctIndex);
                 if(correctBtn) {
                     correctBtn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; correctBtn.style.borderColor = '#16a34a'; correctBtn.style.opacity = '1';
-                    correctBtn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
-                    correctBtn.querySelector('.opt-circle').style.borderColor = '#16a34a';
-                }
-            }
-
-            setTimeout(() => {
-      
+                    corre
