@@ -9,62 +9,126 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  background:linear-gradient(180deg,#0f172a,#020617);
-  font-family:Tajawal, sans-serif;
+  font-family:'Tajawal',sans-serif;
+  background:linear-gradient(180deg,#071a3a,#020617 80%);
   color:white;
-  padding:15px;
-}
-.card{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(12px);
-  border-radius:20px;
   padding:20px;
-  margin-bottom:20px;
+}
+
+/* عنوان */
+.title{
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:25px;
+}
+
+/* كارت النقاط */
+.score-card{
+  background:linear-gradient(145deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03));
+  border-radius:25px;
+  padding:25px;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 0 40px rgba(0,0,0,0.4);
+  margin-bottom:25px;
+}
+
+.score-title{
+  opacity:.8;
+  font-size:18px;
+}
+
+.score-number{
+  font-size:55px;
+  font-weight:900;
+  color:#facc15;
+  margin:10px 0;
+}
+
+.progress{
+  margin-top:10px;
+  font-weight:700;
+  color:#facc15;
+}
+
+/* أزرار */
+.buttons{
+  display:flex;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.btn{
+  flex:1;
+  padding:16px;
+  border-radius:20px;
+  font-weight:800;
+  font-size:16px;
+  border:none;
+}
+
+.btn-dark{
+  background:rgba(255,255,255,0.06);
+  color:white;
   border:1px solid rgba(255,255,255,0.1);
 }
+
 .btn-gold{
   background:linear-gradient(90deg,#facc15,#eab308);
-  border:none;
-  padding:15px;
-  border-radius:15px;
-  font-weight:bold;
-  cursor:pointer;
+  color:black;
+  box-shadow:0 0 20px rgba(250,204,21,.5);
 }
+
+/* الأيام */
 .day{
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:12px;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:14px;
+  font-weight:700;
 }
-.locked{opacity:.4;background:#1e293b;}
+
+.locked{
+  background:rgba(255,255,255,0.05);
+  opacity:.4;
+}
+
+.soon{
+  background:#1e3a8a;
+}
+
 .active{
   background:linear-gradient(90deg,#facc15,#eab308);
   color:black;
   cursor:pointer;
 }
-.soon{background:#1e3a8a;}
-.done{background:#064e3b;}
+
+.done{
+  background:#064e3b;
+}
 </style>
 </head>
 <body>
 
-<h2>🔥 ساحة التحديات</h2>
+<div class="title">🔥 ساحة التحديات</div>
 
-<div class="card">
-  <h3>إجمالي النقاط</h3>
-  <h1 id="totalScore">0</h1>
-  <p id="progressText">0 / 29 جولة</p>
+<div class="score-card">
+  <div class="score-title">إجمالي النقاط</div>
+  <div class="score-number" id="totalScore">0</div>
+  <div class="progress" id="progressText">0 / 29 جولة</div>
 </div>
 
-<button class="btn-gold">🗺 خريطة المعارك</button>
+<div class="buttons">
+  <button class="btn btn-dark">👑 فرسان المجموعة</button>
+  <button class="btn btn-gold">🗺 خريطة المعارك</button>
+</div>
 
-<br><br>
-
-<div id="arena"></div>
+<div id="daysContainer"></div>
 
 <script>
 const firebaseConfig = {
@@ -142,7 +206,7 @@ function renderDays(){
     }
   }
 
-  document.getElementById("arena").innerHTML=html;
+  document.getElementById("daysContainer").innerHTML=html;
 }
 
 function startQuiz(day){
