@@ -17,13 +17,30 @@
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
-        .quiz-box { width: 100%; max-width: 500px; background: rgba(17, 24, 39, 0.9); border: 2px solid #b8860b; border-radius: 30px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .opt-btn { background: #1e293b; border: 1px solid #334155; transition: all 0.2s; width: 100%; text-align: right; padding: 18px; border-radius: 16px; font-weight: bold; margin-bottom: 12px; font-size: 15px; color: #e2e8f0; cursor: pointer; }
-        .opt-btn:active { transform: scale(0.97); }
+        /* تصميم صندوق الاختبار الجديد والاحترافي */
+        #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
+        .quiz-box { 
+            width: 100%; max-width: 450px; 
+            background: linear-gradient(145deg, #111827, #0f172a); 
+            border: 1px solid rgba(212, 175, 55, 0.3); 
+            border-radius: 24px; padding: 32px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 30px rgba(212, 175, 55, 0.15); 
+            position: relative; overflow: hidden; 
+        }
+        .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
         
-        #timer-bar-container { width: 100%; height: 8px; background: #334155; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-        #timer-bar { height: 100%; background: #22c55e; width: 100%; transition: width 1s linear; }
+        /* تصميم أزرار الإجابات */
+        .opt-btn { 
+            background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(71, 85, 105, 0.5); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            width: 100%; text-align: right; padding: 16px 20px; 
+            border-radius: 16px; font-weight: 700; margin-bottom: 12px; 
+            font-size: 15px; color: #f8fafc; cursor: pointer; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .opt-btn:hover:not(:disabled) { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
+        .opt-btn:active:not(:disabled) { transform: translateY(0); }
+        .opt-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #64748b; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     </style>
 </head>
 <body class="p-4 pb-24" onload="initApp()">
@@ -78,7 +95,7 @@
     <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"></div>
     <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
         <div class="glass-card p-6 rounded-3xl">
-            <h3 class="text-center text-white font-black mb-6">ترتيب مجموعتك</h3>
+            <h3 class="text-center text-white font-black mb-6 border-b border-gray-700 pb-3">ترتيب مجموعتك</h3>
             <div id="group-list" class="space-y-3"></div>
         </div>
     </div>
@@ -109,7 +126,6 @@
             document.getElementById('p-name').innerText = user.name;
             document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
             
-            // مراقبة النقاط والحظر
             db.collection("users").doc(user.id).onSnapshot(doc => {
                 if(doc.exists) {
                     document.getElementById('p-score').innerText = doc.data().score || 0;
@@ -117,7 +133,6 @@
                 }
             });
 
-            // رسالة البطل
             db.collection("settings").doc("champData").get().then(s => {
                 if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
                     document.getElementById('champ-popup-text').innerText = s.data().message;
@@ -154,15 +169,20 @@
         function renderMap() {
             let container = document.getElementById('view-arena'); 
             let html = '';
+            
             for (let i = 1; i <= 29; i++) {
                 let isPlayed = myLogs[i] !== undefined; 
                 let isActive = (i === adminDay && adminStatus === 'active');
+                let isSoon = (i === adminDay && adminStatus === 'soon');
+
                 if (isPlayed) {
-                    html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-l-4 border-l-green-500"><div class="flex items-center gap-4"><div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div><div><p class="font-bold">الجولة ${i}</p></div></div><p class="font-black text-2xl text-yellow-500">${myLogs[i]}</p></div>`;
+                    html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-l-4 border-l-green-500 mb-4"><div class="flex items-center gap-4"><div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div><div><p class="font-bold text-gray-300">الجولة ${i}</p><p class="text-[10px] text-green-400">مكتملة</p></div></div><p class="font-black text-2xl text-yellow-500">${myLogs[i]} <span class="text-[10px] text-gray-500">نقطة</span></p></div>`;
                 } else if (isActive) {
-                    html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between"><div class="flex items-center gap-4"><div class="bg-yellow-500 w-12 h-12 rounded-full flex justify-center items-center text-black"><i class="fas fa-play ml-1"></i></div><div><p class="font-black text-white">الجولة ${i}</p><p class="text-[10px] text-yellow-400 animate-pulse">ابدأ الآن</p></div></div><i class="fas fa-chevron-left text-yellow-500"></i></div>`;
+                    html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4"><div class="flex items-center gap-4"><div class="bg-gradient-to-r from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black shadow-lg"><i class="fas fa-play text-2xl ml-1"></i></div><div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-[10px] text-yellow-400 font-bold animate-pulse mt-1">اضغط هنا لبدء التحدي</p></div></div><i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-60"></i></div>`;
+                } else if (isSoon) {
+                    html += `<div class="glass-card p-6 rounded-2xl flex justify-between items-center mb-4 border-l-4 border-blue-500 bg-blue-900/10"><div class="flex items-center gap-4"><div class="bg-blue-500/20 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center animate-pulse"><i class="fas fa-clock text-2xl"></i></div><div><p class="font-black text-white text-lg">الجولة ${i}</p><p class="text-[10px] text-blue-400 font-bold mt-1">قريباً... يتم التجهيز</p></div></div></div>`;
                 } else {
-                    html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-50"><div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock"></i></div><p class="font-bold text-gray-500">الجولة ${i}</p></div>`;
+                    html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-50 mb-4"><div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock"></i></div><p class="font-bold text-sm text-gray-500">الجولة ${i}</p></div>`;
                 }
             }
             container.innerHTML = html;
@@ -178,8 +198,10 @@
         window.openQuiz = function(dayNumber) {
             if(isQuizActive) return;
             document.getElementById('quiz-overlay').style.display = 'flex';
+            document.getElementById('quiz-content').innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-3"></i><p>جاري تحميل الأسئلة...</p></div>`;
+            
             db.collection("quizzes_pool").doc("day_" + dayNumber).get().then(doc => {
-                if(doc.exists) {
+                if(doc.exists && doc.data().variations) {
                     currentQuizQuestions = doc.data().variations[user.quizVar || 0].questions;
                     currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
                     showQuestion();
@@ -191,74 +213,101 @@
             if (currentQuestionIndex >= currentQuizQuestions.length) { finishQuiz(); return; }
             let qData = currentQuizQuestions[currentQuestionIndex];
             timeLeft = 20;
-            document.getElementById('quiz-content').innerHTML = `
-                <div class="flex justify-between mb-4 text-xs"><span class="text-yellow-500">سؤال ${currentQuestionIndex+1} / ${currentQuizQuestions.length}</span><span id="timer-text" class="text-red-400">20</span></div>
-                <div id="timer-bar-container"><div id="timer-bar"></div></div>
-                <h3 class="text-lg font-bold mb-6">${qData.q}</h3>
-                <div class="space-y-3">${qData.options.map((opt, i) => `<button onclick="submitAnswer(${i})" class="opt-btn" id="opt-${i}">${opt}</button>`).join('')}</div>
+            
+            let html = `
+                <div class="flex justify-between items-center mb-5">
+                    <div class="bg-gray-800 border border-gray-700 px-4 py-1.5 rounded-full text-xs font-bold text-gray-300">
+                        السؤال <span class="text-yellow-500">${currentQuestionIndex + 1}</span> من ${currentQuizQuestions.length}
+                    </div>
+                    <div class="bg-red-500/10 border border-red-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-red-400 flex items-center gap-2">
+                        <i class="fas fa-stopwatch animate-pulse"></i> <span id="timer-text">${timeLeft}</span> ث
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 h-1.5 rounded-full overflow-hidden mb-6">
+                    <div id="timer-bar" class="h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear" style="width: 100%;"></div>
+                </div>
+
+                <h3 class="text-xl font-black text-white mb-8 text-center leading-relaxed">${qData.q}</h3>
+                <div class="space-y-3">
             `;
+
+            qData.options.forEach((opt, idx) => {
+                let letter = String.fromCharCode(65 + idx); // A, B, C, D
+                html += `
+                <button onclick="submitAnswer(${idx})" class="opt-btn group" id="opt-${idx}">
+                    <span>${opt}</span>
+                    <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 text-[10px]">
+                        <span>${letter}</span>
+                    </div>
+                </button>`;
+            });
+            html += `</div>`;
+
+            document.getElementById('quiz-content').innerHTML = html;
             startTimer();
         }
 
         function startTimer() {
             clearInterval(timerInterval);
+            let bar = document.getElementById('timer-bar');
+            let txt = document.getElementById('timer-text');
+            bar.style.width = "100%";
+            bar.className = "h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear";
+
             timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer-text').innerText = timeLeft;
-                document.getElementById('timer-bar').style.width = (timeLeft/20*100) + "%";
-                if(timeLeft <= 0) submitAnswer(-1);
+                timeLeft--; txt.innerText = timeLeft;
+                bar.style.width = ((timeLeft / 20) * 100) + "%";
+
+                if(timeLeft <= 10 && timeLeft > 5) {
+                    bar.className = "h-full bg-gradient-to-l from-yellow-400 to-yellow-600 transition-all duration-1000 ease-linear";
+                } else if(timeLeft <= 5) {
+                    bar.className = "h-full bg-gradient-to-l from-red-500 to-red-700 transition-all duration-1000 ease-linear";
+                }
+
+                if (timeLeft <= 0) { clearInterval(timerInterval); submitAnswer(-1); }
             }, 1000);
         }
 
-        window.submitAnswer = function(idx) {
+        window.submitAnswer = function(selectedIndex) {
             clearInterval(timerInterval);
-            let correct = currentQuizQuestions[currentQuestionIndex].correctIndex;
-            if(idx === correct) currentScore += 10;
+            let correctIndex = currentQuizQuestions[currentQuestionIndex].correctIndex;
+            let btns = document.querySelectorAll('.opt-btn');
             
-            // تلوين الإجابة الصحيحة
-            if(idx !== -1) document.getElementById('opt-'+correct).style.background = "#16a34a";
-            if(idx !== -1 && idx !== correct) document.getElementById('opt-'+idx).style.background = "#dc2626";
+            btns.forEach(b => { 
+                b.disabled = true; 
+                b.style.opacity = '0.7'; 
+                b.style.cursor = 'default';
+                b.classList.remove('group-hover:border-yellow-500', 'group-hover:text-yellow-500');
+            });
+
+            if (selectedIndex === correctIndex && selectedIndex !== -1) {
+                currentScore += 1; // تعديل النقاط لتصبح نقطة واحدة فقط
+                let btn = document.getElementById('opt-' + selectedIndex);
+                btn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; btn.style.borderColor = '#16a34a'; btn.style.opacity = '1';
+                btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
+                btn.querySelector('.opt-circle').style.borderColor = '#16a34a';
+            } else if (selectedIndex !== -1) {
+                let btn = document.getElementById('opt-' + selectedIndex);
+                btn.style.backgroundColor = 'rgba(220, 38, 38, 0.2)'; btn.style.borderColor = '#dc2626'; btn.style.opacity = '1';
+                btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-times text-red-500 text-sm"></i>';
+                btn.querySelector('.opt-circle').style.borderColor = '#dc2626';
+                
+                let correctBtn = document.getElementById('opt-' + correctIndex);
+                if(correctBtn) {
+                    correctBtn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)'; correctBtn.style.borderColor = '#16a34a'; correctBtn.style.opacity = '1';
+                    correctBtn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
+                    correctBtn.querySelector('.opt-circle').style.borderColor = '#16a34a';
+                }
+            }
 
             setTimeout(() => {
                 currentQuestionIndex++;
                 showQuestion();
-            }, 1000);
+            }, 1500); // تأخير ثانية ونص عشان اللاعب يلحق يشوف الإجابة الصح
         };
 
         function finishQuiz() {
             isQuizActive = false;
             db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(currentScore) });
-            db.collection("users").doc(user.id).collection("game_logs").add({ day: adminDay, score: currentScore, date: new Date() });
-            
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            document.getElementById('quiz-content').innerHTML = `
-                <div class="text-center">
-                    <i class="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
-                    <h2 class="text-2xl font-black mb-2">أحسنت!</h2>
-                    <p class="mb-6">لقد حصلت على ${currentScore} نقطة</p>
-                    <button onclick="location.reload()" class="w-full bg-yellow-600 p-4 rounded-xl font-bold">العودة للمجموعة</button>
-                </div>
-            `;
-        }
-
-        function logoutUser() { localStorage.clear(); window.location.replace("index.html"); }
-
-        function fetchLeaderboard() {
-            db.collection("users").where("group", "==", user.group).onSnapshot(snap => {
-                let teams = {};
-                snap.forEach(doc => {
-                    let u = doc.data();
-                    let tName = (u.team && u.team !== "فردي") ? u.team : u.name;
-                    teams[tName] = (teams[tName] || 0) + (u.score || 0);
-                });
-                let sorted = Object.keys(teams).map(k => ({name: k, score: teams[k]})).sort((a,b) => b.score - a.score);
-                document.getElementById('group-list').innerHTML = sorted.map((t, i) => `
-                    <div class="p-4 rounded-xl flex justify-between items-center ${i===0?'bg-yellow-900/20 border border-yellow-500':'bg-gray-800'}">
-                        <span>${i===0?'👑':i+1} ${t.name}</span>
-                        <span class="font-bold text-yellow-500">${t.score}</span>
-                    </div>`).join('');
-            });
-        }
-    </script>
-</body>
-</html>
+            db.collection("users").doc(user.id).collection("game_logs").add({ day: adminDa
