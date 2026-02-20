@@ -17,7 +17,6 @@
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        /* تصميم صندوق الاختبار الجديد والاحترافي */
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
         .quiz-box { 
             width: 100%; max-width: 450px; 
@@ -29,7 +28,6 @@
         }
         .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
         
-        /* تصميم أزرار الإجابات */
         .opt-btn { 
             background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(71, 85, 105, 0.5); 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -57,8 +55,6 @@
             </div>
         </div>
     </div>
-
-    <div id="daily-msg-box" class="max-w-lg mx-auto bg-gradient-to-r from-blue-900/60 to-purple-900/60 border border-blue-500/50 p-4 rounded-2xl mb-4 text-center text-sm text-blue-200 hidden shadow-lg font-bold"></div>
 
     <div class="flex justify-between items-center max-w-lg mx-auto mb-6">
         <button onclick="logoutUser()" class="bg-gray-800/80 text-red-400 border border-red-900/50 px-5 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-900 hover:text-white transition"><i class="fas fa-power-off ml-1"></i> خروج</button>
@@ -111,24 +107,34 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // إعدادات الفايربيز
         const firebaseConfig = { apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", projectId: "ramadan-87817", appId: "1:343525703258:web:6776b4857425df8bcca263" };
         if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let user = { name: "مستخدم", group: "", team: "فردي" }; 
+        // 1. تأمين قراءة بيانات المستخدم لمنع الأخطاء اللانهائية
+        let user = { id: null, name: "مستخدم", group: "عام", team: "فردي", quizVar: 0 }; 
         try { 
             let storedUser = JSON.parse(localStorage.getItem('currentUser')); 
             if(storedUser) {
-                user = storedUser;
-                user.id = user.id || user.uid;
+                user.id = storedUser.id || storedUser.uid;
+                user.name = storedUser.name || "مستخدم";
+                user.group = storedUser.group || "عام"; 
+                user.team = storedUser.team || "فردي";
+                user.quizVar = storedUser.quizVar || 0;
             }
             if (!user.id) throw new Error("No User ID"); 
         } catch(e) { 
-            window.location.replace("index.html"); 
+            if (!window.location.pathname.endsWith("index.html")) {
+                window.location.replace("index.html"); 
+            } else {
+                console.warn("User needs to login.");
+            }
         }
 
-        document.getElementById('p-name').innerText = user.name || "مستخدم";
-        document.getElementById('p-group').innerText = (user.group || "") + " | " + (user.team || "فردي");
+        // عرض بيانات المستخدم في الواجهة
+        document.getElementById('p-name').innerText = user.name;
+        document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
         let myLogs = {}, adminDay = 1, adminStatus = "closed";
         let currentQuizQuestions = [], currentQuestionIndex = 0, currentScore = 0;
@@ -212,8 +218,12 @@
             document.getElementById('quiz-content').innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-4xl text-yellow-500 mb-3"></i><p>جاري تحميل الأسئلة...</p></div>`;
             
             db.collection("quizzes_pool").doc("day_" + dayNumber).get().then(doc => {
-                if(doc.exists && doc.data().variations) {
-                    currentQuizQuestions = doc.data().variations[user.quizVar || 0].questions;
+                // 2. تأمين استدعاء الأسئلة في حال لم يجد متغيرات
+                if(doc.exists && doc.data().variations && doc.data().variations.length > 0) {
+                    let userVariation = user.quizVar || 0;
+                    if(userVariation >= doc.data().variations.length) userVariation = 0; // حماية إضافية
+
+                    currentQuizQuestions = doc.data().variations[userVariation].questions;
                     currentQuestionIndex = 0; currentScore = 0; isQuizActive = true;
                     showQuestion();
                 } else {
@@ -222,12 +232,13 @@
                 }
             }).catch(err => {
                 document.getElementById('quiz-overlay').style.display = 'none';
+                console.error(err);
                 alert('حدث خطأ في الاتصال بالإنترنت.');
             });
         };
 
         function showQuestion() {
-            // تصحيح: التحقق من نهاية الأسئلة قبل البدء
+            // 3. منع الانفنتي لوب (Infinite Loop) هنا
             if (currentQuestionIndex >= currentQuizQuestions.length) { 
                 clearInterval(timerInterval);
                 finishQuiz(); 
@@ -279,24 +290,25 @@
             bar.className = "h-full bg-gradient-to-l from-green-400 to-green-600 transition-all duration-1000 ease-linear";
 
             timerInterval = setInterval(() => {
-                timeLeft--; txt.innerText = timeLeft;
-                bar.style.width = ((timeLeft / 20) * 100) + "%";
+                timeLeft--; 
+                if(txt) txt.innerText = timeLeft;
+                if(bar) bar.style.width = ((timeLeft / 20) * 100) + "%";
 
                 if(timeLeft <= 10 && timeLeft > 5) {
-                    bar.className = "h-full bg-gradient-to-l from-yellow-400 to-yellow-600 transition-all duration-1000 ease-linear";
+                    if(bar) bar.className = "h-full bg-gradient-to-l from-yellow-400 to-yellow-600 transition-all duration-1000 ease-linear";
                 } else if(timeLeft <= 5) {
-                    bar.className = "h-full bg-gradient-to-l from-red-500 to-red-700 transition-all duration-1000 ease-linear";
+                    if(bar) bar.className = "h-full bg-gradient-to-l from-red-500 to-red-700 transition-all duration-1000 ease-linear";
                 }
 
                 if (timeLeft <= 0) { 
                     clearInterval(timerInterval); 
-                    submitAnswer(-1); 
+                    submitAnswer(-1); // الوقت انتهى
                 }
             }, 1000);
         }
 
         window.submitAnswer = function(selectedIndex) {
-            clearInterval(timerInterval);
+            clearInterval(timerInterval); // إيقاف التايمر فوراً لتجنب التكرار
             
             let btns = document.querySelectorAll('.opt-btn');
             btns.forEach(b => { 
@@ -316,20 +328,7 @@
                 highlightButton(correctIndex, 'correct');
             }
 
+            // انتقال آمن للسؤال التالي
             setTimeout(() => {
                 currentQuestionIndex++;
-                showQuestion();
-            }, 1500); 
-        };
-
-        function highlightButton(index, type) {
-            let btn = document.getElementById('opt-' + index);
-            if (!btn) return;
-            if (type === 'correct') {
-                btn.style.backgroundColor = 'rgba(22, 163, 74, 0.2)';
-                btn.style.borderColor = '#16a34a';
-                btn.style.opacity = '1';
-                btn.querySelector('.opt-circle').innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
-                btn.querySelector('.opt-circle').style.borderColor = '#16a34a';
-            } else {
-           
+             
