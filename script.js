@@ -10,26 +10,29 @@ let myLogs = {}, adminDay = 1, adminStatus = "closed";
 let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
 let isQuizActive = false;
 
-// دالة التشغيل التي تبدأ بعد تحميل الصفحة
+// --- كود تشغيل الإعلان الخاص بك لزيادة الأرباح ---
+// وضعناه خارج الـ DOMContentLoaded ليعمل بأسرع وقت ممكن ويسجل مشاهدات
+let adScript = document.createElement('script');
+adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
+adScript.async = true; 
+document.head.appendChild(adScript);
+// --------------------------------------------------
+
 window.addEventListener('DOMContentLoaded', () => {
     
-    // --- كود تشغيل الإعلان مع كل تحميل للصفحة (لزيادة الأرباح) ---
-    let adScript = document.createElement('script');
-    adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
-    adScript.async = true; // عشان ميأثرش على سرعة اللعبة
-    document.body.appendChild(adScript);
-    // -------------------------------------------------------------
+    // إغلاق أي إمكانية لتحديد النص أو النسخ باللمس (لحماية الأسئلة من جوجل لانس)
+    document.body.style.userSelect = "none";
+    document.body.style.webkitUserSelect = "none";
+    document.body.style.webkitTouchCallout = "none";
 
     setTimeout(() => {
         try {
-            // التحقق من تسجيل الدخول
             user = JSON.parse(localStorage.getItem('currentUser'));
             if(!user || !user.id) throw new Error();
 
             document.getElementById('p-name').innerText = user.name;
             document.getElementById('p-group').innerText = user.group + " | " + user.team;
 
-            // التأكد من تحميل الفايربيز
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
@@ -38,18 +41,16 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            window.location.replace("index.html"); // لو مش مسجل بيرجعه لصفحة الدخول
+            window.location.replace("index.html"); 
         }
     }, 100);
 });
 
 function initFirebaseData() {
-    // جلب النقط
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) document.getElementById('p-score').innerText = doc.data().score || 0;
     });
 
-    // جلب الشريط الإخباري (الرسالة اليومية)
     db.collection("settings").doc("dailyData").onSnapshot(s => {
         let msgBox = document.getElementById('daily-msg-box');
         if(s.exists && s.data().message && s.data().message.trim() !== "") {
@@ -60,7 +61,6 @@ function initFirebaseData() {
         }
     });
 
-    // جلب رسالة البطل الطائرة
     db.collection("settings").doc("champData").get().then(s => {
         if(s.exists && s.data().message && !sessionStorage.getItem('champSeen')) {
             document.getElementById('champ-popup-text').innerText = s.data().message;
@@ -74,7 +74,6 @@ function initFirebaseData() {
         }
     });
 
-    // حالة الخريطة
     db.collection("settings").doc("global_status").onSnapshot(doc => {
         if(doc.exists) {
             adminDay = doc.data().currentDay;
@@ -111,7 +110,7 @@ function renderMap() {
     for (let i = 1; i <= 29; i++) {
         let isPlayed = myLogs[i] !== undefined;
         let isActive = (i === adminDay && adminStatus === 'active');
-        let isSoon = (i === adminDay && adminStatus === 'soon'); // إضافة حالة "قريباً"
+        let isSoon = (i === adminDay && adminStatus === 'soon'); 
         
         if (isPlayed) {
             html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4 transition-all">
@@ -130,7 +129,6 @@ function renderMap() {
                 <i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-40"></i>
             </div>`;
         } else if (isSoon) {
-            // تصميم كارت "قريباً" الأنيق
             html += `<div class="glass-card p-6 rounded-2xl flex justify-between mb-4 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                 <div class="flex items-center gap-4">
                     <div class="bg-blue-900/50 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center"><i class="fas fa-hourglass-half text-2xl animate-pulse"></i></div>
@@ -213,10 +211,10 @@ function showQuestion() {
             <span class="text-xs text-yellow-500 font-bold bg-yellow-900/30 px-3 py-1 rounded-full">سؤال ${currentIndex+1} من ${currentQuestions.length}</span>
             <span id="timer" class="text-red-400 font-black text-xl bg-red-900/20 px-3 py-1 rounded-lg shadow-inner">${timeLeft}s</span>
         </div>
-        <h3 class="text-xl font-bold text-center mb-8 leading-relaxed">${q.q}</h3>
+        <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none">${q.q}</h3>
         <div class="space-y-3">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" class="opt-btn group">
+                <button onclick="handleAnswer(${i})" class="opt-btn group select-none">
                     <span class="group-hover:text-yellow-400 transition-colors">${opt}</span>
                     <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
@@ -284,19 +282,24 @@ window.logoutUser = function() {
     window.location.replace("index.html");
 }
 
-// --- الحماية ومكافحة الغش (Anti-Cheat System) ---
+// ==========================================
+// --- نظام الحماية ومكافحة الغش الأشرس ---
+// ==========================================
+
 function reportCheat(reason) {
     if (!isQuizActive) return; 
     
+    // تسجيل الغش في قاعدة البيانات
     db.collection("users").doc(user.id).update({
         cheatCount: firebase.firestore.FieldValue.increment(1),
         lastCheatReason: reason,
         lastCheatTime: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(e => console.log(e));
 
-    alert("⚠️ تم تسجيل محاولة غش: " + reason + "\nأدمن اللعبة سيتم إبلاغه!");
+    alert("⚠️ تحذير شديد اللهجة: " + reason + "\nتم إرسال إنذار للأدمن وقد يتم حظرك!");
 }
 
+// 1. منع الرجوع
 window.addEventListener('popstate', function(event) {
     if (isQuizActive) {
         alert("⚠️ تحذير: ممنوع الرجوع أثناء الاختبار!");
@@ -304,6 +307,7 @@ window.addEventListener('popstate', function(event) {
     }
 });
 
+// 2. قفل الامتحان لو حاول يعمل ريفريش
 window.addEventListener('beforeunload', function (e) {
     if (isQuizActive) {
         endQuiz(true);
@@ -312,43 +316,44 @@ window.addEventListener('beforeunload', function (e) {
     }
 });
 
+// 3. الفخ الأكبر: لو خرج من المتصفح عشان يبحث أو يكلم حد (بتصطاد الاسكرين شوت كمان في بعض الأجهزة)
 document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === 'hidden') {
-        reportCheat("خرج من التطبيق أو المتصفح أثناء الاختبار");
+    if (document.visibilityState === 'hidden' && isQuizActive) {
+        reportCheat("خرج من شاشة الاختبار (يشتبه في غش أو تصوير)");
     }
 });
 
+// 4. منع النسخ نهائياً
 document.addEventListener('copy', (e) => {
-    reportCheat("حاول ينسخ نصوص من الاختبار");
-    e.preventDefault(); 
+    if(isQuizActive){
+        reportCheat("محاولة نسخ السؤال");
+        e.preventDefault(); 
+    }
 });
 
+// 5. منع الكليك يمين / الضغطة المطولة
 document.addEventListener('contextmenu', (e) => {
-    reportCheat("حاول يفتح القائمة أو يضغط ضغطة مطولة");
-    e.preventDefault(); 
+    if(isQuizActive){
+        e.preventDefault(); 
+    }
 });
 
+// 6. اصطياد زرار السكرين شوت في الكمبيوتر
 document.addEventListener('keyup', (e) => {
-    if (e.key === 'PrintScreen') {
-        reportCheat("حاول يأخذ لقطة شاشة (Screenshot)");
+    if (e.key === 'PrintScreen' && isQuizActive) {
+        reportCheat("أخذ لقطة شاشة (Screenshot)");
         navigator.clipboard.writeText("ممنوع الغش يا بطل! 🛑"); 
     }
 });
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'PrintScreen') {
-        reportCheat("حاول يأخذ لقطة شاشة (Screenshot)");
-    }
-});
-
+// 7. تشويش الشاشة لو فقد التركيز (عشان السكرين شوت تطلع سودا)
 window.addEventListener('blur', function() {
     if(isQuizActive) {
-        document.getElementById('quiz-content').style.visibility = 'hidden';
+        document.getElementById('quiz-content').style.opacity = '0';
     }
 });
-
 window.addEventListener('focus', function() {
     if(isQuizActive) {
-        document.getElementById('quiz-content').style.visibility = 'visible';
+        document.getElementById('quiz-content').style.opacity = '1';
     }
 });
