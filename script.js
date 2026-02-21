@@ -335,14 +335,12 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// منع اخذ سكرين شوت (هذه الطريقة تعتمد على الـ CSS لمنع تحديد النص والتفاعل معه بطرق غير مرغوب فيها، لأن منع السكرين شوت برمجيا غير ممكن تماما في معظم المتصفحات)
 document.addEventListener('keydown', function(e) {
     if (e.key === 'PrintScreen') {
         reportCheat("حاول يأخذ لقطة شاشة (Screenshot)");
     }
 });
 
-// محاولة إخفاء المحتوى عند محاولة أخذ سكرين شوت على الموبايل (طريقة غير موثوقة 100% ولكنها تزيد من الصعوبة)
 window.addEventListener('blur', function() {
     if(isQuizActive) {
         document.getElementById('quiz-content').style.visibility = 'hidden';
@@ -354,4 +352,3 @@ window.addEventListener('focus', function() {
         document.getElementById('quiz-content').style.visibility = 'visible';
     }
 });
-
