@@ -284,7 +284,19 @@ window.logoutUser = function() {
     window.location.replace("index.html");
 }
 
-// --- الحماية (Anti-Cheat) ---
+// --- الحماية ومكافحة الغش (Anti-Cheat System) ---
+function reportCheat(reason) {
+    if (!isQuizActive) return; 
+    
+    db.collection("users").doc(user.id).update({
+        cheatCount: firebase.firestore.FieldValue.increment(1),
+        lastCheatReason: reason,
+        lastCheatTime: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e => console.log(e));
+
+    alert("⚠️ تم تسجيل محاولة غش: " + reason + "\nأدمن اللعبة سيتم إبلاغه!");
+}
+
 window.addEventListener('popstate', function(event) {
     if (isQuizActive) {
         alert("⚠️ تحذير: ممنوع الرجوع أثناء الاختبار!");
@@ -299,3 +311,47 @@ window.addEventListener('beforeunload', function (e) {
         e.returnValue = '';
     }
 });
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'hidden') {
+        reportCheat("خرج من التطبيق أو المتصفح أثناء الاختبار");
+    }
+});
+
+document.addEventListener('copy', (e) => {
+    reportCheat("حاول ينسخ نصوص من الاختبار");
+    e.preventDefault(); 
+});
+
+document.addEventListener('contextmenu', (e) => {
+    reportCheat("حاول يفتح القائمة أو يضغط ضغطة مطولة");
+    e.preventDefault(); 
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'PrintScreen') {
+        reportCheat("حاول يأخذ لقطة شاشة (Screenshot)");
+        navigator.clipboard.writeText("ممنوع الغش يا بطل! 🛑"); 
+    }
+});
+
+// منع اخذ سكرين شوت (هذه الطريقة تعتمد على الـ CSS لمنع تحديد النص والتفاعل معه بطرق غير مرغوب فيها، لأن منع السكرين شوت برمجيا غير ممكن تماما في معظم المتصفحات)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen') {
+        reportCheat("حاول يأخذ لقطة شاشة (Screenshot)");
+    }
+});
+
+// محاولة إخفاء المحتوى عند محاولة أخذ سكرين شوت على الموبايل (طريقة غير موثوقة 100% ولكنها تزيد من الصعوبة)
+window.addEventListener('blur', function() {
+    if(isQuizActive) {
+        document.getElementById('quiz-content').style.visibility = 'hidden';
+    }
+});
+
+window.addEventListener('focus', function() {
+    if(isQuizActive) {
+        document.getElementById('quiz-content').style.visibility = 'visible';
+    }
+});
+
