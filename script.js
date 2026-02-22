@@ -11,7 +11,6 @@ let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
 let isQuizActive = false;
 
 // --- كود تشغيل الإعلان الخاص بك لزيادة الأرباح ---
-// وضعناه خارج الـ DOMContentLoaded ليعمل بأسرع وقت ممكن ويسجل مشاهدات
 let adScript = document.createElement('script');
 adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
 adScript.async = true; 
@@ -175,7 +174,7 @@ function fetchLeaderboard() {
     });
 }
 
-// --- نظام الكويز القوي ---
+// --- التعديل هنا: نظام اختيار الكويز العشوائي ---
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) {
         alert("أنت لعبت الجولة دي خلاص يا بطل، مفيش إعادة!");
@@ -189,16 +188,33 @@ window.openQuiz = function(day) {
     document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 animate-pulse">جاري تجهيز ساحة المعركة...</p>';
     
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
-        if(doc.exists) {
-            currentQuestions = doc.data().variations[0].questions;
-            currentIndex = 0; sessionScore = 0;
-            showQuestion();
+        if(doc.exists && doc.data().variations) {
+            // جلب كل النسخ المتاحة (0، 1، 2، إلخ)
+            let variationsObj = doc.data().variations;
+            let availableKeys = Object.keys(variationsObj); 
+            
+            if(availableKeys.length > 0) {
+                // سحب نسخة عشوائية من النسخ المتاحة
+                let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+                
+                currentQuestions = variationsObj[randomKey].questions;
+                currentIndex = 0; sessionScore = 0;
+                showQuestion();
+            } else {
+                document.getElementById('quiz-content').innerHTML = '<p class="text-center text-red-500 font-bold">التحدي لم يجهز بعد!</p>';
+                setTimeout(() => location.reload(), 2000);
+            }
         } else {
             document.getElementById('quiz-content').innerHTML = '<p class="text-center text-red-500 font-bold">التحدي لم يجهز بعد!</p>';
             setTimeout(() => location.reload(), 2000);
         }
+    }).catch(err => {
+        console.error(err);
+        document.getElementById('quiz-content').innerHTML = '<p class="text-center text-red-500 font-bold">حدث خطأ في الاتصال!</p>';
+        setTimeout(() => location.reload(), 2000);
     });
 }
+// ------------------------------------------------
 
 function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
