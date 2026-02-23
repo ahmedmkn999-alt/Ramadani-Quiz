@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script defer src="script.js"></script>
+
     <script src="https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js"></script>
     <script src="https://pl28773459.effectivegatecpm.com/0c/2e/75/0c2e7503a2abb6a631fb27fdf3b7ae02.js"></script>
     
@@ -22,18 +26,20 @@
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        /* -- التعديل السحري لإخفاء الإعلانات وقت الكويز -- */
-        body.hide-ads div[style*="z-index: 2147483647"], 
-        body.hide-ads div[style*="z-index: 9999"], 
-        body.hide-ads iframe {
+        /* -- الضربة القاضية النووية للإعلانات وقت الكويز -- */
+        body.hide-ads > div:not(#quiz-overlay),
+        body.hide-ads iframe,
+        body.hide-ads ins {
             display: none !important;
-            pointer-events: none !important;
+            visibility: hidden !important;
             opacity: 0 !important;
+            pointer-events: none !important;
+            z-index: -9999 !important;
         }
-        
-        #quiz-overlay { position: fixed; inset: 0; background: #030712; z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(10px); }
-        /* --------------------------------------------------- */
+        body.hide-ads { overflow: hidden !important; background: #030712 !important; }
+        /* ------------------------------------------------ */
 
+        #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 15px; }
         .quiz-box { width: 100%; max-width: 450px; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); position: relative; overflow: hidden; }
         .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
         
@@ -41,10 +47,6 @@
         .opt-btn:hover:not(:disabled) { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
         .opt-circle { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #64748b; display: flex; align-items: center; justify-content: center; font-size: 10px; }
     </style>
-
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script defer src="script.js"></script>
 </head>
 <body class="p-4 pb-24 relative">
 
@@ -112,4 +114,5 @@
     <div id="quiz-overlay"><div class="quiz-box" id="quiz-content"></div></div>
 
 </body>
-</html>
+                                                 </html>
+    
