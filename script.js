@@ -168,7 +168,7 @@ function fetchLeaderboard() {
 }
 
 // ==========================================
-// --- إضافة شاشة التأكيد "مستعد يا بطل؟" ---
+// --- شاشة التأكيد وبدء الكويز ---
 // ==========================================
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) {
@@ -176,7 +176,7 @@ window.openQuiz = function(day) {
         return;
     }
 
-    // إضافة الكلاس اللي بيخفي الإعلانات
+    // إضافة الكلاس اللي بيخفي الإعلانات ويخلي الشاشة سودا 
     document.body.classList.add('hide-ads');
 
     document.getElementById('quiz-overlay').style.display = 'flex';
@@ -246,7 +246,7 @@ function showQuestion() {
         <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none">${q.q}</h3>
         <div class="space-y-3">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i}, event)" class="opt-btn group select-none">
+                <button onclick="handleAnswer(${i})" class="opt-btn group select-none">
                     <span class="group-hover:text-yellow-400 transition-colors">${opt}</span>
                     <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
@@ -259,15 +259,11 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').innerText = timeLeft + "s";
-        if(timeLeft <= 0) handleAnswer(-1, null);
+        if(timeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
-window.handleAnswer = function(i, event) {
-    if(event) {
-        event.stopPropagation(); // عشان الإعلان ميقراش الضغطة وقت السؤال
-    }
-    
+window.handleAnswer = function(i) {
     clearInterval(timerInterval);
     if(i !== -1 && i === currentQuestions[currentIndex].correctIndex) {
         sessionScore++;
