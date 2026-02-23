@@ -10,19 +10,24 @@ let myLogs = {}, adminDay = 1, adminStatus = "closed";
 let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
 let isQuizActive = false;
 
-// --- كود تشغيل الإعلان الخاص بك لزيادة الأرباح ---
-let adScript = document.createElement('script');
-adScript.src = "https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js";
-adScript.async = true; 
-document.head.appendChild(adScript);
-// --------------------------------------------------
-
 window.addEventListener('DOMContentLoaded', () => {
     
-    // إغلاق أي إمكانية لتحديد النص أو النسخ باللمس (لحماية الأسئلة من جوجل لانس)
+    // منع تحديد النص
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
     document.body.style.webkitTouchCallout = "none";
+
+    // --- 🛡️ الدرع الفولاذي ضد الإعلانات جوه الكويز 🛡️ ---
+    // بيصطاد الضغطة قبل ما الإعلان يشوفها، لو الكويز شغال
+    ['click', 'mousedown', 'touchstart'].forEach(evt => {
+        window.addEventListener(evt, function(e) {
+            let overlay = document.getElementById('quiz-overlay');
+            if (isQuizActive && overlay && overlay.contains(e.target)) {
+                e.stopPropagation(); // اقتل الضغطة
+            }
+        }, true); // true = Capturing Phase (يشتغل قبل الإعلان)
+    });
+    // -----------------------------------------------------------
 
     setTimeout(() => {
         try {
@@ -174,29 +179,49 @@ function fetchLeaderboard() {
     });
 }
 
-// --- التعديل هنا: نظام اختيار الكويز العشوائي ---
+// ==========================================
+// --- إضافة شاشة التأكيد "مستعد يا بطل؟" ---
+// ==========================================
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) {
         alert("أنت لعبت الجولة دي خلاص يا بطل، مفيش إعادة!");
         return;
     }
 
+    document.getElementById('quiz-overlay').style.display = 'flex';
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="text-center">
+            <div class="bg-yellow-500/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500 shadow-[0_0_15px_rgba(255,215,0,0.5)]">
+                <i class="fas fa-fist-raised text-4xl text-yellow-400"></i>
+            </div>
+            <h2 class="text-2xl font-black text-white mb-2">مستعد يا بطل؟ 🔥</h2>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">الوقت هيبدأ يعد فوراً بمجرد دخولك، ومفيش رجوع، وأي محاولة خروج هتتحسب غش!</p>
+            <div class="flex gap-3">
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black p-3 rounded-xl transition-all shadow-lg">أيوة، جاهز ⚔️</button>
+                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold p-3 rounded-xl transition-all">لا، استنى ✋</button>
+            </div>
+        </div>
+    `;
+}
+
+window.closeQuizOverlay = function() {
+    document.getElementById('quiz-overlay').style.display = 'none';
+}
+
+// سحب الكويز العشوائي
+window.startQuizFetch = function(day) {
     isQuizActive = true;
     history.pushState(null, null, location.href);
-
-    document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 animate-pulse">جاري تجهيز ساحة المعركة...</p>';
     
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
-            // جلب كل النسخ المتاحة (0، 1، 2، إلخ)
             let variationsObj = doc.data().variations;
             let availableKeys = Object.keys(variationsObj); 
             
             if(availableKeys.length > 0) {
-                // سحب نسخة عشوائية من النسخ المتاحة
+                // سحب نسخة عشوائية من اللي انت ضفتهم في اللوحة
                 let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
-                
                 currentQuestions = variationsObj[randomKey].questions;
                 currentIndex = 0; sessionScore = 0;
                 showQuestion();
@@ -214,7 +239,7 @@ window.openQuiz = function(day) {
         setTimeout(() => location.reload(), 2000);
     });
 }
-// ------------------------------------------------
+// ==========================================
 
 function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
@@ -230,7 +255,7 @@ function showQuestion() {
         <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none">${q.q}</h3>
         <div class="space-y-3">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" class="opt-btn group select-none">
+                <button onclick="handleAnswer(${i}, event)" class="opt-btn group select-none">
                     <span class="group-hover:text-yellow-400 transition-colors">${opt}</span>
                     <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
@@ -243,11 +268,15 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').innerText = timeLeft + "s";
-        if(timeLeft <= 0) handleAnswer(-1);
+        if(timeLeft <= 0) handleAnswer(-1, null);
     }, 1000);
 }
 
-window.handleAnswer = function(i) {
+window.handleAnswer = function(i, event) {
+    if(event) {
+        event.stopPropagation(); 
+    }
+    
     clearInterval(timerInterval);
     if(i !== -1 && i === currentQuestions[currentIndex].correctIndex) {
         sessionScore++;
@@ -298,14 +327,9 @@ window.logoutUser = function() {
     window.location.replace("index.html");
 }
 
-// ==========================================
-// --- نظام الحماية ومكافحة الغش الأشرس ---
-// ==========================================
-
 function reportCheat(reason) {
     if (!isQuizActive) return; 
     
-    // تسجيل الغش في قاعدة البيانات
     db.collection("users").doc(user.id).update({
         cheatCount: firebase.firestore.FieldValue.increment(1),
         lastCheatReason: reason,
@@ -315,7 +339,6 @@ function reportCheat(reason) {
     alert("⚠️ تحذير شديد اللهجة: " + reason + "\nتم إرسال إنذار للأدمن وقد يتم حظرك!");
 }
 
-// 1. منع الرجوع
 window.addEventListener('popstate', function(event) {
     if (isQuizActive) {
         alert("⚠️ تحذير: ممنوع الرجوع أثناء الاختبار!");
@@ -323,7 +346,6 @@ window.addEventListener('popstate', function(event) {
     }
 });
 
-// 2. قفل الامتحان لو حاول يعمل ريفريش
 window.addEventListener('beforeunload', function (e) {
     if (isQuizActive) {
         endQuiz(true);
@@ -332,14 +354,12 @@ window.addEventListener('beforeunload', function (e) {
     }
 });
 
-// 3. الفخ الأكبر: لو خرج من المتصفح عشان يبحث أو يكلم حد (بتصطاد الاسكرين شوت كمان في بعض الأجهزة)
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === 'hidden' && isQuizActive) {
         reportCheat("خرج من شاشة الاختبار (يشتبه في غش أو تصوير)");
     }
 });
 
-// 4. منع النسخ نهائياً
 document.addEventListener('copy', (e) => {
     if(isQuizActive){
         reportCheat("محاولة نسخ السؤال");
@@ -347,14 +367,12 @@ document.addEventListener('copy', (e) => {
     }
 });
 
-// 5. منع الكليك يمين / الضغطة المطولة
 document.addEventListener('contextmenu', (e) => {
     if(isQuizActive){
         e.preventDefault(); 
     }
 });
 
-// 6. اصطياد زرار السكرين شوت في الكمبيوتر
 document.addEventListener('keyup', (e) => {
     if (e.key === 'PrintScreen' && isQuizActive) {
         reportCheat("أخذ لقطة شاشة (Screenshot)");
@@ -362,7 +380,6 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// 7. تشويش الشاشة لو فقد التركيز (عشان السكرين شوت تطلع سودا)
 window.addEventListener('blur', function() {
     if(isQuizActive) {
         document.getElementById('quiz-content').style.opacity = '0';
