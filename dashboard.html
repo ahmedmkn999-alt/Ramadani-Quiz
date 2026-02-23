@@ -22,7 +22,18 @@
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
+        /* -- التعديل السحري لإخفاء الإعلانات وقت الكويز -- */
+        body.hide-ads div[style*="z-index: 2147483647"], 
+        body.hide-ads div[style*="z-index: 9999"], 
+        body.hide-ads iframe {
+            display: none !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+        }
+        
+        #quiz-overlay { position: fixed; inset: 0; background: #030712; z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(10px); }
+        /* --------------------------------------------------- */
+
         .quiz-box { width: 100%; max-width: 450px; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); position: relative; overflow: hidden; }
         .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
         
@@ -101,5 +112,4 @@
     <div id="quiz-overlay"><div class="quiz-box" id="quiz-content"></div></div>
 
 </body>
-                </html>
-                
+</html>
