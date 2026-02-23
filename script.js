@@ -168,13 +168,14 @@ function fetchLeaderboard() {
     });
 }
 
+// ==========================================
+// --- شاشة التأكيد وبدء الكويز ---
+// ==========================================
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) {
         alert("أنت لعبت الجولة دي خلاص يا بطل، مفيش إعادة!");
         return;
     }
-
-    document.body.classList.add('hide-ads');
 
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
@@ -194,8 +195,6 @@ window.openQuiz = function(day) {
 
 window.closeQuizOverlay = function() {
     document.getElementById('quiz-overlay').style.display = 'none';
-    document.body.classList.remove('hide-ads');
-    if(adSniperInterval) clearInterval(adSniperInterval);
 }
 
 window.startQuizFetch = function(day) {
@@ -203,19 +202,22 @@ window.startQuizFetch = function(day) {
     history.pushState(null, null, location.href);
     document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 animate-pulse">جاري تجهيز ساحة المعركة...</p>';
     
-    // --- 🔫 تشغيل قناص الإعلانات ---
-    // الكود ده بيلف كل نص ثانية يمسح أي إعلان يحاول يظهر نفسه فوق الشاشة
+    // --- ☢️ الإبادة الشاملة للإعلانات ☢️ ---
+    // 1. شلل تام لأي صفحة منبثقة (Popunder)
+    window.open = function() { return null; }; 
+
+    // 2. مسح إعلانات AdZilla وأي طبقة شفافة من جذورها كل ربع ثانية
     adSniperInterval = setInterval(() => {
-        document.querySelectorAll('div, iframe, a, span').forEach(el => {
+        document.querySelectorAll('iframe, ins').forEach(el => el.remove()); // مسح السوشيال بار
+        document.querySelectorAll('div, a').forEach(el => {
             let zIndex = window.getComputedStyle(el).zIndex;
-            if (zIndex && parseInt(zIndex) >= 9000 && el.id !== 'quiz-overlay' && !el.closest('#quiz-overlay')) {
-                el.style.setProperty('display', 'none', 'important');
-                el.style.setProperty('opacity', '0', 'important');
-                el.style.setProperty('pointer-events', 'none', 'important');
+            // لو في أي حاجة بتحاول تغطي الشاشة غير الكويز بتاعنا، امسحها فوراً
+            if (zIndex && parseInt(zIndex) > 1000 && el.id !== 'quiz-overlay' && !el.closest('#quiz-overlay')) {
+                el.remove();
             }
         });
-    }, 500);
-    // ---------------------------------
+    }, 250); 
+    // ----------------------------------------
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
@@ -256,7 +258,7 @@ function showQuestion() {
         <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none">${q.q}</h3>
         <div class="space-y-3">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i}, event)" class="opt-btn group select-none">
+                <button onclick="handleAnswer(${i})" class="opt-btn group select-none relative z-[5000]">
                     <span class="group-hover:text-yellow-400 transition-colors">${opt}</span>
                     <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
@@ -269,15 +271,11 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').innerText = timeLeft + "s";
-        if(timeLeft <= 0) handleAnswer(-1, null);
+        if(timeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
-window.handleAnswer = function(i, event) {
-    if(event) {
-        event.stopPropagation();
-    }
-    
+window.handleAnswer = function(i) {
     clearInterval(timerInterval);
     if(i !== -1 && i === currentQuestions[currentIndex].correctIndex) {
         sessionScore++;
@@ -290,13 +288,12 @@ function endQuiz(isForceExit = false) {
     if (!isQuizActive) return;
     isQuizActive = false;
     clearInterval(timerInterval);
-    if(adSniperInterval) clearInterval(adSniperInterval); // إيقاف القناص
+    if(adSniperInterval) clearInterval(adSniperInterval); // إيقاف قناص الإعلانات
     
     if (!isForceExit) {
         document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 text-xl animate-pulse">جاري توثيق إنجازك...</p>';
     }
 
-    // --- التعديل السحري لتفادي مشكلة مسح الحسابات ---
     db.collection("users").doc(user.id).set({
         score: firebase.firestore.FieldValue.increment(sessionScore)
     }, { merge: true }).then(() => {
@@ -318,13 +315,10 @@ function endQuiz(isForceExit = false) {
                     <button onclick="location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 p-4 rounded-xl font-black text-black text-lg shadow-lg transform hover:scale-105 transition-all">العودة للمعسكر</button>
                 </div>
             `;
-            document.body.classList.remove('hide-ads');
         }
     }).catch(error => {
         console.error("خطأ: ", error);
-        // رسالة الخطأ بقت بتعرض السبب الحقيقي عشان لو حصلت نبقى عارفين السبب
         if(!isForceExit) alert("خطأ في الحفظ بسبب: " + error.message + "\nبرجاء تسجيل الخروج والدخول مجدداً!");
-        document.body.classList.remove('hide-ads');
     });
 }
 
@@ -396,4 +390,4 @@ window.addEventListener('focus', function() {
         document.getElementById('quiz-content').style.opacity = '1';
     }
 });
-                
+        
