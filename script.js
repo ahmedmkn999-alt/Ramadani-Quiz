@@ -17,18 +17,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.style.webkitUserSelect = "none";
     document.body.style.webkitTouchCallout = "none";
 
-    // --- 🛡️ الدرع الفولاذي ضد الإعلانات جوه الكويز 🛡️ ---
-    // بيصطاد الضغطة قبل ما الإعلان يشوفها، لو الكويز شغال
-    ['click', 'mousedown', 'touchstart'].forEach(evt => {
-        window.addEventListener(evt, function(e) {
-            let overlay = document.getElementById('quiz-overlay');
-            if (isQuizActive && overlay && overlay.contains(e.target)) {
-                e.stopPropagation(); // اقتل الضغطة
-            }
-        }, true); // true = Capturing Phase (يشتغل قبل الإعلان)
-    });
-    // -----------------------------------------------------------
-
     setTimeout(() => {
         try {
             user = JSON.parse(localStorage.getItem('currentUser'));
@@ -188,6 +176,9 @@ window.openQuiz = function(day) {
         return;
     }
 
+    // إضافة الكلاس اللي بيخفي الإعلانات
+    document.body.classList.add('hide-ads');
+
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center">
@@ -206,9 +197,10 @@ window.openQuiz = function(day) {
 
 window.closeQuizOverlay = function() {
     document.getElementById('quiz-overlay').style.display = 'none';
+    // إرجاع الإعلانات للظهور
+    document.body.classList.remove('hide-ads');
 }
 
-// سحب الكويز العشوائي
 window.startQuizFetch = function(day) {
     isQuizActive = true;
     history.pushState(null, null, location.href);
@@ -220,7 +212,6 @@ window.startQuizFetch = function(day) {
             let availableKeys = Object.keys(variationsObj); 
             
             if(availableKeys.length > 0) {
-                // سحب نسخة عشوائية من اللي انت ضفتهم في اللوحة
                 let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
                 currentQuestions = variationsObj[randomKey].questions;
                 currentIndex = 0; sessionScore = 0;
@@ -274,7 +265,7 @@ function showQuestion() {
 
 window.handleAnswer = function(i, event) {
     if(event) {
-        event.stopPropagation(); 
+        event.stopPropagation(); // عشان الإعلان ميقراش الضغطة وقت السؤال
     }
     
     clearInterval(timerInterval);
@@ -315,6 +306,8 @@ function endQuiz(isForceExit = false) {
                     <button onclick="location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 p-4 rounded-xl font-black text-black text-lg shadow-lg transform hover:scale-105 transition-all">العودة للمعسكر</button>
                 </div>
             `;
+            // إرجاع الإعلانات للظهور بعد نهاية الكويز
+            document.body.classList.remove('hide-ads');
         }
     }).catch(error => {
         console.error("خطأ: ", error);
