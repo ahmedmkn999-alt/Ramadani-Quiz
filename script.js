@@ -10,8 +10,15 @@ let myLogs = {}, adminDay = 1, adminStatus = "closed";
 let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
 let isQuizActive = false;
 let adSniperInterval = null; 
-let isEliminatedPlayer = false; // متغير الإقصاء الجديد
-let logsUnsubscribe = null; // متغير لمراقبة سجل الجولات لحظياً
+let isEliminatedPlayer = false; 
+let logsUnsubscribe = null; 
+
+// --- 🎵 مؤثرات اللعبة الصوتية (SFX) ---
+const sfxCorrect = new Audio('https://www.myinstants.com/media/sounds/correct-answer-sound-effect.mp3');
+const sfxWrong = new Audio('https://www.myinstants.com/media/sounds/error-sound-effect.mp3');
+const sfxTick = new Audio('https://www.myinstants.com/media/sounds/tick.mp3');
+const sfxWin = new Audio('https://www.myinstants.com/media/sounds/crowd-cheer.mp3');
+// ------------------------------------
 
 window.addEventListener('DOMContentLoaded', () => {
     
@@ -47,7 +54,6 @@ function initFirebaseData() {
             document.getElementById('p-score').innerText = d.score || 0;
             isEliminatedPlayer = d.isEliminated || false;
             
-            // تغيير شارة اللاعب لو تم إقصاؤه
             if(isEliminatedPlayer) {
                 document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black"><i class="fas fa-ban"></i> تم الإقصاء (لعب ودي)</span>';
             } else {
@@ -95,7 +101,6 @@ window.closeChampPopup = function() {
     setTimeout(() => { pop.style.display = 'none'; }, 700);
 }
 
-// التعديل السحري: قراءة سجل الجولات لحظياً عشان لو الأدمن لغى الجولة تفتح فوراً
 function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
@@ -281,6 +286,13 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').innerText = timeLeft + "s";
+        
+        // 🎵 تشغيل صوت التيك توك المرعب في آخر 5 ثواني
+        if(timeLeft <= 5 && timeLeft > 0) {
+            sfxTick.currentTime = 0;
+            sfxTick.play().catch(e => console.log("الصوت محتاج تفاعل"));
+        }
+
         if(timeLeft <= 0) handleAnswer(-1, null);
     }, 1000);
 }
@@ -291,11 +303,25 @@ window.handleAnswer = function(i, event) {
     }
     
     clearInterval(timerInterval);
-    if(i !== -1 && i === currentQuestions[currentIndex].correctIndex) {
-        sessionScore++;
+    
+    if(i !== -1) {
+        if(i === currentQuestions[currentIndex].correctIndex) {
+            sessionScore++;
+            // 🎵 تشغيل صوت الإجابة الصحيحة
+            sfxCorrect.currentTime = 0;
+            sfxCorrect.play().catch(e => {});
+        } else {
+            // 🎵 تشغيل صوت الإجابة الخاطئة
+            sfxWrong.currentTime = 0;
+            sfxWrong.play().catch(e => {});
+        }
     }
-    currentIndex++;
-    showQuestion();
+    
+    // تأخير بسيط جداً (نص ثانية) قبل السؤال الجاي عشان يلحق يسمع الصوت
+    setTimeout(() => {
+        currentIndex++;
+        showQuestion();
+    }, 500);
 }
 
 function endQuiz(isForceExit = false) {
@@ -309,17 +335,22 @@ function endQuiz(isForceExit = false) {
     }
 
     db.collection("users").doc(user.id).set({
-        // لو اللاعب تم إقصاؤه، هنديله 0 نقطة عشان الترتيب الرسمي ميبقاش فيه غش
         score: isEliminatedPlayer ? firebase.firestore.FieldValue.increment(0) : firebase.firestore.FieldValue.increment(sessionScore)
     }, { merge: true }).then(() => {
         return db.collection("users").doc(user.id).collection("game_logs").doc("day_"+adminDay).set({
             day: adminDay,
-            score: sessionScore, // دي عشان الخريطة تقفل عنده بس ويفرح بنتيجته الوهمية
+            score: sessionScore, 
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
     }).then(() => {
         if (!isForceExit) {
+            
+            // 🎵 تشغيل صوت احتفال الجمهور في النهاية
+            sfxWin.currentTime = 0;
+            sfxWin.play().catch(e => {});
+
             if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            
             document.getElementById('quiz-content').innerHTML = `
                 <div class="text-center">
                     <div class="inline-block bg-yellow-500/20 p-4 rounded-full mb-4">
@@ -407,4 +438,3 @@ window.addEventListener('focus', function() {
         document.getElementById('quiz-content').style.opacity = '1';
     }
 });
-                
