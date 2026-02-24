@@ -1,3 +1,4 @@
+// 1. الإعدادات الأساسية
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
@@ -17,6 +18,7 @@ let used5050 = false;
 let usedFreeze = false;
 let currentStreak = 0;
 
+// 2. دوال مساعدة
 function vibratePhone(pattern) {
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
@@ -28,43 +30,43 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// -------------------------------------------------------------
-// 🚨 كود التشغيل الأصلي بتاعك (سحب فوري للبيانات بدون تعليق) 🚨
-// -------------------------------------------------------------
+// 3. بدء التشغيل (تم إصلاح التوقيت والربط)
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
-    document.body.style.webkitTouchCallout = "none";
 
-    setTimeout(() => {
-        try {
-            user = JSON.parse(localStorage.getItem('currentUser'));
-            if(!user || !user.id) throw new Error("No user");
+    try {
+        const savedUser = localStorage.getItem('currentUser');
+        if(!savedUser) return console.warn("No user in localStorage");
+        user = JSON.parse(savedUser);
 
-            // عرض الاسم والمجموعة فوراً من الذاكرة (عشان ميعلقش أبداً)
-            let elName = document.getElementById('p-name');
-            let elGroup = document.getElementById('p-group');
-            if(elName) elName.innerText = user.name;
-            if(elGroup) {
-                elGroup.innerText = user.group + " | " + user.team;
-                elGroup.classList.remove('hidden');
-            }
-
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-
-            initFirebaseData();
-
-        } catch(e) { 
-            console.error("خطأ في تسجيل الدخول");
+        // عرض سريع للبيانات من الذاكرة
+        if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
+        let elGroup = document.getElementById('p-group');
+        if(elGroup) {
+            elGroup.innerText = (user.group || "") + " | " + (user.team || "");
+            elGroup.classList.remove('hidden');
         }
-    }, 100);
-});
-// -------------------------------------------------------------
 
+        // تشغيل Firebase
+        if (typeof firebase !== 'undefined') {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            initFirebaseData(); // جلب البيانات الحية
+        } else {
+            console.error("Firebase SDK not found!");
+        }
+
+    } catch(e) { 
+        console.error("Initialization Error:", e);
+    }
+});
+
+// 4. جلب البيانات من Firestore
 function initFirebaseData() {
+    if(!user || !user.id) return;
+
+    // مراقبة بيانات المستخدم (سكور، استريك، إقصاء)
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) {
             let d = doc.data();
@@ -73,8 +75,7 @@ function initFirebaseData() {
             isEliminatedPlayer = d.isEliminated || false;
             let rank = getRankInfo(pScore);
 
-            let elScore = document.getElementById('p-score');
-            if(elScore) elScore.innerText = pScore;
+            if(document.getElementById('p-score')) document.getElementById('p-score').innerText = pScore;
             
             let elStreak = document.getElementById('p-streak');
             if(elStreak) {
@@ -94,7 +95,7 @@ function initFirebaseData() {
             } else {
                 if(elGroup) {
                     elGroup.innerText = `${d.group || user.group} | ${d.team || user.team}`;
-                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
+                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600';
                 }
                 if(elRank) {
                     elRank.innerText = rank.text;
@@ -105,6 +106,7 @@ function initFirebaseData() {
         }
     });
 
+    // مراقبة حالة اليوم المفتوح
     db.collection("settings").doc("global_status").onSnapshot(doc => {
         if(doc.exists) {
             adminDay = doc.data().currentDay || 1;
@@ -128,6 +130,7 @@ function updateLogs() {
     });
 }
 
+// 5. بناء واجهة الخريطة (الساحة)
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
@@ -138,31 +141,31 @@ function renderMap() {
         let isSoon = (i === adminDay && adminStatus === 'soon'); 
         
         if (isPlayed) {
-            html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4 transition-all">
+            html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4">
                 <div class="flex items-center gap-4">
-                    <div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-check"></i></div>
-                    <div><p class="font-bold text-gray-300">الجولة ${i}</p></div>
+                    <div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div>
+                    <p class="font-bold text-gray-300">الجولة ${i}</p>
                 </div>
-                <p class="font-black text-2xl text-green-400 drop-shadow-md">${myLogs[i]}</p>
+                <p class="font-black text-2xl text-green-400">${myLogs[i]}</p>
             </div>`;
         } else if (isActive) {
-            html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+            html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4 shadow-lg cursor-pointer">
                 <div class="flex items-center gap-4">
-                    <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black shadow-lg"><i class="fas fa-play text-xl ml-1"></i></div>
-                    <div><p class="font-black text-white text-xl drop-shadow-md">الجولة ${i}</p><p class="text-xs text-yellow-400 font-bold mt-1">العب الآن!</p></div>
+                    <div class="bg-yellow-500 text-black w-14 h-14 rounded-full flex justify-center items-center shadow-lg"><i class="fas fa-play ml-1"></i></div>
+                    <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-yellow-400 font-bold">العب الآن!</p></div>
                 </div>
                 <i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-40"></i>
             </div>`;
         } else if (isSoon) {
             html += `<div class="glass-card p-6 rounded-2xl flex justify-between mb-4 border border-blue-500/30">
                 <div class="flex items-center gap-4">
-                    <div class="bg-blue-900/50 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-hourglass-half text-2xl animate-pulse"></i></div>
-                    <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-blue-400 font-bold mt-1">تفتح قريباً ⏳</p></div>
+                    <div class="bg-blue-900/50 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center"><i class="fas fa-hourglass-half animate-pulse"></i></div>
+                    <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-blue-400 font-bold">قريباً ⏳</p></div>
                 </div>
             </div>`;
         } else {
-            html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-40 mb-4 grayscale">
-                <div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-lock text-sm"></i></div>
+            html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-40 mb-4">
+                <div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock text-sm"></i></div>
                 <p class="font-bold text-sm text-gray-500">الجولة ${i}</p>
             </div>`;
         }
@@ -170,98 +173,39 @@ function renderMap() {
     container.innerHTML = html;
 }
 
-window.showTab = function(t) {
-    document.getElementById('view-arena').classList.toggle('hidden', t !== 'arena');
-    document.getElementById('view-leaderboard').classList.toggle('hidden', t !== 'leaderboard');
-    document.getElementById('btn-arena').classList.toggle('active', t === 'arena');
-    document.getElementById('btn-leader').classList.toggle('active', t === 'leaderboard');
-    if(t === 'leaderboard') fetchLeaderboard();
-}
-
-function fetchLeaderboard() {
-    if(!user || !user.group) return;
-    db.collection("users").where("group", "==", user.group).get().then(snap => {
-        let list = [];
-        snap.forEach(d => list.push(d.data()));
-        list.sort((a,b) => (b.score || 0) - (a.score || 0));
-        let html = '';
-        list.forEach((u, i) => {
-            let rank = i + 1;
-            let uRank = getRankInfo(u.score || 0);
-            html += `<div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl mb-2 border border-gray-700 hover:border-yellow-500/30 transition-colors shadow-sm">
-                <div class="flex items-center gap-3">
-                    <span class="w-6 text-center font-black ${rank <= 3 ? 'text-yellow-500 text-xl drop-shadow-md' : 'text-gray-400'}">${rank}</span>
-                    <div>
-                        <span class="font-bold block ${u.name === user.name ? 'text-yellow-400' : 'text-white'}">${u.name} <span class="text-orange-500 text-[10px]">🔥 ${u.streak||0}</span></span>
-                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded mt-1 inline-block shadow-sm">${uRank.text}</span>
-                    </div>
-                </div>
-                <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
-            </div>`;
-        });
-        document.getElementById('group-list').innerHTML = html;
-    });
-}
-
+// 6. نظام المسابقة
 window.openQuiz = function(day) {
-    if (myLogs[day] !== undefined) {
-        alert("أنت لعبت الجولة دي خلاص!"); return;
-    }
-    document.body.classList.add('hide-ads'); 
+    if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
-        <div class="text-center relative z-10">
-            <div class="absolute inset-0 bg-yellow-500/10 blur-3xl rounded-full -z-10"></div>
-            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(255,215,0,0.4)] border-4 border-gray-900">
-                <i class="fas fa-bolt text-4xl text-black"></i>
-            </div>
-            <h2 class="text-3xl font-black text-white mb-3 drop-shadow-lg">مستعد للمواجهة؟ 🔥</h2>
-            <p class="text-gray-300 text-sm mb-8 leading-relaxed px-4">بمجرد دخولك سيبدأ التحدي.<br>لا توجد فرصة للرجوع، وأي محاولة خروج تعتبر غش!</p>
+        <div class="text-center p-6">
+            <h2 class="text-2xl font-black text-white mb-4">الجولة ${day} ⚔️</h2>
+            <p class="text-gray-300 mb-6">مستعد تبدأ التحدي؟</p>
             <div class="flex gap-4">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black p-4 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] transform hover:-translate-y-1 transition-all">جاهز ⚔️</button>
-                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold p-4 rounded-xl border border-gray-600 transition-all">تراجع ✋</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-600 text-black font-black p-3 rounded-xl">ابدأ</button>
+                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-700 text-white p-3 rounded-xl">إغلاق</button>
             </div>
-        </div>
-    `;
-}
-
-window.closeQuizOverlay = function() {
-    document.getElementById('quiz-overlay').style.display = 'none';
-    document.body.classList.remove('hide-ads');
+        </div>`;
 }
 
 window.startQuizFetch = function(day) {
     isQuizActive = true;
-    history.pushState(null, null, location.href);
-    document.getElementById('quiz-content').innerHTML = `
-        <div class="flex flex-col items-center justify-center py-10">
-            <div class="w-16 h-16 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-            <p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري تجهيز ساحة المعركة...</p>
-        </div>
-    `;
-    
-    window.open = function() { return null; }; 
-
-    used5050 = false;
-    usedFreeze = false;
+    used5050 = false; usedFreeze = false;
+    document.getElementById('quiz-content').innerHTML = `<p class="text-yellow-500">جاري التحميل...</p>`;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
-            let variationsObj = doc.data().variations;
-            let availableKeys = Object.keys(variationsObj); 
-            if(availableKeys.length > 0) {
-                currentQuestions = variationsObj[availableKeys[Math.floor(Math.random() * availableKeys.length)]].questions;
-                currentIndex = 0; sessionScore = 0;
-                showQuestion();
-            } else {
-                throw new Error("لا توجد أسئلة");
-            }
+            let variations = doc.data().variations;
+            let keys = Object.keys(variations);
+            currentQuestions = variations[keys[Math.floor(Math.random() * keys.length)]].questions;
+            currentIndex = 0; sessionScore = 0;
+            showQuestion();
         } else {
-            throw new Error("لم يتم تجهيز الجولة");
+            throw new Error();
         }
-    }).catch(err => {
-        document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">التحدي لم يجهز بعد!</p>';
-        setTimeout(() => location.reload(), 2000);
+    }).catch(() => {
+        alert("خطأ في تحميل الأسئلة");
+        closeQuizOverlay();
     });
 }
 
@@ -270,122 +214,116 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
-
-    let html = `
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900 rounded-t-2xl overflow-hidden">
-            <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,1)]" style="width: ${progressPercent}%"></div>
-        </div>
-
-        <div class="flex justify-between items-center mb-8 mt-4 px-2">
-            <div class="bg-gray-800/80 border border-gray-700/50 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2">
-                <i class="fas fa-crosshairs text-yellow-500 text-xs animate-spin-slow"></i>
-                <span class="text-sm text-gray-300 font-bold">سؤال <span class="text-yellow-400 text-base">${currentIndex+1}</span> / ${currentQuestions.length}</span>
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="p-4">
+            <div class="flex justify-between text-sm mb-4">
+                <span>سؤال: ${currentIndex+1}/${currentQuestions.length}</span>
+                <span id="timer" class="font-bold text-xl text-red-500">${globalTimeLeft}</span>
+                <span>نقاط: ${sessionScore}</span>
             </div>
-            
-            <div class="bg-gray-800/80 border border-gray-700/50 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2">
-                <i class="fas fa-star text-yellow-500 text-xs"></i>
-                <span class="text-sm text-gray-300 font-bold">نقاط: <span class="text-yellow-400 text-base">${sessionScore}</span></span>
+            <h3 class="text-xl font-bold text-center mb-6">${q.q}</h3>
+            <div class="grid gap-3">
+                ${q.options.map((opt, i) => `
+                    <button onclick="handleAnswer(${i})" id="opt-${i}" class="bg-gray-800 p-4 rounded-xl text-right border border-gray-700 hover:border-yellow-500">${opt}</button>
+                `).join('')}
             </div>
-        </div>
-
-        <div class="glass-card p-6 rounded-3xl mb-8 border border-yellow-500/20 shadow-[0_15px_35px_rgba(0,0,0,0.6)] relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 blur-3xl rounded-full"></div>
-            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-black px-5 py-0.5 rounded-b-xl text-[10px] font-black tracking-widest shadow-md">سؤال الجولة</div>
-            
-            <div class="mt-4 flex flex-col items-center">
-                <span id="timer" class="text-white font-black text-3xl bg-gray-900 border-2 border-red-500/80 px-4 py-2 rounded-2xl shadow-[0_0_20px_rgba(239,68,68,0.3)] mb-4 transition-all w-20 text-center">${globalTimeLeft}</span>
-                <h3 class="text-xl md:text-2xl font-black text-center leading-relaxed text-white drop-shadow-lg relative z-10">${q.q}</h3>
+            <div class="flex gap-2 mt-6">
+                <button onclick="use5050()" id="btn-5050" class="flex-1 bg-purple-900/50 p-2 rounded text-xs border border-purple-500">حذف إجابتين</button>
+                <button onclick="useFreeze()" id="btn-freeze" class="flex-1 bg-blue-900/50 p-2 rounded text-xs border border-blue-500">تجميد الوقت</button>
             </div>
-        </div>
-        
-        <div class="space-y-3 relative z-20 px-1">
-            ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-2xl border border-gray-600 bg-gray-800/90 p-4 w-full text-right transition-all duration-300 hover:border-yellow-500/60 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)]" id="opt-${i}">
-                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-600/10 to-yellow-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="flex justify-between items-center relative z-10">
-                        <span class="text-base md:text-lg font-bold text-gray-200 group-hover:text-yellow-400 transition-colors">${opt}</span>
-                        <div class="w-8 h-8 rounded-full border-2 border-gray-600 flex items-center justify-center text-sm font-black text-gray-400 group-hover:border-yellow-500 group-hover:bg-yellow-500/10 group-hover:text-yellow-400 transition-colors">${String.fromCharCode(65+i)}</div>
-                    </div>
-                </button>
-            `).join('')}
-        </div>
-        
-        <div class="flex justify-between mt-8 gap-4 border-t border-gray-700/50 pt-5 px-1">
-            <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden group rounded-xl p-[1px] transition-all ${used5050?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)]'}">
-                <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl"></span>
-                <div class="bg-gray-900 px-4 py-2.5 rounded-[11px] flex items-center justify-center gap-2 relative z-10">
-                    <i class="fas fa-cut text-purple-400"></i>
-                    <span class="text-xs font-black text-gray-200">إجابتين</span>
-                </div>
-            </button>
-            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden group rounded-xl p-[1px] transition-all ${usedFreeze?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)]'}">
-                <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-xl"></span>
-                <div class="bg-gray-900 px-4 py-2.5 rounded-[11px] flex items-center justify-center gap-2 relative z-10">
-                    <i class="fas fa-snowflake text-blue-400"></i>
-                    <span class="text-xs font-black text-gray-200">تجميد</span>
-                </div>
-            </button>
-        </div>
-    `;
-    document.getElementById('quiz-content').innerHTML = html;
+        </div>`;
 
+    startTimer();
+}
+
+function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         globalTimeLeft--;
-        let timerEl = document.getElementById('timer');
-        if(timerEl) {
-            timerEl.innerText = globalTimeLeft;
-            if(globalTimeLeft <= 5) {
-                timerEl.classList.remove('border-red-500/80', 'text-white');
-                timerEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse', 'scale-110');
-            }
-        }
-        if(globalTimeLeft <= 5) vibratePhone(50); 
-        
+        let tEl = document.getElementById('timer');
+        if(tEl) tEl.innerText = globalTimeLeft;
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
-window.use5050 = function() {
-    if(used5050 || !isQuizActive) return;
-    used5050 = true;
-    let btn = document.getElementById('btn-5050');
-    if(btn) {
-        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
+window.handleAnswer = function(idx) {
+    clearInterval(timerInterval);
+    let q = currentQuestions[currentIndex];
+    if(idx === q.correctIndex) {
+        sessionScore += 10;
+        vibratePhone(100);
+    } else {
+        vibratePhone([100, 50, 100]);
     }
     
-    let correctIdx = currentQuestions[currentIndex].correctIndex;
-    let hiddenCount = 0;
+    currentIndex++;
+    setTimeout(showQuestion, 500);
+}
+
+window.use5050 = function() {
+    if(used5050) return;
+    used5050 = true;
+    document.getElementById('btn-5050').style.opacity = '0.3';
+    let correct = currentQuestions[currentIndex].correctIndex;
+    let removed = 0;
     for(let i=0; i<4; i++) {
-        if(i !== correctIdx && hiddenCount < 2) {
-            let optBtn = document.getElementById(`opt-${i}`);
-            if(optBtn) {
-                optBtn.style.opacity = '0.2';
-                optBtn.style.pointerEvents = 'none';
-                optBtn.style.filter = 'grayscale(100%)';
-            }
-            hiddenCount++;
+        if(i !== correct && removed < 2) {
+            let el = document.getElementById(`opt-${i}`);
+            if(el) el.style.visibility = 'hidden';
+            removed++;
         }
     }
 }
 
 window.useFreeze = function() {
-    if(usedFreeze || !isQuizActive) return;
+    if(usedFreeze) return;
     usedFreeze = true;
-    let btn = document.getElementById('btn-freeze');
-    if(btn) {
-        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]');
-    }
+    document.getElementById('btn-freeze').style.opacity = '0.3';
+    globalTimeLeft += 15;
+}
+
+function endQuiz() {
+    isQuizActive = false;
+    document.getElementById('quiz-content').innerHTML = `<div class="text-center p-10"><p>انتهى التحدي! جاري حفظ نقاطك (${sessionScore})...</p></div>`;
     
-    globalTimeLeft += 10;
-    let timerEl = document.getElementById('timer');
-    if(timerEl) {
-        timerEl.innerText = globalTimeLeft;
-        timerEl.classList.remove('animate-pulse', 'scale-110', 'border-red-500', 'text-red-500');
-        timerEl.classList.add('border-blue-500/80', 'text-blue-300');
-        setTimeout(() => {
-            if(timerEl) {
-                timerEl.classList.rem
+    // حفظ النتيجة في الداتابيز
+    let day = adminDay;
+    db.collection("users").doc(user.id).collection("game_logs").doc("day_"+day).set({
+        day: day,
+        score: sessionScore,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        // تحديث السكور الكلي
+        db.collection("users").doc(user.id).update({
+            score: firebase.firestore.FieldValue.increment(sessionScore)
+        }).then(() => {
+            setTimeout(() => location.reload(), 1500);
+        });
+    });
+}
+
+window.closeQuizOverlay = function() {
+    if(isQuizActive) return alert("ممنوع الهروب من المعركة!");
+    document.getElementById('quiz-overlay').style.display = 'none';
+}
+
+// 7. الليدربورد
+window.showTab = function(t) {
+    document.getElementById('view-arena').classList.toggle('hidden', t !== 'arena');
+    document.getElementById('view-leaderboard').classList.toggle('hidden', t !== 'leaderboard');
+    if(t === 'leaderboard') fetchLeaderboard();
+}
+
+function fetchLeaderboard() {
+    db.collection("users").where("group", "==", user.group).orderBy("score", "desc").limit(20).get().then(snap => {
+        let html = '';
+        snap.forEach((doc, i) => {
+            let u = doc.data();
+            html += `<div class="flex justify-between p-3 bg-gray-800 rounded-lg mb-2">
+                <span>${i+1}. ${u.name}</span>
+                <span class="text-yellow-500 font-bold">${u.score || 0}</span>
+            </div>`;
+        });
+        document.getElementById('group-list').innerHTML = html;
+    });
+}
