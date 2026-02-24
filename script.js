@@ -1,4 +1,4 @@
-        const firebaseConfig = { 
+const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
     appId: "1:343525703258:web:6776b4857425df8bcca263" 
@@ -28,9 +28,9 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// ---------------------------------------------------------
-// طريقة التوصيل القديمة السهلة والمستقرة 100% بدون أي تعقيد
-// ---------------------------------------------------------
+// -------------------------------------------------------------
+// 🚨 كود التشغيل الأصلي بتاعك (سحب فوري للبيانات بدون تعليق) 🚨
+// -------------------------------------------------------------
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
@@ -39,7 +39,16 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
             user = JSON.parse(localStorage.getItem('currentUser'));
-            if(!user || !user.id) throw new Error("No User");
+            if(!user || !user.id) throw new Error("No user");
+
+            // عرض الاسم والمجموعة فوراً من الذاكرة (عشان ميعلقش أبداً)
+            let elName = document.getElementById('p-name');
+            let elGroup = document.getElementById('p-group');
+            if(elName) elName.innerText = user.name;
+            if(elGroup) {
+                elGroup.innerText = user.group + " | " + user.team;
+                elGroup.classList.remove('hidden');
+            }
 
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -49,11 +58,11 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            window.location.replace("index.html"); 
+            console.error("خطأ في تسجيل الدخول");
         }
-    }, 150);
+    }, 100);
 });
-// ---------------------------------------------------------
+// -------------------------------------------------------------
 
 function initFirebaseData() {
     db.collection("users").doc(user.id).onSnapshot(doc => {
@@ -73,24 +82,19 @@ function initFirebaseData() {
                 elStreak.classList.remove('hidden');
             }
 
-            let elName = document.getElementById('p-name');
-            if(elName) elName.innerText = d.name || "مجهول";
-            
-            let elGroup = document.getElementById('p-group');
             let elRank = document.getElementById('p-rank');
+            let elGroup = document.getElementById('p-group');
 
             if(isEliminatedPlayer) {
                 if(elGroup) {
                     elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
                     elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
-                    elGroup.classList.remove('hidden');
                 }
                 if(elRank) elRank.classList.add('hidden');
             } else {
                 if(elGroup) {
-                    elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
+                    elGroup.innerText = `${d.group || user.group} | ${d.team || user.team}`;
                     elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
-                    elGroup.classList.remove('hidden');
                 }
                 if(elRank) {
                     elRank.innerText = rank.text;
@@ -384,11 +388,4 @@ window.useFreeze = function() {
         timerEl.classList.add('border-blue-500/80', 'text-blue-300');
         setTimeout(() => {
             if(timerEl) {
-                timerEl.classList.remove('border-blue-500/80', 'text-blue-300');
-                timerEl.classList.add('border-red-500/80', 'text-white');
-            }
-        }, 2000);
-    }
-}
-
-window.handleAnswer = function(i
+                timerEl.classList.rem
