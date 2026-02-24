@@ -37,7 +37,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     try {
         const savedUser = localStorage.getItem('currentUser');
-        if(!savedUser) return console.warn("No user in localStorage");
+        if(!savedUser) {
+            console.warn("No user in localStorage");
+            return; // تأكد من تسجيل الدخول وحفظ البيانات في localStorage أولاً
+        }
         user = JSON.parse(savedUser);
 
         if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
@@ -60,7 +63,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 4. جلب البيانات من Firestore (بدون أي تعديل منك)
+// 4. جلب البيانات من Firestore
 function initFirebaseData() {
     if(!user || !user.id) return;
 
@@ -175,15 +178,17 @@ function renderMap() {
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
         alert("تم اكتشاف محاولة خروج أو تصوير! تم إنهاء الجولة وحفظ نتيجتك.");
-        endQuiz(true); // استدعاء دالة الحفظ فوراً
+        endQuiz(true);
     }
 });
 
-// 6. نظام المسابقة (واجهة متناسبة مع الفون + مكان إعلان فوق)
+// 6. نظام المسابقة
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     
     let overlay = document.getElementById('quiz-overlay');
+    if(!overlay) return console.error("عنصر quiz-overlay غير موجود في الـ HTML");
+    
     overlay.style.display = 'flex';
     overlay.className = "fixed inset-0 z-50 bg-black/95 flex flex-col overflow-y-auto";
 
@@ -402,7 +407,7 @@ window.useFreeze = function() {
     }
 }
 
-// نافذة التأكيد الشيك عند الانسحاب
+// 7. الدوال الأساسية التي كانت ناقصة وتم إصلاح الكود المقطوع
 window.promptExitQuiz = function() {
     let confirmHTML = `
         <div id="exit-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
@@ -414,9 +419,4 @@ window.promptExitQuiz = function() {
                 <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط (${sessionScore} نقطة).</p>
                 <div class="flex gap-3">
                     <button onclick="endQuiz(true)" class="flex-1 bg-red-600 text-white font-bold p-2.5 rounded-lg">انسحاب</button>
-                    <button onclick="document.getElementById('exit-modal').remove()" class="flex-1 bg-gray-700 text-white font-bold p-2.5 rounded-lg">إلغاء</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.
+                    <button onclick="document.getElementById('exit-modal').remove()" class="flex-1 bg-gray-700 text-white font-
