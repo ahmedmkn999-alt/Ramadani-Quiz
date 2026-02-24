@@ -17,14 +17,19 @@ let used5050 = false;
 let usedFreeze = false;
 let currentStreak = 0;
 
-const sfxCorrect = new Audio('https://www.myinstants.com/media/sounds/correct-answer-sound-effect.mp3');
-const sfxWrong = new Audio('https://www.myinstants.com/media/sounds/error-sound-effect.mp3');
-const sfxTick = new Audio('https://www.myinstants.com/media/sounds/tick.mp3');
-const sfxWin = new Audio('https://www.myinstants.com/media/sounds/crowd-cheer.mp3');
+// --- 🎵 مؤثرات اللعبة الصوتية (بالروابط المباشرة بتاعتك) ---
+const sfxCorrect = new Audio('https://files.catbox.moe/112l01.m4a');
+const sfxWrong = new Audio('https://files.catbox.moe/khm3ue.m4a');
+const sfxTick = new Audio('https://files.catbox.moe/epmgt5.m4a');
+const sfxWin = new Audio('https://files.catbox.moe/p998o7.m4a');
 
 function playSound(audioObj) {
-    try { audioObj.currentTime = 0; audioObj.play().catch(e => {}); } catch(e){}
+    try { 
+        audioObj.currentTime = 0; 
+        audioObj.play().catch(e => console.log("تنبيه: المتصفح يحتاج تفاعل لتشغيل الصوت")); 
+    } catch(e){}
 }
+// -------------------------------------------------------------
 
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
@@ -61,10 +66,8 @@ function initFirebaseData() {
             
             let rank = getRankInfo(pScore);
             
-            // 🛠️ تظبيط شكل الاسم والشعلة جمب بعض بشياكة
             document.getElementById('p-name').innerHTML = `<span class="truncate max-w-[120px] inline-block">${d.name}</span> <span class="text-orange-500 text-[11px] bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-700/50 ml-1">🔥 ${currentStreak}</span>`;
             
-            // 🛠️ تظبيط شكل الجروب واللقب عشان ميجوش فوق بعض
             if(isEliminatedPlayer) {
                 document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black text-[10px] bg-red-900/30 px-2 py-0.5 rounded"><i class="fas fa-ban"></i> مقصى (لعب ودي)</span>';
             } else {
@@ -198,7 +201,6 @@ window.startQuizFetch = function(day) {
     history.pushState(null, null, location.href);
     document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500">جاري تجهيز ساحة المعركة...</p>';
     
-    // إيقاف النوافذ المنبثقة بقوة أثناء الكويز
     window.open = function() { return null; }; 
 
     used5050 = false;
@@ -249,7 +251,10 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         globalTimeLeft--;
         document.getElementById('timer').innerText = globalTimeLeft + "s";
+        
+        // تشغيل صوت التيك توك في آخر 5 ثواني
         if(globalTimeLeft <= 5 && globalTimeLeft > 0) playSound(sfxTick);
+        
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
@@ -282,10 +287,10 @@ window.handleAnswer = function(i) {
         let correctIdx = currentQuestions[currentIndex].correctIndex;
         if(i === correctIdx) {
             sessionScore++;
-            playSound(sfxCorrect);
+            playSound(sfxCorrect); // صوت الإجابة الصح
             document.getElementById(`opt-${i}`).classList.add('bg-green-600');
         } else {
-            playSound(sfxWrong);
+            playSound(sfxWrong); // صوت الإجابة الغلط
             document.getElementById(`opt-${i}`).classList.add('bg-red-600');
             document.getElementById(`opt-${correctIdx}`).classList.add('bg-green-600');
         }
@@ -315,7 +320,7 @@ function endQuiz(isForceExit = false) {
         });
     }).then(() => {
         if (!isForceExit) {
-            playSound(sfxWin);
+            playSound(sfxWin); // صوت الفوز والجمهور
             if(window.confetti) confetti({ particleCount: 150 });
             document.getElementById('quiz-content').innerHTML = `
                 <div class="text-center">
