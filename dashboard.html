@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ملعب رمضان | التحدي الأكبر</title>
     
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -11,7 +14,7 @@
     
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script defer src="script.js"></script>
+    <script defer src="script.js?v=999"></script>
 
     <script src="https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js"></script>
     <script src="https://pl28773459.effectivegatecpm.com/0c/2e/75/0c2e7503a2abb6a631fb27fdf3b7ae02.js"></script>
@@ -20,7 +23,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; background-image: radial-gradient(circle at top right, #112240, #030712); background-attachment: fixed; overflow-x: hidden; }
         .glass-card { background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(212, 175, 55, 0.2); backdrop-filter: blur(12px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
-        .gold-text { background: linear-gradient(to right, #ffd700, #d4af37, #ffdf00); -webkit-background-clip: text; color: transparent; }
         .tab-btn { transition: 0.4s; cursor: pointer; }
         .tab-btn.active { background: linear-gradient(90deg, #b8860b, #ffd700); color: #000; font-weight: 900; transform: scale(1.02); }
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
@@ -32,8 +34,6 @@
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 15px; }
         .quiz-box { width: 100%; max-width: 450px; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); position: relative; overflow: hidden; }
         .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
-        .opt-btn { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(71, 85, 105, 0.5); transition: all 0.3s; width: 100%; text-align: right; padding: 16px 20px; border-radius: 16px; font-weight: 700; margin-bottom: 12px; font-size: 15px; color: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .opt-btn:hover:not(:disabled) { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.5); transform: translateY(-2px); }
     </style>
 </head>
 <body class="relative">
@@ -45,7 +45,7 @@
                 <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="relative w-32 h-32 object-cover rounded-2xl shadow-[0_0_25px_rgba(212,175,55,0.5)] border-2 border-yellow-500 animate-bounce">
             </div>
             <h2 class="text-3xl font-black text-white mb-3 tracking-wide">أهلاً بيك يا <span id="splash-name" class="text-yellow-400 drop-shadow-md">بطل</span>! 👋</h2>
-            <p class="text-gray-300 font-bold text-lg mb-6">جاهز لكويز النهاردة بشكل عالمي؟ 🚀</p>
+            <p class="text-gray-300 font-bold text-lg mb-6">جاهز لكويز النهاردة؟ 🚀</p>
             <div class="flex gap-2">
                 <div class="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full animate-ping"></div>
                 <div class="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full animate-ping" style="animation-delay: 0.2s"></div>
@@ -88,7 +88,7 @@
                     </div>
                     <div class="flex flex-col overflow-hidden w-full">
                         <div class="flex items-center gap-2 mb-1">
-                            <h2 id="p-name" class="font-black text-white text-sm truncate">جاري التحميل...</h2>
+                            <h2 id="p-name" class="font-black text-white text-sm truncate">جاري تحميل البيانات...</h2>
                             <span id="p-streak" class="text-orange-400 font-bold text-[10px] bg-orange-900/40 px-1.5 py-0.5 rounded border border-orange-700/50 flex-shrink-0 hidden">🔥 0</span>
                         </div>
                         <div class="flex flex-wrap gap-1">
@@ -159,4 +159,5 @@
         });
     </script>
 </body>
-</html>
+                        </html>
+                
