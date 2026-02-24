@@ -60,13 +60,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 4. جلب البيانات من Firestore (بالطريقة الآمنة اللي صلحناها)
+// 4. جلب البيانات من Firestore (بدون أي تعديل منك)
 function initFirebaseData() {
     if(!user || !user.id) return;
 
     db.collection("users").doc(user.id).onSnapshot(doc => {
-        let d = doc.data(); // سحب آمن بدون doc.exists
-        if(d) {
+        if(doc.exists) {
+            let d = doc.data();
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
             isEliminatedPlayer = d.isEliminated || false;
@@ -104,12 +104,11 @@ function initFirebaseData() {
     });
 
     db.collection("settings").doc("global_status").onSnapshot(doc => {
-        let d = doc.data();
-        if(d) {
-            adminDay = d.currentDay || 1;
-            adminStatus = d.status || "closed";
+        if(doc.exists) {
+            adminDay = doc.data().currentDay || 1;
+            adminStatus = doc.data().status || "closed";
+            updateLogs();
         }
-        updateLogs();
     });
 }
 
@@ -117,10 +116,7 @@ function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
-        snap.forEach(doc => {
-            let d = doc.data(); // سحب آمن
-            if(d) myLogs[d.day] = d.score;
-        });
+        snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
         
         let pText = document.getElementById('progress-text');
@@ -174,23 +170,16 @@ function renderMap() {
 }
 
 // ==========================================
-// 🔴 حماية الكويز من الهروب والسكرين شوت 🔴
+// 🛡️ حماية الكويز (خروج / سكرين شوت) 🛡️
 // ==========================================
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
-        forceEndQuiz("تم اكتشاف محاولة خروج! تم حفظ نتيجتك الحالية.");
+        alert("تم اكتشاف محاولة خروج أو تصوير! تم إنهاء الجولة وحفظ نتيجتك.");
+        endQuiz(true); // استدعاء دالة الحفظ فوراً
     }
 });
 
-function forceEndQuiz(reasonMessage) {
-    if (!isQuizActive) return;
-    clearInterval(timerInterval);
-    isQuizActive = false;
-    alert(reasonMessage);
-    endQuiz(true); 
-}
-
-// 6. نظام المسابقة (واجهة متوافقة مع الفون + إعلان)
+// 6. نظام المسابقة (واجهة متناسبة مع الفون + مكان إعلان فوق)
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     
@@ -199,17 +188,17 @@ window.openQuiz = function(day) {
     overlay.className = "fixed inset-0 z-50 bg-black/95 flex flex-col overflow-y-auto";
 
     document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="sticky top-0 w-full bg-gray-900 border-b border-gray-700 z-50 p-2 text-center text-xs text-gray-400 shadow-md">
-            [مساحة إعلانية]
+        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md">
+            [ مساحة الإعلان هنا ]
         </div>
 
-        <div class="text-center relative z-10 p-4 mt-4 w-full max-w-md mx-auto">
+        <div class="text-center relative z-10 p-4 mt-6 w-full max-w-md mx-auto">
             <div class="absolute inset-0 bg-yellow-500/10 blur-3xl rounded-full -z-10"></div>
             <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(255,215,0,0.4)] border-4 border-gray-900">
                 <i class="fas fa-bolt text-3xl text-black"></i>
             </div>
             <h2 class="text-2xl font-black text-white mb-2 drop-shadow-lg">الجولة ${day} 🔥</h2>
-            <p class="text-gray-300 text-xs md:text-sm mb-6 leading-relaxed px-2">بمجرد دخولك سيبدأ التحدي.<br>أي محاولة للخروج ستحفظ نتيجتك الحالية فقط!</p>
+            <p class="text-gray-300 text-sm mb-6 leading-relaxed px-2">بمجرد دخولك سيبدأ التحدي.<br>أي محاولة للخروج ستحفظ نتيجتك الحالية فقط!</p>
             <div class="flex gap-3">
                 <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-3 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)]">ابدأ ⚔️</button>
                 <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-3 rounded-xl border border-gray-600">إغلاق ✋</button>
@@ -222,18 +211,17 @@ window.startQuizFetch = function(day) {
     used5050 = false; usedFreeze = false;
     
     document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="sticky top-0 w-full bg-gray-900 border-b border-gray-700 z-50 p-2 text-center text-xs text-gray-400 shadow-md">
-            [مساحة إعلانية]
+        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md">
+            [ مساحة الإعلان هنا ]
         </div>
         <div class="flex flex-col items-center justify-center py-10 w-full max-w-md mx-auto">
             <div class="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-            <p class="text-center font-bold text-yellow-500 text-base animate-pulse">جاري التجهيز...</p>
+            <p class="text-center font-bold text-yellow-500 text-base animate-pulse">جاري تجهيز ساحة المعركة...</p>
         </div>`;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
-        let d = doc.data(); // سحب آمن
-        if(d && d.variations) {
-            let variations = d.variations;
+        if(doc.exists && doc.data().variations) {
+            let variations = doc.data().variations;
             let keys = Object.keys(variations);
             currentQuestions = variations[keys[Math.floor(Math.random() * keys.length)]].questions;
             currentIndex = 0; sessionScore = 0;
@@ -255,35 +243,37 @@ function showQuestion() {
     let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
 
     document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="sticky top-0 w-full bg-gray-900 border-b border-gray-700 z-50 p-2 text-center text-xs text-gray-400 shadow-md">
-            [مساحة إعلانية]
+        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md mb-2">
+            [ مساحة الإعلان هنا ]
         </div>
-        
-        <div class="w-full max-w-md mx-auto px-4 pb-6 mt-2">
-            <div class="w-full h-1.5 bg-gray-900 rounded-b-2xl overflow-hidden mb-4">
+
+        <div class="w-full max-w-md mx-auto px-3 pb-6">
+            <div class="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden mb-4">
                 <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500" style="width: ${progressPercent}%"></div>
             </div>
 
-            <div class="flex justify-between items-center mb-6">
-                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1.5">
+            <div class="flex justify-between items-center mb-4">
+                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1">
+                    <i class="fas fa-crosshairs text-yellow-500 text-[10px]"></i>
                     <span class="text-xs text-gray-300 font-bold">سؤال <span class="text-yellow-400">${currentIndex+1}</span> / ${currentQuestions.length}</span>
                 </div>
                 
-                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1.5">
+                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1">
+                    <i class="fas fa-star text-yellow-500 text-[10px]"></i>
                     <span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400">${sessionScore}</span></span>
                 </div>
             </div>
 
-            <div class="glass-card p-4 md:p-6 rounded-2xl mb-6 border border-yellow-500/20 relative">
+            <div class="glass-card p-4 rounded-2xl mb-4 border border-yellow-500/20 shadow-md relative">
                 <div class="flex flex-col items-center">
-                    <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-3 py-1.5 rounded-xl mb-3 transition-all w-16 text-center">${globalTimeLeft}</span>
-                    <h3 class="text-lg md:text-xl font-bold text-center leading-relaxed text-white drop-shadow-md">${q.q}</h3>
+                    <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-4 py-1 rounded-xl mb-3 w-16 text-center">${globalTimeLeft}</span>
+                    <h3 class="text-lg md:text-xl font-bold text-center leading-snug text-white drop-shadow-md">${q.q}</h3>
                 </div>
             </div>
             
-            <div class="space-y-2.5 relative z-20" id="options-container">
+            <div class="space-y-2 relative z-20" id="options-container">
                 ${q.options.map((opt, i) => `
-                    <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-xl border border-gray-600 bg-gray-800/90 p-3.5 w-full text-right transition-all duration-300 active:scale-95" id="opt-${i}">
+                    <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-xl border border-gray-600 bg-gray-800/90 p-3 w-full text-right transition-all duration-300 active:scale-95" id="opt-${i}">
                         <div class="flex justify-between items-center relative z-10">
                             <span class="text-sm md:text-base font-bold text-gray-200">${opt}</span>
                             <div class="w-6 h-6 rounded-full border border-gray-600 flex items-center justify-center text-xs font-black text-gray-400">${String.fromCharCode(65+i)}</div>
@@ -292,24 +282,22 @@ function showQuestion() {
                 `).join('')}
             </div>
             
-            <div class="flex justify-between mt-6 gap-3 border-t border-gray-700/50 pt-4">
+            <div class="flex justify-between mt-5 gap-3 border-t border-gray-700/50 pt-3">
                 <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden rounded-lg p-[1px] ${used5050?'opacity-40 grayscale':'active:scale-95'}">
                     <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600"></span>
-                    <div class="bg-gray-900 px-2 py-2 rounded-[7px] flex items-center justify-center gap-1 relative z-10">
+                    <div class="bg-gray-900 px-2 py-2 rounded-md flex items-center justify-center gap-1.5 relative z-10">
                         <i class="fas fa-cut text-purple-400 text-xs"></i>
-                        <span class="text-[10px] font-bold text-gray-200">إجابتين</span>
+                        <span class="text-xs font-bold text-gray-200">إجابتين</span>
                     </div>
                 </button>
                 <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden rounded-lg p-[1px] ${usedFreeze?'opacity-40 grayscale':'active:scale-95'}">
                     <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500"></span>
-                    <div class="bg-gray-900 px-2 py-2 rounded-[7px] flex items-center justify-center gap-1 relative z-10">
+                    <div class="bg-gray-900 px-2 py-2 rounded-md flex items-center justify-center gap-1.5 relative z-10">
                         <i class="fas fa-snowflake text-blue-400 text-xs"></i>
-                        <span class="text-[10px] font-bold text-gray-200">تجميد</span>
+                        <span class="text-xs font-bold text-gray-200">تجميد</span>
                     </div>
                 </button>
             </div>
-
-            <button onclick="promptExitQuiz()" class="w-full mt-6 text-gray-500 text-xs font-bold underline">انسحاب وحفظ النتيجة</button>
         </div>
     `;
 
@@ -343,9 +331,8 @@ window.handleAnswer = function(idx) {
 
     let q = currentQuestions[currentIndex];
     
-    // النقطة بـ 1
     if(idx === q.correctIndex) {
-        sessionScore += 1; 
+        sessionScore += 1; // النقطة بواحد
         vibratePhone(100);
         let btn = document.getElementById(`opt-${idx}`);
         if(btn) {
@@ -415,10 +402,10 @@ window.useFreeze = function() {
     }
 }
 
-// نافذة التأكيد
+// نافذة التأكيد الشيك عند الانسحاب
 window.promptExitQuiz = function() {
     let confirmHTML = `
-        <div id="exit-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div id="exit-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
             <div class="bg-gray-800 p-6 rounded-2xl border border-red-500/50 text-center w-full max-w-sm shadow-2xl transform transition-all">
                 <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
@@ -426,4 +413,10 @@ window.promptExitQuiz = function() {
                 <h3 class="text-xl font-bold text-white mb-2">متأكد إنك عايز تنسحب؟</h3>
                 <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط (${sessionScore} نقطة).</p>
                 <div class="flex gap-3">
-                    <button onclick="forceEndQuiz('تم الانسحاب وحفظ النقاط.')" class="flex-1 bg-red-600 text-white font-bold p
+                    <button onclick="endQuiz(true)" class="flex-1 bg-red-600 text-white font-bold p-2.5 rounded-lg">انسحاب</button>
+                    <button onclick="document.getElementById('exit-modal').remove()" class="flex-1 bg-gray-700 text-white font-bold p-2.5 rounded-lg">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.
