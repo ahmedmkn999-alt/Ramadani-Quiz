@@ -17,19 +17,12 @@ let used5050 = false;
 let usedFreeze = false;
 let currentStreak = 0;
 
-// --- 🎵 مؤثرات اللعبة الصوتية (بالروابط المباشرة بتاعتك) ---
-const sfxCorrect = new Audio('https://files.catbox.moe/112l01.m4a');
-const sfxWrong = new Audio('https://files.catbox.moe/khm3ue.m4a');
-const sfxTick = new Audio('https://files.catbox.moe/epmgt5.m4a');
-const sfxWin = new Audio('https://files.catbox.moe/p998o7.m4a');
-
-function playSound(audioObj) {
-    try { 
-        audioObj.currentTime = 0; 
-        audioObj.play().catch(e => console.log("تنبيه: المتصفح يحتاج تفاعل لتشغيل الصوت")); 
-    } catch(e){}
+// دالة اهتزاز الموبايل (Haptic Feedback)
+function vibratePhone(pattern) {
+    if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+    }
 }
-// -------------------------------------------------------------
 
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
@@ -227,22 +220,41 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
+    // شريط التقدم الفخم
+    let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
+
     let html = `
-        <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
-            <span class="text-xs text-yellow-500 font-bold bg-yellow-900/30 px-3 py-1 rounded-full">سؤال ${currentIndex+1} من ${currentQuestions.length}</span>
-            <span id="timer" class="text-red-400 font-black text-xl">${globalTimeLeft}s</span>
+        <div class="flex flex-col mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs text-yellow-500 font-bold bg-yellow-900/30 px-3 py-1 rounded-full border border-yellow-700/50">سؤال ${currentIndex+1} من ${currentQuestions.length}</span>
+                
+                <div class="flex items-center gap-1.5 bg-gray-800 px-3 py-1 rounded-full border border-gray-600">
+                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                    <span class="font-black text-white text-sm">${sessionScore}</span>
+                </div>
+                
+                <span id="timer" class="text-white font-black text-lg bg-red-600 px-3 py-1 rounded-lg shadow-[0_0_10px_rgba(220,38,38,0.5)] w-12 text-center transition-colors">${globalTimeLeft}s</span>
+            </div>
+            
+            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden mt-2 shadow-inner">
+                <div class="bg-gradient-to-r from-yellow-600 to-yellow-400 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+            </div>
         </div>
-        <h3 class="text-xl font-bold text-center mb-6 leading-relaxed select-none pointer-events-none">${q.q}</h3>
+
+        <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none drop-shadow-md">${q.q}</h3>
+        
         <div class="space-y-3">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" class="opt-btn group select-none relative z-[5000]" id="opt-${i}">
-                    <span>${opt}</span><div class="opt-circle">${String.fromCharCode(65+i)}</div>
+                <button onclick="handleAnswer(${i})" class="opt-btn group select-none relative z-[5000] overflow-hidden" id="opt-${i}">
+                    <span class="relative z-10 group-hover:text-yellow-400 transition-colors">${opt}</span>
+                    <div class="opt-circle relative z-10 group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
             `).join('')}
         </div>
-        <div class="flex justify-between mt-5 gap-3 border-t border-gray-700 pt-4">
-            <button id="btn-5050" onclick="use5050()" class="flex-1 bg-purple-800 p-2.5 rounded-xl text-xs font-bold text-white ${used5050?'opacity-30':''}">✂️ إجابتين</button>
-            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-blue-800 p-2.5 rounded-xl text-xs font-bold text-white ${usedFreeze?'opacity-30':''}">❄️ تجميد</button>
+        
+        <div class="flex justify-between mt-6 gap-3 border-t border-gray-700 pt-5">
+            <button id="btn-5050" onclick="use5050()" class="flex-1 bg-gradient-to-r from-purple-800 to-purple-900 p-2.5 rounded-xl text-xs font-bold text-white shadow-lg border border-purple-600/50 ${used5050?'opacity-30':''}">✂️ إجابتين</button>
+            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-gradient-to-r from-blue-800 to-blue-900 p-2.5 rounded-xl text-xs font-bold text-white shadow-lg border border-blue-600/50 ${usedFreeze?'opacity-30':''}">❄️ تجميد</button>
         </div>
     `;
     document.getElementById('quiz-content').innerHTML = html;
@@ -250,10 +262,14 @@ function showQuestion() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         globalTimeLeft--;
-        document.getElementById('timer').innerText = globalTimeLeft + "s";
+        let timerEl = document.getElementById('timer');
+        timerEl.innerText = globalTimeLeft + "s";
         
-        // تشغيل صوت التيك توك في آخر 5 ثواني
-        if(globalTimeLeft <= 5 && globalTimeLeft > 0) playSound(sfxTick);
+        // تغيير لون التايمر لما يقل
+        if(globalTimeLeft <= 5) {
+            timerEl.classList.add('animate-pulse', 'scale-110');
+            vibratePhone(50); // نبضة خفيفة مع كل ثانية في الآخر للتوتر
+        }
         
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
@@ -267,7 +283,8 @@ window.use5050 = function() {
     let hiddenCount = 0;
     for(let i=0; i<4; i++) {
         if(i !== correctIdx && hiddenCount < 2) {
-            document.getElementById(`opt-${i}`).style.visibility = 'hidden';
+            document.getElementById(`opt-${i}`).style.opacity = '0.2';
+            document.getElementById(`opt-${i}`).style.pointerEvents = 'none';
             hiddenCount++;
         }
     }
@@ -279,29 +296,62 @@ window.useFreeze = function() {
     document.getElementById('btn-freeze').classList.add('opacity-30');
     globalTimeLeft += 10;
     document.getElementById('timer').innerText = globalTimeLeft + "s";
+    document.getElementById('timer').classList.remove('animate-pulse', 'scale-110');
 }
 
 window.handleAnswer = function(i) {
     clearInterval(timerInterval);
+    
+    // إيقاف تفاعل الأزرار عشان ميدوسش مرتين
+    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
+    
+    let correctIdx = currentQuestions[currentIndex].correctIndex;
+
     if(i !== -1) {
-        let correctIdx = currentQuestions[currentIndex].correctIndex;
+        let selectedBtn = document.getElementById(`opt-${i}`);
+        let correctBtn = document.getElementById(`opt-${correctIdx}`);
+        
         if(i === correctIdx) {
             sessionScore++;
-            playSound(sfxCorrect); // صوت الإجابة الصح
-            document.getElementById(`opt-${i}`).classList.add('bg-green-600');
+            vibratePhone(100); // هزة خفيفة للصح
+            
+            // تصميم فخم للإجابة الصح
+            selectedBtn.classList.remove('bg-gray-800', 'bg-opacity-70');
+            selectedBtn.classList.add('bg-green-600', 'border-green-400', 'shadow-[0_0_20px_rgba(34,197,94,0.6)]', 'transform', 'scale-105', 'text-white');
+            selectedBtn.querySelector('.opt-circle').classList.add('bg-white', 'text-green-600');
+            
+            // كونفيتي صغير طاير كإحتفال
+            if(window.confetti) confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#22c55e', '#ffffff', '#fbbf24'] });
+
         } else {
-            playSound(sfxWrong); // صوت الإجابة الغلط
-            document.getElementById(`opt-${i}`).classList.add('bg-red-600');
-            document.getElementById(`opt-${correctIdx}`).classList.add('bg-green-600');
+            vibratePhone([100, 50, 100]); // هزتين للغلط
+            
+            // تصميم الإجابة الغلط
+            selectedBtn.classList.remove('bg-gray-800', 'bg-opacity-70');
+            selectedBtn.classList.add('bg-red-600', 'border-red-400', 'shadow-[0_0_20px_rgba(220,38,38,0.6)]', 'text-white');
+            selectedBtn.querySelector('.opt-circle').classList.add('bg-white', 'text-red-600');
+            
+            // إظهار الإجابة الصح
+            correctBtn.classList.remove('bg-gray-800', 'bg-opacity-70');
+            correctBtn.classList.add('bg-green-600', 'border-green-400', 'text-white');
+            correctBtn.querySelector('.opt-circle').classList.add('bg-white', 'text-green-600');
         }
+    } else {
+        // لو الوقت خلص
+        vibratePhone([100, 50, 100]);
+        document.getElementById(`opt-${correctIdx}`).classList.remove('bg-gray-800', 'bg-opacity-70');
+        document.getElementById(`opt-${correctIdx}`).classList.add('bg-green-600', 'border-green-400', 'text-white');
     }
-    setTimeout(() => { currentIndex++; showQuestion(); }, 800);
+    
+    // انتظار 1.2 ثانية عشان المتسابق يتأمل الإجابة والتأثيرات
+    setTimeout(() => { currentIndex++; showQuestion(); }, 1200);
 }
 
 function endQuiz(isForceExit = false) {
     if (!isQuizActive) return;
     isQuizActive = false;
     clearInterval(timerInterval);
+
     if (!isForceExit) document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 text-xl animate-pulse">جاري توثيق إنجازك...</p>';
 
     let newStreak = 1;
@@ -320,14 +370,14 @@ function endQuiz(isForceExit = false) {
         });
     }).then(() => {
         if (!isForceExit) {
-            playSound(sfxWin); // صوت الفوز والجمهور
-            if(window.confetti) confetti({ particleCount: 150 });
+            vibratePhone([200, 100, 200, 100, 400]); // اهتزاز احتفالي للفوز
+            if(window.confetti) confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 } });
             document.getElementById('quiz-content').innerHTML = `
                 <div class="text-center">
                     <h2 class="text-3xl font-black mb-2 text-white">عاش يا بطل! 🔥</h2>
                     <p class="mb-2 text-gray-300">حصدت اليوم: <span class="text-3xl text-yellow-400">${sessionScore}</span> نقطة</p>
                     <p class="mb-6 text-orange-400 font-bold">شعلة الحماس: 🔥 ${newStreak}</p>
-                    <button onclick="location.reload()" class="w-full bg-yellow-600 p-4 rounded-xl font-black text-black">العودة للمعسكر</button>
+                    <button onclick="location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 p-4 rounded-xl font-black text-black shadow-lg transform hover:scale-105 transition-all">العودة للمعسكر</button>
                 </div>
             `;
             document.body.classList.remove('hide-ads');
@@ -346,4 +396,4 @@ window.logoutUser = function() {
 window.addEventListener('beforeunload', function (e) {
     if (isQuizActive) { endQuiz(true); e.preventDefault(); e.returnValue = ''; }
 });
-        
+                                                       
