@@ -1,4 +1,4 @@
-const firebaseConfig = { 
+        const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
     appId: "1:343525703258:web:6776b4857425df8bcca263" 
@@ -28,27 +28,32 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
+// ---------------------------------------------------------
+// طريقة التوصيل القديمة السهلة والمستقرة 100% بدون أي تعقيد
+// ---------------------------------------------------------
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
-    
-    try {
-        user = JSON.parse(localStorage.getItem('currentUser'));
-        if(!user || !user.id) { 
+    document.body.style.webkitTouchCallout = "none";
+
+    setTimeout(() => {
+        try {
+            user = JSON.parse(localStorage.getItem('currentUser'));
+            if(!user || !user.id) throw new Error("No User");
+
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+
+            initFirebaseData();
+
+        } catch(e) { 
             window.location.replace("index.html"); 
-            return; 
         }
-
-        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        db = firebase.firestore();
-        initFirebaseData();
-
-    } catch(e) { 
-        window.location.replace("index.html"); 
-    }
+    }, 150);
 });
+// ---------------------------------------------------------
 
 function initFirebaseData() {
     db.collection("users").doc(user.id).onSnapshot(doc => {
@@ -190,8 +195,7 @@ function fetchLeaderboard() {
                 <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
             </div>`;
         });
-        let gl = document.getElementById('group-list');
-        if(gl) gl.innerHTML = html;
+        document.getElementById('group-list').innerHTML = html;
     });
 }
 
@@ -233,6 +237,7 @@ window.startQuizFetch = function(day) {
     `;
     
     window.open = function() { return null; }; 
+
     used5050 = false;
     usedFreeze = false;
 
@@ -386,13 +391,4 @@ window.useFreeze = function() {
     }
 }
 
-window.handleAnswer = function(i) {
-    clearInterval(timerInterval);
-    
-    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
-    
-    let correctIdx = currentQuestions[currentIndex].correctIndex;
-
-    if(i !== -1) {
-        let selectedBtn = document.getElementById(`opt-${i}`);
-        
+window.handleAnswer = function(i
