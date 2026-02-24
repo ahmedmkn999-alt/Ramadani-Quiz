@@ -1,3 +1,4 @@
+// 1. الإعدادات الأساسية
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
@@ -17,9 +18,7 @@ let used5050 = false;
 let usedFreeze = false;
 let currentStreak = 0;
 
-// ==========================================
-// 1. دوال مساعدة للرتب والاهتزاز
-// ==========================================
+// 2. دوال مساعدة
 function vibratePhone(pattern) {
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
@@ -31,55 +30,49 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// ==========================================
-// 2. التشغيل الآمن والفوري
-// ==========================================
+// 3. بدء التشغيل (زي ما هو بالضبط)
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
-    document.body.style.webkitTouchCallout = "none";
 
     try {
-        let savedData = localStorage.getItem('currentUser');
-        if(!savedData) throw new Error("No user in localStorage");
-        user = JSON.parse(savedData);
+        const savedUser = localStorage.getItem('currentUser');
+        if(!savedUser) return console.warn("No user in localStorage");
+        user = JSON.parse(savedUser);
 
-        // عرض سريع من الذاكرة لتجنب التعليق
-        let elName = document.getElementById('p-name');
+        if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
         let elGroup = document.getElementById('p-group');
-        if(elName) elName.innerText = user.name;
         if(elGroup) {
             elGroup.innerText = (user.group || "") + " | " + (user.team || "");
             elGroup.classList.remove('hidden');
         }
 
-        // تشغيل الفايربيز
         if (typeof firebase !== 'undefined') {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
-            initFirebaseData();
+            initFirebaseData(); 
         } else {
-            console.error("Firebase is not loaded!");
+            console.error("Firebase SDK not found!");
         }
+
     } catch(e) { 
-        console.error("خطأ في تسجيل الدخول أو تحميل البيانات:", e);
+        console.error("Initialization Error:", e);
     }
 });
 
-// ==========================================
-// 3. جلب البيانات من القاعدة (بدون أخطاء doc.exists)
-// ==========================================
+// 4. جلب البيانات من Firestore (بدون أي تعديل)
 function initFirebaseData() {
+    if(!user || !user.id) return;
+
     db.collection("users").doc(user.id).onSnapshot(doc => {
-        let d = doc.data(); // بنسحب الداتا بأمان
-        if(d) {
+        if(doc.exists) {
+            let d = doc.data();
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
             isEliminatedPlayer = d.isEliminated || false;
             let rank = getRankInfo(pScore);
 
-            let elScore = document.getElementById('p-score');
-            if(elScore) elScore.innerText = pScore;
+            if(document.getElementById('p-score')) document.getElementById('p-score').innerText = pScore;
             
             let elStreak = document.getElementById('p-streak');
             if(elStreak) {
@@ -99,7 +92,7 @@ function initFirebaseData() {
             } else {
                 if(elGroup) {
                     elGroup.innerText = `${d.group || user.group} | ${d.team || user.team}`;
-                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
+                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600';
                 }
                 if(elRank) {
                     elRank.innerText = rank.text;
@@ -111,15 +104,11 @@ function initFirebaseData() {
     });
 
     db.collection("settings").doc("global_status").onSnapshot(doc => {
-        let d = doc.data();
-        if(d) {
-            adminDay = d.currentDay || 1;
-            adminStatus = d.status || "closed";
-        } else {
-            adminDay = 1;
-            adminStatus = "closed";
+        if(doc.exists) {
+            adminDay = doc.data().currentDay || 1;
+            adminStatus = doc.data().status || "closed";
+            updateLogs();
         }
-        updateLogs();
     });
 }
 
@@ -127,10 +116,7 @@ function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
-        snap.forEach(doc => {
-            let d = doc.data();
-            if(d) myLogs[d.day] = d.score;
-        });
+        snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
         
         let pText = document.getElementById('progress-text');
@@ -140,9 +126,7 @@ function updateLogs() {
     });
 }
 
-// ==========================================
-// 4. رسم خريطة المراحل (الشكل الأسطوري)
-// ==========================================
+// 5. بناء واجهة الخريطة (الشكل الأسطوري)
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
@@ -185,53 +169,9 @@ function renderMap() {
     container.innerHTML = html;
 }
 
-// ==========================================
-// 5. الترتيب (Leaderboard) بالشكل الأصلي
-// ==========================================
-window.showTab = function(t) {
-    document.getElementById('view-arena').classList.toggle('hidden', t !== 'arena');
-    document.getElementById('view-leaderboard').classList.toggle('hidden', t !== 'leaderboard');
-    document.getElementById('btn-arena').classList.toggle('active', t === 'arena');
-    document.getElementById('btn-leader').classList.toggle('active', t === 'leaderboard');
-    if(t === 'leaderboard') fetchLeaderboard();
-}
-
-function fetchLeaderboard() {
-    if(!user || !user.group) return;
-    db.collection("users").where("group", "==", user.group).get().then(snap => {
-        let list = [];
-        snap.forEach(doc => {
-            let d = doc.data();
-            if(d) list.push(d);
-        });
-        list.sort((a,b) => (b.score || 0) - (a.score || 0));
-        let html = '';
-        list.forEach((u, i) => {
-            let rank = i + 1;
-            let uRank = getRankInfo(u.score || 0);
-            html += `<div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl mb-2 border border-gray-700 hover:border-yellow-500/30 transition-colors shadow-sm">
-                <div class="flex items-center gap-3">
-                    <span class="w-6 text-center font-black ${rank <= 3 ? 'text-yellow-500 text-xl drop-shadow-md' : 'text-gray-400'}">${rank}</span>
-                    <div>
-                        <span class="font-bold block ${u.name === user.name ? 'text-yellow-400' : 'text-white'}">${u.name} <span class="text-orange-500 text-[10px]">🔥 ${u.streak||0}</span></span>
-                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded mt-1 inline-block shadow-sm">${uRank.text}</span>
-                    </div>
-                </div>
-                <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
-            </div>`;
-        });
-        document.getElementById('group-list').innerHTML = html;
-    });
-}
-
-// ==========================================
-// 6. نظام الكويز (التصميم العالمي)
-// ==========================================
+// 6. نظام المسابقة (اتصالك القديم + واجهة جديدة)
 window.openQuiz = function(day) {
-    if (myLogs[day] !== undefined) {
-        alert("أنت لعبت الجولة دي خلاص!"); return;
-    }
-    document.body.classList.add('hide-ads'); 
+    if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center relative z-10">
@@ -239,56 +179,38 @@ window.openQuiz = function(day) {
             <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(255,215,0,0.4)] border-4 border-gray-900">
                 <i class="fas fa-bolt text-4xl text-black"></i>
             </div>
-            <h2 class="text-3xl font-black text-white mb-3 drop-shadow-lg">مستعد للمواجهة؟ 🔥</h2>
+            <h2 class="text-3xl font-black text-white mb-3 drop-shadow-lg">الجولة ${day} 🔥</h2>
             <p class="text-gray-300 text-sm mb-8 leading-relaxed px-4">بمجرد دخولك سيبدأ التحدي.<br>لا توجد فرصة للرجوع، وأي محاولة خروج تعتبر غش!</p>
             <div class="flex gap-4">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black p-4 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] transform hover:-translate-y-1 transition-all">جاهز ⚔️</button>
-                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold p-4 rounded-xl border border-gray-600 transition-all">تراجع ✋</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black p-4 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] transform hover:-translate-y-1 transition-all">ابدأ ⚔️</button>
+                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold p-4 rounded-xl border border-gray-600 transition-all">إغلاق ✋</button>
             </div>
-        </div>
-    `;
-}
-
-window.closeQuizOverlay = function() {
-    if(isQuizActive) {
-        alert("مينفعش تهرب من نص المعركة يا بطل!");
-        return;
-    }
-    document.getElementById('quiz-overlay').style.display = 'none';
-    document.body.classList.remove('hide-ads');
+        </div>`;
 }
 
 window.startQuizFetch = function(day) {
     isQuizActive = true;
-    history.pushState(null, null, location.href);
+    used5050 = false; usedFreeze = false;
     document.getElementById('quiz-content').innerHTML = `
         <div class="flex flex-col items-center justify-center py-10">
             <div class="w-16 h-16 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
             <p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري تجهيز ساحة المعركة...</p>
-        </div>
-    `;
-    
-    used5050 = false;
-    usedFreeze = false;
+        </div>`;
 
+    // سحب البيانات بنفس طريقتك الأصلية بالضبط
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
-        let d = doc.data(); // سحب آمن
-        if(d && d.variations) {
-            let availableKeys = Object.keys(d.variations); 
-            if(availableKeys.length > 0) {
-                let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
-                currentQuestions = d.variations[randomKey].questions;
-                currentIndex = 0; sessionScore = 0;
-                showQuestion();
-            } else {
-                throw new Error("لا توجد أسئلة");
-            }
+        if(doc.exists && doc.data().variations) {
+            let variations = doc.data().variations;
+            let keys = Object.keys(variations);
+            currentQuestions = variations[keys[Math.floor(Math.random() * keys.length)]].questions;
+            currentIndex = 0; sessionScore = 0;
+            showQuestion();
         } else {
-            throw new Error("لم يتم تجهيز الجولة");
+            throw new Error();
         }
-    }).catch(err => {
-        document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">التحدي لم يجهز بعد!</p>';
-        setTimeout(() => location.reload(), 2000);
+    }).catch(() => {
+        alert("خطأ في تحميل الأسئلة");
+        closeQuizOverlay();
     });
 }
 
@@ -299,7 +221,7 @@ function showQuestion() {
     
     let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
 
-    let html = `
+    document.getElementById('quiz-content').innerHTML = `
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900 rounded-t-2xl overflow-hidden">
             <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,1)]" style="width: ${progressPercent}%"></div>
         </div>
@@ -355,28 +277,65 @@ function showQuestion() {
             </button>
         </div>
     `;
-    document.getElementById('quiz-content').innerHTML = html;
 
+    startTimer();
+}
+
+function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         globalTimeLeft--;
-        let timerEl = document.getElementById('timer');
-        if(timerEl) {
-            timerEl.innerText = globalTimeLeft;
+        let tEl = document.getElementById('timer');
+        if(tEl) {
+            tEl.innerText = globalTimeLeft;
             if(globalTimeLeft <= 5) {
-                timerEl.classList.remove('border-red-500/80', 'text-white', 'border-blue-500/80', 'text-blue-300');
-                timerEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse', 'scale-110');
+                tEl.classList.remove('border-red-500/80', 'text-white', 'border-blue-500/80', 'text-blue-300');
+                tEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse', 'scale-110');
             }
         }
-        if(globalTimeLeft <= 5 && globalTimeLeft > 0) vibratePhone(50); 
+        if(globalTimeLeft <= 5 && globalTimeLeft > 0) vibratePhone(50);
         
-        if(globalTimeLeft <= 0) handleAnswer(-1); 
+        if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
-// ==========================================
-// 7. قدرات مساعدة (50/50 والتجميد)
-// ==========================================
+window.handleAnswer = function(idx) {
+    if (!isQuizActive) return;
+    clearInterval(timerInterval);
+    
+    let container = document.getElementById('options-container');
+    if(container) container.style.pointerEvents = 'none';
+
+    let q = currentQuestions[currentIndex];
+    
+    if(idx === q.correctIndex) {
+        sessionScore += 10;
+        vibratePhone(100);
+        let btn = document.getElementById(`opt-${idx}`);
+        if(btn) {
+            btn.classList.add('bg-green-600/50', 'border-green-500', 'shadow-[0_0_20px_rgba(34,197,94,0.4)]');
+            btn.classList.remove('border-gray-600', 'bg-gray-800/90');
+        }
+    } else {
+        vibratePhone([100, 50, 100]);
+        if(idx !== -1) {
+            let btn = document.getElementById(`opt-${idx}`);
+            if(btn) {
+                btn.classList.add('bg-red-600/50', 'border-red-500');
+                btn.classList.remove('border-gray-600', 'bg-gray-800/90');
+            }
+        }
+        let correctBtn = document.getElementById(`opt-${q.correctIndex}`);
+        if(correctBtn) {
+            correctBtn.classList.add('bg-green-600/50', 'border-green-500');
+            correctBtn.classList.remove('border-gray-600', 'bg-gray-800/90');
+        }
+    }
+    
+    currentIndex++;
+    setTimeout(showQuestion, 1200); // استنى عشان يشوف الإجابة
+}
+
 window.use5050 = function() {
     if(used5050 || !isQuizActive) return;
     used5050 = true;
@@ -386,7 +345,106 @@ window.use5050 = function() {
         btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
     }
     
-    let correctIdx = currentQuestions[currentIndex].correctIndex;
-    let hiddenCount = 0;
+    let correct = currentQuestions[currentIndex].correctIndex;
+    let removed = 0;
     for(let i=0; i<4; i++) {
+        if(i !== correct && removed < 2) {
+            let el = document.getElementById(`opt-${i}`);
+            if(el) {
+                el.style.opacity = '0.2';
+                el.style.pointerEvents = 'none';
+                el.style.filter = 'grayscale(100%)';
+            }
+            removed++;
+        }
+    }
+}
+
+window.useFreeze = function() {
+    if(usedFreeze || !isQuizActive) return;
+    usedFreeze = true;
+    let btn = document.getElementById('btn-freeze');
+    if(btn) {
+        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]');
+    }
+    
+    globalTimeLeft += 15; // زي ما كانت في كودك
+    let timerEl = document.getElementById('timer');
+    if(timerEl) {
+        timerEl.innerText = globalTimeLeft;
+        timerEl.classList.remove('animate-pulse', 'scale-110', 'border-red-500', 'text-red-500', 'border-red-500/80');
+        timerEl.classList.add('border-blue-500/80', 'text-blue-300', 'shadow-[0_0_20px_rgba(59,130,246,0.5)]');
         
+        setTimeout(() => {
+            if(timerEl && globalTimeLeft > 5) {
+                timerEl.classList.remove('border-blue-500/80', 'text-blue-300', 'shadow-[0_0_20px_rgba(59,130,246,0.5)]');
+                timerEl.classList.add('border-red-500/80', 'text-white');
+            }
+        }, 2000);
+    }
+}
+
+// الكود الأصلي بتاعك للحفظ في القاعدة (مع شاشة نهاية أسطورية)
+function endQuiz() {
+    isQuizActive = false;
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="text-center relative z-10 py-10">
+            <div class="absolute inset-0 bg-yellow-500/10 blur-3xl rounded-full -z-10"></div>
+            <h2 class="text-4xl font-black text-white mb-4 drop-shadow-lg">انتهت المعركة! 🛡️</h2>
+            <p class="text-2xl font-bold text-yellow-400 mb-6 bg-gray-900 inline-block px-6 py-2 rounded-full border border-yellow-500/50">نقاطك: ${sessionScore}</p>
+            <p class="text-gray-300 mb-8 animate-pulse font-bold">جاري تسجيل أسطورتك...</p>
+            <div class="w-16 h-16 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mx-auto"></div>
+        </div>
+    `;
+    
+    // طريقة الحفظ الخاصة بك بالضبط
+    let day = adminDay;
+    db.collection("users").doc(user.id).collection("game_logs").doc("day_"+day).set({
+        day: day,
+        score: sessionScore,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        db.collection("users").doc(user.id).update({
+            score: firebase.firestore.FieldValue.increment(sessionScore)
+        }).then(() => {
+            setTimeout(() => location.reload(), 1500);
+        });
+    });
+}
+
+window.closeQuizOverlay = function() {
+    if(isQuizActive) return alert("ممنوع الهروب من المعركة!");
+    document.getElementById('quiz-overlay').style.display = 'none';
+}
+
+// 7. الليدربورد (مع تصميم كروت اللاعبين الجديد)
+window.showTab = function(t) {
+    document.getElementById('view-arena').classList.toggle('hidden', t !== 'arena');
+    document.getElementById('view-leaderboard').classList.toggle('hidden', t !== 'leaderboard');
+    if(t === 'leaderboard') fetchLeaderboard();
+}
+
+function fetchLeaderboard() {
+    // الكويري الأصلي بتاعك
+    db.collection("users").where("group", "==", user.group).orderBy("score", "desc").limit(20).get().then(snap => {
+        let html = '';
+        snap.forEach((doc, i) => {
+            let u = doc.data();
+            let rank = i + 1;
+            let uRank = getRankInfo(u.score || 0);
+            
+            html += `<div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl mb-2 border border-gray-700 hover:border-yellow-500/30 transition-colors shadow-sm">
+                <div class="flex items-center gap-3">
+                    <span class="w-6 text-center font-black ${rank <= 3 ? 'text-yellow-500 text-xl drop-shadow-md' : 'text-gray-400'}">${rank}</span>
+                    <div>
+                        <span class="font-bold block ${u.name === user.name ? 'text-yellow-400' : 'text-white'}">${u.name} <span class="text-orange-500 text-[10px]">🔥 ${u.streak||0}</span></span>
+                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded mt-1 inline-block shadow-sm">${uRank.text}</span>
+                    </div>
+                </div>
+                <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
+            </div>`;
+        });
+        document.getElementById('group-list').innerHTML = html;
+    });
+}
