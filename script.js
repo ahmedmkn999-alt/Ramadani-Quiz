@@ -7,18 +7,39 @@ const firebaseConfig = {
 let db = null;
 let user = null;
 let myLogs = {}, adminDay = 1, adminStatus = "closed";
-let currentQuestions = [], currentIndex = 0, sessionScore = 0, timerInterval;
+let currentQuestions = [], currentIndex = 0, sessionScore = 0;
+let timerInterval = null, globalTimeLeft = 20;
 let isQuizActive = false;
-let adSniperInterval = null; 
 let isEliminatedPlayer = false; 
 let logsUnsubscribe = null; 
 
-// --- 🎵 مؤثرات اللعبة الصوتية (SFX) ---
+// --- 🃏 متغيرات أسلحة المساعدة (الجواكر) ---
+let used5050 = false;
+let usedFreeze = false;
+
+// --- 🎵 مؤثرات اللعبة الصوتية (متأمنة ضد أخطاء الموبايلات) ---
 const sfxCorrect = new Audio('https://www.myinstants.com/media/sounds/correct-answer-sound-effect.mp3');
 const sfxWrong = new Audio('https://www.myinstants.com/media/sounds/error-sound-effect.mp3');
 const sfxTick = new Audio('https://www.myinstants.com/media/sounds/tick.mp3');
 const sfxWin = new Audio('https://www.myinstants.com/media/sounds/crowd-cheer.mp3');
+
+function playSound(audioObj) {
+    try {
+        audioObj.currentTime = 0;
+        let p = audioObj.play();
+        if(p !== undefined) p.catch(e => {}); 
+    } catch(e){}
+}
 // ------------------------------------
+
+// --- 🎖️ نظام الألقاب والرتب ---
+function getRankInfo(score) {
+    if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
+    if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
+    if(score >= 21) return { text: "هداف الفريق 🥈", color: "text-gray-300 bg-gray-700/50" };
+    return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
+}
+// ------------------------------
 
 window.addEventListener('DOMContentLoaded', () => {
     
@@ -32,8 +53,7 @@ window.addEventListener('DOMContentLoaded', () => {
             if(!user || !user.id) throw new Error();
 
             document.getElementById('p-name').innerText = user.name;
-            document.getElementById('p-group').innerText = user.group + " | " + user.team;
-
+            
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
@@ -51,13 +71,17 @@ function initFirebaseData() {
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) {
             let d = doc.data();
-            document.getElementById('p-score').innerText = d.score || 0;
+            let pScore = d.score || 0;
+            document.getElementById('p-score').innerText = pScore;
             isEliminatedPlayer = d.isEliminated || false;
             
+            // تحديث اللقب (الرانك)
+            let rank = getRankInfo(pScore);
+            
             if(isEliminatedPlayer) {
-                document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black"><i class="fas fa-ban"></i> تم الإقصاء (لعب ودي)</span>';
+                document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black text-xs"><i class="fas fa-ban"></i> تم الإقصاء (لعب ودي)</span>';
             } else {
-                document.getElementById('p-group').innerText = d.group + " | " + d.team;
+                document.getElementById('p-group').innerHTML = `${d.group} | ${d.team} <br> <span class="inline-block mt-1 px-2 py-0.5 rounded border border-gray-600 font-bold text-[10px] ${rank.color}">${rank.text}</span>`;
             }
         }
     });
@@ -175,10 +199,14 @@ function fetchLeaderboard() {
         let html = '';
         list.forEach((u, i) => {
             let rank = i + 1;
+            let uRank = getRankInfo(u.score || 0);
             html += `<div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl mb-2 border border-gray-700 hover:border-yellow-500/30 transition-colors">
                 <div class="flex items-center gap-3">
                     <span class="w-6 text-center font-bold ${rank <= 3 ? 'text-yellow-500 text-lg' : 'text-gray-400'}">${rank}</span>
-                    <span class="font-bold ${u.id === user.id ? 'text-yellow-400' : 'text-white'}">${u.name}</span>
+                    <div>
+                        <span class="font-bold block ${u.id === user.id ? 'text-yellow-400' : 'text-white'}">${u.name}</span>
+                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded">${uRank.text}</span>
+                    </div>
                 </div>
                 <span class="font-black text-yellow-500">${u.score || 0}</span>
             </div>`;
@@ -214,7 +242,6 @@ window.openQuiz = function(day) {
 window.closeQuizOverlay = function() {
     document.getElementById('quiz-overlay').style.display = 'none';
     document.body.classList.remove('hide-ads');
-    if(adSniperInterval) clearInterval(adSniperInterval);
 }
 
 window.startQuizFetch = function(day) {
@@ -224,15 +251,9 @@ window.startQuizFetch = function(day) {
     
     window.open = function() { return null; }; 
 
-    adSniperInterval = setInterval(() => {
-        document.querySelectorAll('iframe, ins').forEach(el => el.remove()); 
-        document.querySelectorAll('div, a').forEach(el => {
-            let zIndex = window.getComputedStyle(el).zIndex;
-            if (zIndex && parseInt(zIndex) > 1000 && el.id !== 'quiz-overlay' && !el.closest('#quiz-overlay')) {
-                el.remove();
-            }
-        });
-    }, 250); 
+    // إعادة ضبط الجواكر لكل جولة
+    used5050 = false;
+    usedFreeze = false;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
@@ -263,39 +284,88 @@ function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
     
     let q = currentQuestions[currentIndex];
-    let timeLeft = 20;
+    globalTimeLeft = 20;
     
+    // تصميم السؤال وإضافة أزرار المساعدة (الجواكر)
     let html = `
         <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
             <span class="text-xs text-yellow-500 font-bold bg-yellow-900/30 px-3 py-1 rounded-full">سؤال ${currentIndex+1} من ${currentQuestions.length}</span>
-            <span id="timer" class="text-red-400 font-black text-xl bg-red-900/20 px-3 py-1 rounded-lg shadow-inner">${timeLeft}s</span>
+            <span id="timer" class="text-red-400 font-black text-xl bg-red-900/20 px-3 py-1 rounded-lg shadow-inner">${globalTimeLeft}s</span>
         </div>
-        <h3 class="text-xl font-bold text-center mb-8 leading-relaxed select-none pointer-events-none">${q.q}</h3>
-        <div class="space-y-3">
+        <h3 class="text-xl font-bold text-center mb-6 leading-relaxed select-none pointer-events-none">${q.q}</h3>
+        <div class="space-y-3" id="options-container">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i}, event)" class="opt-btn group select-none relative z-[5000]">
+                <button onclick="handleAnswer(${i}, event)" class="opt-btn group select-none relative z-[5000]" id="opt-${i}">
                     <span class="group-hover:text-yellow-400 transition-colors">${opt}</span>
                     <div class="opt-circle group-hover:border-yellow-500 group-hover:text-yellow-500 transition-colors">${String.fromCharCode(65+i)}</div>
                 </button>
             `).join('')}
+        </div>
+        
+        <div class="flex justify-between mt-5 gap-3 border-t border-gray-700 pt-4">
+            <button id="btn-5050" onclick="use5050()" class="flex-1 bg-gradient-to-r from-purple-700 to-purple-900 p-2.5 rounded-xl text-xs font-bold shadow-lg transition-all ${used5050 ? 'opacity-30 cursor-not-allowed grayscale' : 'hover:scale-105'} text-white border border-purple-500/50">
+                <i class="fas fa-star-half-alt text-yellow-400 ml-1"></i> حذف إجابتين
+            </button>
+            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-gradient-to-r from-blue-700 to-blue-900 p-2.5 rounded-xl text-xs font-bold shadow-lg transition-all ${usedFreeze ? 'opacity-30 cursor-not-allowed grayscale' : 'hover:scale-105'} text-white border border-blue-500/50">
+                <i class="fas fa-snowflake text-blue-300 ml-1"></i> تجميد الوقت
+            </button>
         </div>
     `;
     document.getElementById('quiz-content').innerHTML = html;
 
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').innerText = timeLeft + "s";
+        globalTimeLeft--;
+        document.getElementById('timer').innerText = globalTimeLeft + "s";
         
         // 🎵 تشغيل صوت التيك توك المرعب في آخر 5 ثواني
-        if(timeLeft <= 5 && timeLeft > 0) {
-            sfxTick.currentTime = 0;
-            sfxTick.play().catch(e => console.log("الصوت محتاج تفاعل"));
+        if(globalTimeLeft <= 5 && globalTimeLeft > 0) {
+            playSound(sfxTick);
         }
 
-        if(timeLeft <= 0) handleAnswer(-1, null);
+        if(globalTimeLeft <= 0) handleAnswer(-1, null);
     }, 1000);
 }
+
+// --- ✂️ تفعيل جوكر 50:50 ---
+window.use5050 = function() {
+    if(used5050 || !isQuizActive) return;
+    used5050 = true;
+    document.getElementById('btn-5050').classList.add('opacity-30', 'cursor-not-allowed', 'grayscale');
+    
+    let correctIdx = currentQuestions[currentIndex].correctIndex;
+    let hiddenCount = 0;
+    
+    // إخفاء إجابتين غلط
+    for(let i=0; i<4; i++) {
+        if(i !== correctIdx && hiddenCount < 2) {
+            document.getElementById(`opt-${i}`).style.visibility = 'hidden';
+            hiddenCount++;
+        }
+    }
+}
+
+// --- ❄️ تفعيل جوكر تجميد الوقت (+10 ثواني) ---
+window.useFreeze = function() {
+    if(usedFreeze || !isQuizActive) return;
+    usedFreeze = true;
+    let btn = document.getElementById('btn-freeze');
+    btn.classList.add('opacity-30', 'cursor-not-allowed', 'grayscale');
+    
+    // إضافة 10 ثواني للوقت
+    globalTimeLeft += 10;
+    let timerEl = document.getElementById('timer');
+    timerEl.innerText = globalTimeLeft + "s";
+    
+    // تأثير بصري للتايمر
+    timerEl.classList.remove('text-red-400');
+    timerEl.classList.add('text-blue-400', 'animate-pulse');
+    setTimeout(() => {
+        timerEl.classList.remove('text-blue-400', 'animate-pulse');
+        timerEl.classList.add('text-red-400');
+    }, 2000);
+}
+// ------------------------------------------
 
 window.handleAnswer = function(i, event) {
     if(event) {
@@ -304,31 +374,34 @@ window.handleAnswer = function(i, event) {
     
     clearInterval(timerInterval);
     
+    // تلوين الأزرار بالصح والغلط
     if(i !== -1) {
-        if(i === currentQuestions[currentIndex].correctIndex) {
+        let correctIdx = currentQuestions[currentIndex].correctIndex;
+        let selectedBtn = document.getElementById(`opt-${i}`);
+        let correctBtn = document.getElementById(`opt-${correctIdx}`);
+        
+        if(i === correctIdx) {
             sessionScore++;
-            // 🎵 تشغيل صوت الإجابة الصحيحة
-            sfxCorrect.currentTime = 0;
-            sfxCorrect.play().catch(e => {});
+            playSound(sfxCorrect); // 🎵 رنة الصح
+            selectedBtn.classList.add('bg-green-600', 'border-green-400');
         } else {
-            // 🎵 تشغيل صوت الإجابة الخاطئة
-            sfxWrong.currentTime = 0;
-            sfxWrong.play().catch(e => {});
+            playSound(sfxWrong); // 🎵 صوت الغلط
+            selectedBtn.classList.add('bg-red-600', 'border-red-400');
+            correctBtn.classList.add('bg-green-600', 'border-green-400');
         }
     }
     
-    // تأخير بسيط جداً (نص ثانية) قبل السؤال الجاي عشان يلحق يسمع الصوت
+    // تأخير نص ثانية عشان يشوف الإجابة الصح ويسمع الصوت
     setTimeout(() => {
         currentIndex++;
         showQuestion();
-    }, 500);
+    }, 800);
 }
 
 function endQuiz(isForceExit = false) {
     if (!isQuizActive) return;
     isQuizActive = false;
     clearInterval(timerInterval);
-    if(adSniperInterval) clearInterval(adSniperInterval); 
     
     if (!isForceExit) {
         document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 text-xl animate-pulse">جاري توثيق إنجازك...</p>';
@@ -345,9 +418,7 @@ function endQuiz(isForceExit = false) {
     }).then(() => {
         if (!isForceExit) {
             
-            // 🎵 تشغيل صوت احتفال الجمهور في النهاية
-            sfxWin.currentTime = 0;
-            sfxWin.play().catch(e => {});
+            playSound(sfxWin); // 🎵 صوت هتاف الجمهور
 
             if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             
@@ -363,78 +434,4 @@ function endQuiz(isForceExit = false) {
             `;
             document.body.classList.remove('hide-ads');
         }
-    }).catch(error => {
-        console.error("خطأ: ", error);
-        if(!isForceExit) alert("خطأ في الحفظ بسبب: " + error.message + "\nبرجاء تسجيل الخروج والدخول مجدداً!");
-        document.body.classList.remove('hide-ads');
-    });
-}
-
-window.logoutUser = function() {
-    localStorage.removeItem('currentUser');
-    window.location.replace("index.html");
-}
-
-function reportCheat(reason) {
-    if (!isQuizActive) return; 
-    
-    db.collection("users").doc(user.id).set({
-        cheatCount: firebase.firestore.FieldValue.increment(1),
-        lastCheatReason: reason,
-        lastCheatTime: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).catch(e => console.log(e));
-
-    alert("⚠️ تحذير شديد اللهجة: " + reason + "\nتم إرسال إنذار للأدمن وقد يتم حظرك!");
-}
-
-window.addEventListener('popstate', function(event) {
-    if (isQuizActive) {
-        alert("⚠️ تحذير: ممنوع الرجوع أثناء الاختبار!");
-        history.pushState(null, null, location.href);
-    }
-});
-
-window.addEventListener('beforeunload', function (e) {
-    if (isQuizActive) {
-        endQuiz(true);
-        e.preventDefault();
-        e.returnValue = '';
-    }
-});
-
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === 'hidden' && isQuizActive) {
-        reportCheat("خرج من شاشة الاختبار (يشتبه في غش أو تصوير)");
-    }
-});
-
-document.addEventListener('copy', (e) => {
-    if(isQuizActive){
-        reportCheat("محاولة نسخ السؤال");
-        e.preventDefault(); 
-    }
-});
-
-document.addEventListener('contextmenu', (e) => {
-    if(isQuizActive){
-        e.preventDefault(); 
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    if (e.key === 'PrintScreen' && isQuizActive) {
-        reportCheat("أخذ لقطة شاشة (Screenshot)");
-        navigator.clipboard.writeText("ممنوع الغش يا بطل! 🛑"); 
-    }
-});
-
-window.addEventListener('blur', function() {
-    if(isQuizActive) {
-        document.getElementById('quiz-content').style.opacity = '0';
-    }
-});
-window.addEventListener('focus', function() {
-    if(isQuizActive) {
-        document.getElementById('quiz-content').style.opacity = '1';
-    }
-});
+    }).catc
