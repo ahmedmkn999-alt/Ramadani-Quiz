@@ -1,4 +1,4 @@
-// 1. الإعدادات الأساسية (لم يتم لمسها)
+// 1. الإعدادات الأساسية
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
@@ -30,7 +30,7 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// 3. بدء التشغيل (لم يتم لمسها)
+// 3. بدء التشغيل
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
@@ -60,13 +60,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 4. جلب البيانات من Firestore (لم يتم لمسها)
+// 4. جلب البيانات من Firestore (بالطريقة الآمنة اللي صلحناها)
 function initFirebaseData() {
     if(!user || !user.id) return;
 
     db.collection("users").doc(user.id).onSnapshot(doc => {
-        if(doc.exists) {
-            let d = doc.data();
+        let d = doc.data(); // سحب آمن بدون doc.exists
+        if(d) {
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
             isEliminatedPlayer = d.isEliminated || false;
@@ -104,11 +104,12 @@ function initFirebaseData() {
     });
 
     db.collection("settings").doc("global_status").onSnapshot(doc => {
-        if(doc.exists) {
-            adminDay = doc.data().currentDay || 1;
-            adminStatus = doc.data().status || "closed";
-            updateLogs();
+        let d = doc.data();
+        if(d) {
+            adminDay = d.currentDay || 1;
+            adminStatus = d.status || "closed";
         }
+        updateLogs();
     });
 }
 
@@ -116,7 +117,10 @@ function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
-        snap.forEach(d => myLogs[d.data().day] = d.data().score);
+        snap.forEach(doc => {
+            let d = doc.data(); // سحب آمن
+            if(d) myLogs[d.day] = d.score;
+        });
         renderMap();
         
         let pText = document.getElementById('progress-text');
@@ -173,7 +177,6 @@ function renderMap() {
 // 🔴 حماية الكويز من الهروب والسكرين شوت 🔴
 // ==========================================
 document.addEventListener("visibilitychange", () => {
-    // لو الكويز شغال والمستخدم طلع بره المتصفح أو نزل ستارة الإشعارات
     if (document.hidden && isQuizActive) {
         forceEndQuiz("تم اكتشاف محاولة خروج! تم حفظ نتيجتك الحالية.");
     }
@@ -184,7 +187,7 @@ function forceEndQuiz(reasonMessage) {
     clearInterval(timerInterval);
     isQuizActive = false;
     alert(reasonMessage);
-    endQuiz(true); // حفظ الكويز فوراً
+    endQuiz(true); 
 }
 
 // 6. نظام المسابقة (واجهة متوافقة مع الفون + إعلان)
@@ -193,7 +196,6 @@ window.openQuiz = function(day) {
     
     let overlay = document.getElementById('quiz-overlay');
     overlay.style.display = 'flex';
-    // التأكد إن المحتوى سكرول وقابل للعرض على الفون
     overlay.className = "fixed inset-0 z-50 bg-black/95 flex flex-col overflow-y-auto";
 
     document.getElementById('quiz-content').innerHTML = `
@@ -229,8 +231,9 @@ window.startQuizFetch = function(day) {
         </div>`;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
-        if(doc.exists && doc.data().variations) {
-            let variations = doc.data().variations;
+        let d = doc.data(); // سحب آمن
+        if(d && d.variations) {
+            let variations = d.variations;
             let keys = Object.keys(variations);
             currentQuestions = variations[keys[Math.floor(Math.random() * keys.length)]].questions;
             currentIndex = 0; sessionScore = 0;
@@ -256,7 +259,7 @@ function showQuestion() {
             [مساحة إعلانية]
         </div>
         
-        <div class="w-full max-w-md mx-auto px-4 pb-6">
+        <div class="w-full max-w-md mx-auto px-4 pb-6 mt-2">
             <div class="w-full h-1.5 bg-gray-900 rounded-b-2xl overflow-hidden mb-4">
                 <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500" style="width: ${progressPercent}%"></div>
             </div>
@@ -340,7 +343,7 @@ window.handleAnswer = function(idx) {
 
     let q = currentQuestions[currentIndex];
     
-    // النقطة بقت بـ 1 بدل 10
+    // النقطة بـ 1
     if(idx === q.correctIndex) {
         sessionScore += 1; 
         vibratePhone(100);
@@ -412,7 +415,7 @@ window.useFreeze = function() {
     }
 }
 
-// نافذة التأكيد الشيك عند الانسحاب
+// نافذة التأكيد
 window.promptExitQuiz = function() {
     let confirmHTML = `
         <div id="exit-modal" class="absolute inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
@@ -423,4 +426,4 @@ window.promptExitQuiz = function() {
                 <h3 class="text-xl font-bold text-white mb-2">متأكد إنك عايز تنسحب؟</h3>
                 <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط (${sessionScore} نقطة).</p>
                 <div class="flex gap-3">
-                    <button o
+                    <button onclick="forceEndQuiz('تم الانسحاب وحفظ النقاط.')" class="flex-1 bg-red-600 text-white font-bold p
