@@ -32,17 +32,15 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
     
-    // سحب بيانات اللاعب من الذاكرة
     user = JSON.parse(localStorage.getItem('currentUser'));
     if(!user || !user.id) { 
-        console.error("لا يوجد حساب مسجل!");
+        logoutUser(); 
         return; 
     }
 
     let elName = document.getElementById('p-name');
-    if(elName) elName.innerHTML = `<span class="truncate max-w-[120px] inline-block">${user.name}</span>`;
+    if(elName) elName.innerText = user.name.split(' ')[0] + "...";
 
-    // 🛡️ نظام الانتظار الذكي لفايربيز لتجنب تعليق الكود
     let waitForFb = setInterval(() => {
         if (typeof firebase !== 'undefined' && typeof firebase.firestore !== 'undefined') {
             clearInterval(waitForFb);
@@ -50,9 +48,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
                 initFirebaseData();
-            } catch(e) { console.error("خطأ في تهيئة فايربيز: ", e); }
+            } catch(e) { console.error("Firebase Init Error:", e); }
         }
-    }, 300);
+    }, 200);
 });
 
 function initFirebaseData() {
@@ -61,26 +59,34 @@ function initFirebaseData() {
             let d = doc.data();
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
-            let elScore = document.getElementById('p-score');
-            if(elScore) elScore.innerText = pScore;
-            
             isEliminatedPlayer = d.isEliminated || false;
-            
             let rank = getRankInfo(pScore);
+
+            // تحديث العناصر بشكل آمن جداً بدون لغبطة الـ HTML
+            document.getElementById('p-score').innerText = pScore;
             
-            let elName = document.getElementById('p-name');
-            if(elName) elName.innerHTML = `<span class="truncate max-w-[120px] inline-block">${d.name || "مجهول"}</span> <span class="text-orange-500 text-[11px] bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-700/50 ml-1 shadow-sm">🔥 ${currentStreak}</span>`;
+            let elStreak = document.getElementById('p-streak');
+            elStreak.innerText = `🔥 ${currentStreak}`;
+            elStreak.classList.remove('hidden');
+
+            document.getElementById('p-name').innerText = d.name || "مجهول";
             
             let elGroup = document.getElementById('p-group');
-            if(elGroup) {
-                if(isEliminatedPlayer) {
-                    elGroup.innerHTML = '<span class="text-red-500 font-black text-[10px] bg-red-900/30 px-2 py-0.5 rounded shadow-sm"><i class="fas fa-ban"></i> مقصى (لعب ودي)</span>';
-                } else {
-                    elGroup.innerHTML = `
-                        <span class="text-yellow-500 font-bold bg-yellow-900/40 px-2 py-0.5 rounded border border-yellow-700/50 text-[9px] shadow-sm">${d.group || ""} | ${d.team || ""}</span>
-                        <span class="font-bold text-[9px] px-2 py-0.5 rounded border border-gray-600 shadow-sm ${rank.color}">${rank.text}</span>
-                    `;
-                }
+            let elRank = document.getElementById('p-rank');
+
+            if(isEliminatedPlayer) {
+                elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
+                elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
+                elGroup.classList.remove('hidden');
+                elRank.classList.add('hidden');
+            } else {
+                elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
+                elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
+                elGroup.classList.remove('hidden');
+                
+                elRank.innerText = rank.text;
+                elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
+                elRank.classList.remove('hidden');
             }
         }
     });
@@ -100,10 +106,8 @@ function updateLogs() {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
-        let pText = document.getElementById('progress-text');
-        let pBar = document.getElementById('progress-bar');
-        if(pText) pText.innerText = `${Object.keys(myLogs).length} / 29 جولة`;
-        if(pBar) pBar.style.width = `${(Object.keys(myLogs).length/29)*100}%`;
+        document.getElementById('progress-text').innerText = `${Object.keys(myLogs).length} / 29 جولة`;
+        document.getElementById('progress-bar').style.width = `${(Object.keys(myLogs).length/29)*100}%`;
     });
 }
 
@@ -178,8 +182,7 @@ function fetchLeaderboard() {
                 <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
             </div>`;
         });
-        let gl = document.getElementById('group-list');
-        if(gl) gl.innerHTML = html;
+        document.getElementById('group-list').innerHTML = html;
     });
 }
 
@@ -234,10 +237,10 @@ window.startQuizFetch = function(day) {
                 currentIndex = 0; sessionScore = 0;
                 showQuestion();
             } else {
-                throw new Error("لا توجد أسئلة");
+                throw new Error("No questions");
             }
         } else {
-            throw new Error("لم يتم تجهيز الجولة");
+            throw new Error("Quiz not ready");
         }
     }).catch(err => {
         document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">التحدي لم يجهز بعد!</p>';
@@ -384,4 +387,9 @@ window.handleAnswer = function(i) {
 
     if(i !== -1) {
         let selectedBtn = document.getElementById(`opt-${i}`);
-       
+        
+        if(i === correctIdx) {
+            sessionScore++;
+            vibratePhone(100);
+            if(selectedBtn) {
+    
