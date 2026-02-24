@@ -13,12 +13,10 @@ let isQuizActive = false;
 let isEliminatedPlayer = false; 
 let logsUnsubscribe = null; 
 
-// متغيرات الميزات الجديدة
 let used5050 = false;
 let usedFreeze = false;
-let currentStreak = 0; // نظام الشعلة
+let currentStreak = 0;
 
-// الأصوات
 const sfxCorrect = new Audio('https://www.myinstants.com/media/sounds/correct-answer-sound-effect.mp3');
 const sfxWrong = new Audio('https://www.myinstants.com/media/sounds/error-sound-effect.mp3');
 const sfxTick = new Audio('https://www.myinstants.com/media/sounds/tick.mp3');
@@ -28,7 +26,6 @@ function playSound(audioObj) {
     try { audioObj.currentTime = 0; audioObj.play().catch(e => {}); } catch(e){}
 }
 
-// نظام الألقاب
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
     if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
@@ -43,20 +40,13 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
             user = JSON.parse(localStorage.getItem('currentUser'));
-            // 🛡️ حماية ضد ضياع الحساب وتجنب مشكلة (لم تسجل النتيجة)
-            if(!user || !user.id) {
-                logoutUser();
-                return;
-            }
-
+            if(!user || !user.id) { logoutUser(); return; }
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
             db = firebase.firestore();
             initFirebaseData();
-        } catch(e) { 
-            logoutUser();
-        }
+        } catch(e) { logoutUser(); }
     }, 100);
 });
 
@@ -65,19 +55,23 @@ function initFirebaseData() {
         if(doc.exists) {
             let d = doc.data();
             let pScore = d.score || 0;
-            currentStreak = d.streak || 0; // سحب الشعلة
+            currentStreak = d.streak || 0;
             document.getElementById('p-score').innerText = pScore;
             isEliminatedPlayer = d.isEliminated || false;
             
             let rank = getRankInfo(pScore);
             
-            // إضافة الشعلة 🔥 جمب الاسم
-            document.getElementById('p-name').innerHTML = `${d.name} <span class="text-orange-500 text-sm ml-2" title="أيام لعب متتالية">🔥 ${currentStreak}</span>`;
+            // 🛠️ تظبيط شكل الاسم والشعلة جمب بعض بشياكة
+            document.getElementById('p-name').innerHTML = `<span class="truncate max-w-[120px] inline-block">${d.name}</span> <span class="text-orange-500 text-[11px] bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-700/50 ml-1">🔥 ${currentStreak}</span>`;
             
+            // 🛠️ تظبيط شكل الجروب واللقب عشان ميجوش فوق بعض
             if(isEliminatedPlayer) {
-                document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black text-xs"><i class="fas fa-ban"></i> تم الإقصاء (لعب ودي)</span>';
+                document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black text-[10px] bg-red-900/30 px-2 py-0.5 rounded"><i class="fas fa-ban"></i> مقصى (لعب ودي)</span>';
             } else {
-                document.getElementById('p-group').innerHTML = `${d.group} | ${d.team} <br> <span class="inline-block mt-1 px-2 py-0.5 rounded border border-gray-600 font-bold text-[10px] ${rank.color}">${rank.text}</span>`;
+                document.getElementById('p-group').innerHTML = `
+                    <span class="text-yellow-500 font-bold bg-yellow-900/40 px-2 py-0.5 rounded border border-yellow-700/50 text-[9px]">${d.group} | ${d.team}</span>
+                    <span class="font-bold text-[9px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}">${rank.text}</span>
+                `;
             }
         }
     });
@@ -166,7 +160,7 @@ function fetchLeaderboard() {
                     <span class="w-6 text-center font-bold ${rank <= 3 ? 'text-yellow-500 text-lg' : 'text-gray-400'}">${rank}</span>
                     <div>
                         <span class="font-bold block ${u.name === user.name ? 'text-yellow-400' : 'text-white'}">${u.name} <span class="text-orange-500 text-[10px]">🔥 ${u.streak||0}</span></span>
-                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded">${uRank.text}</span>
+                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded mt-1 inline-block">${uRank.text}</span>
                     </div>
                 </div>
                 <span class="font-black text-yellow-500">${u.score || 0}</span>
@@ -180,7 +174,7 @@ window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) {
         alert("أنت لعبت الجولة دي خلاص!"); return;
     }
-    document.body.classList.add('hide-ads'); // تفعيل الدرع الآمن للإعلانات
+    document.body.classList.add('hide-ads'); 
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center">
@@ -204,6 +198,9 @@ window.startQuizFetch = function(day) {
     history.pushState(null, null, location.href);
     document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500">جاري تجهيز ساحة المعركة...</p>';
     
+    // إيقاف النوافذ المنبثقة بقوة أثناء الكويز
+    window.open = function() { return null; }; 
+
     used5050 = false;
     usedFreeze = false;
 
@@ -242,8 +239,8 @@ function showQuestion() {
             `).join('')}
         </div>
         <div class="flex justify-between mt-5 gap-3 border-t border-gray-700 pt-4">
-            <button id="btn-5050" onclick="use5050()" class="flex-1 bg-purple-800 p-2.5 rounded-xl text-xs font-bold text-white ${used5050?'opacity-30':''}">✂️ حذف إجابتين</button>
-            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-blue-800 p-2.5 rounded-xl text-xs font-bold text-white ${usedFreeze?'opacity-30':''}">❄️ تجميد الوقت</button>
+            <button id="btn-5050" onclick="use5050()" class="flex-1 bg-purple-800 p-2.5 rounded-xl text-xs font-bold text-white ${used5050?'opacity-30':''}">✂️ إجابتين</button>
+            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-blue-800 p-2.5 rounded-xl text-xs font-bold text-white ${usedFreeze?'opacity-30':''}">❄️ تجميد</button>
         </div>
     `;
     document.getElementById('quiz-content').innerHTML = html;
@@ -302,12 +299,11 @@ function endQuiz(isForceExit = false) {
     clearInterval(timerInterval);
     if (!isForceExit) document.getElementById('quiz-content').innerHTML = '<p class="text-center font-bold text-yellow-500 text-xl animate-pulse">جاري توثيق إنجازك...</p>';
 
-    // 🔥 حساب الشعلة الجديدة
     let newStreak = 1;
     if (adminDay === 1 || myLogs[adminDay - 1] !== undefined) {
-        newStreak = currentStreak + 1; // لو لعب إمبارح الشعلة تزيد
+        newStreak = currentStreak + 1; 
     } else {
-        newStreak = 1; // لو فوت يوم الشعلة ترجع 1
+        newStreak = 1; 
     }
 
     db.collection("users").doc(user.id).set({
@@ -332,8 +328,7 @@ function endQuiz(isForceExit = false) {
             document.body.classList.remove('hide-ads');
         }
     }).catch(error => {
-        // ضفتلك الرسالة بالتفصيل عشان لو حصلت تعرف إيه السبب بالظبط
-        if(!isForceExit) alert("خطأ في الحفظ: " + error.message + "\nجرب تسجل خروج وتدخل تاني!");
+        if(!isForceExit) alert("خطأ في الحفظ! جرب تسجل خروج وتدخل تاني.");
         document.body.classList.remove('hide-ads');
     });
 }
@@ -346,4 +341,4 @@ window.logoutUser = function() {
 window.addEventListener('beforeunload', function (e) {
     if (isQuizActive) { endQuiz(true); e.preventDefault(); e.returnValue = ''; }
 });
-    
+        
