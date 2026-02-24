@@ -32,25 +32,26 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
     
-    user = JSON.parse(localStorage.getItem('currentUser'));
-    if(!user || !user.id) { 
-        logoutUser(); 
-        return; 
-    }
+    // تم إرجاع طريقة التشغيل المستقرة لحل مشكلة "جاري التحميل"
+    setTimeout(() => {
+        try {
+            user = JSON.parse(localStorage.getItem('currentUser'));
+            if(!user || !user.id) { 
+                window.location.replace("index.html"); 
+                return; 
+            }
 
-    let elName = document.getElementById('p-name');
-    if(elName) elName.innerText = user.name.split(' ')[0] + "...";
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            initFirebaseData();
 
-    let waitForFb = setInterval(() => {
-        if (typeof firebase !== 'undefined' && typeof firebase.firestore !== 'undefined') {
-            clearInterval(waitForFb);
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                initFirebaseData();
-            } catch(e) { console.error("Firebase Init Error:", e); }
+        } catch(e) { 
+            console.error(e);
+            window.location.replace("index.html"); 
         }
-    }, 200);
+    }, 150); 
 });
 
 function initFirebaseData() {
@@ -62,31 +63,40 @@ function initFirebaseData() {
             isEliminatedPlayer = d.isEliminated || false;
             let rank = getRankInfo(pScore);
 
-            // تحديث العناصر بشكل آمن جداً بدون لغبطة الـ HTML
-            document.getElementById('p-score').innerText = pScore;
+            // تحديث العناصر بشكل آمن
+            let elScore = document.getElementById('p-score');
+            if(elScore) elScore.innerText = pScore;
             
             let elStreak = document.getElementById('p-streak');
-            elStreak.innerText = `🔥 ${currentStreak}`;
-            elStreak.classList.remove('hidden');
+            if(elStreak) {
+                elStreak.innerText = `🔥 ${currentStreak}`;
+                elStreak.classList.remove('hidden');
+            }
 
-            document.getElementById('p-name').innerText = d.name || "مجهول";
+            let elName = document.getElementById('p-name');
+            if(elName) elName.innerText = d.name || "مجهول";
             
             let elGroup = document.getElementById('p-group');
             let elRank = document.getElementById('p-rank');
 
             if(isEliminatedPlayer) {
-                elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
-                elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
-                elGroup.classList.remove('hidden');
-                elRank.classList.add('hidden');
+                if(elGroup) {
+                    elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
+                    elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
+                    elGroup.classList.remove('hidden');
+                }
+                if(elRank) elRank.classList.add('hidden');
             } else {
-                elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
-                elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
-                elGroup.classList.remove('hidden');
-                
-                elRank.innerText = rank.text;
-                elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
-                elRank.classList.remove('hidden');
+                if(elGroup) {
+                    elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
+                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
+                    elGroup.classList.remove('hidden');
+                }
+                if(elRank) {
+                    elRank.innerText = rank.text;
+                    elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
+                    elRank.classList.remove('hidden');
+                }
             }
         }
     });
@@ -106,8 +116,11 @@ function updateLogs() {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
-        document.getElementById('progress-text').innerText = `${Object.keys(myLogs).length} / 29 جولة`;
-        document.getElementById('progress-bar').style.width = `${(Object.keys(myLogs).length/29)*100}%`;
+        
+        let pText = document.getElementById('progress-text');
+        let pBar = document.getElementById('progress-bar');
+        if(pText) pText.innerText = `${Object.keys(myLogs).length} / 29 جولة`;
+        if(pBar) pBar.style.width = `${(Object.keys(myLogs).length/29)*100}%`;
     });
 }
 
@@ -182,7 +195,8 @@ function fetchLeaderboard() {
                 <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
             </div>`;
         });
-        document.getElementById('group-list').innerHTML = html;
+        let gl = document.getElementById('group-list');
+        if(gl) gl.innerHTML = html;
     });
 }
 
@@ -199,7 +213,7 @@ window.openQuiz = function(day) {
                 <i class="fas fa-bolt text-4xl text-black"></i>
             </div>
             <h2 class="text-3xl font-black text-white mb-3 drop-shadow-lg">مستعد للمواجهة؟ 🔥</h2>
-            <p class="text-gray-300 text-sm mb-8 leading-relaxed px-4">بمجرد دخولك سيبدأ التحدي.<br>لا توجد فرصة للرجوع، وأي خروج يعتبر غش!</p>
+            <p class="text-gray-300 text-sm mb-8 leading-relaxed px-4">بمجرد دخولك سيبدأ التحدي.<br>لا توجد فرصة للرجوع، وأي محاولة خروج تعتبر غش!</p>
             <div class="flex gap-4">
                 <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black p-4 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)] transform hover:-translate-y-1 transition-all">جاهز ⚔️</button>
                 <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold p-4 rounded-xl border border-gray-600 transition-all">تراجع ✋</button>
@@ -237,10 +251,10 @@ window.startQuizFetch = function(day) {
                 currentIndex = 0; sessionScore = 0;
                 showQuestion();
             } else {
-                throw new Error("No questions");
+                throw new Error("لا توجد أسئلة");
             }
         } else {
-            throw new Error("Quiz not ready");
+            throw new Error("لم يتم تجهيز الجولة");
         }
     }).catch(err => {
         document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">التحدي لم يجهز بعد!</p>';
@@ -381,15 +395,4 @@ window.useFreeze = function() {
 window.handleAnswer = function(i) {
     clearInterval(timerInterval);
     
-    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
-    
-    let correctIdx = currentQuestions[currentIndex].correctIndex;
-
-    if(i !== -1) {
-        let selectedBtn = document.getElementById(`opt-${i}`);
-        
-        if(i === correctIdx) {
-            sessionScore++;
-            vibratePhone(100);
-            if(selectedBtn) {
-    
+    document.querySe
