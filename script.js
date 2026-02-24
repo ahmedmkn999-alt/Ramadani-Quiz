@@ -32,17 +32,27 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
     
-    setTimeout(() => {
-        try {
-            user = JSON.parse(localStorage.getItem('currentUser'));
-            if(!user || !user.id) { logoutUser(); return; }
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-            initFirebaseData();
-        } catch(e) { logoutUser(); }
-    }, 100);
+    // سحب بيانات اللاعب من الذاكرة
+    user = JSON.parse(localStorage.getItem('currentUser'));
+    if(!user || !user.id) { 
+        console.error("لا يوجد حساب مسجل!");
+        return; 
+    }
+
+    let elName = document.getElementById('p-name');
+    if(elName) elName.innerHTML = `<span class="truncate max-w-[120px] inline-block">${user.name}</span>`;
+
+    // 🛡️ نظام الانتظار الذكي لفايربيز لتجنب تعليق الكود
+    let waitForFb = setInterval(() => {
+        if (typeof firebase !== 'undefined' && typeof firebase.firestore !== 'undefined') {
+            clearInterval(waitForFb);
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                initFirebaseData();
+            } catch(e) { console.error("خطأ في تهيئة فايربيز: ", e); }
+        }
+    }, 300);
 });
 
 function initFirebaseData() {
@@ -51,28 +61,34 @@ function initFirebaseData() {
             let d = doc.data();
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
-            document.getElementById('p-score').innerText = pScore;
+            let elScore = document.getElementById('p-score');
+            if(elScore) elScore.innerText = pScore;
+            
             isEliminatedPlayer = d.isEliminated || false;
             
             let rank = getRankInfo(pScore);
             
-            document.getElementById('p-name').innerHTML = `<span class="truncate max-w-[120px] inline-block">${d.name}</span> <span class="text-orange-500 text-[11px] bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-700/50 ml-1 shadow-sm">🔥 ${currentStreak}</span>`;
+            let elName = document.getElementById('p-name');
+            if(elName) elName.innerHTML = `<span class="truncate max-w-[120px] inline-block">${d.name || "مجهول"}</span> <span class="text-orange-500 text-[11px] bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-700/50 ml-1 shadow-sm">🔥 ${currentStreak}</span>`;
             
-            if(isEliminatedPlayer) {
-                document.getElementById('p-group').innerHTML = '<span class="text-red-500 font-black text-[10px] bg-red-900/30 px-2 py-0.5 rounded shadow-sm"><i class="fas fa-ban"></i> مقصى (لعب ودي)</span>';
-            } else {
-                document.getElementById('p-group').innerHTML = `
-                    <span class="text-yellow-500 font-bold bg-yellow-900/40 px-2 py-0.5 rounded border border-yellow-700/50 text-[9px] shadow-sm">${d.group} | ${d.team}</span>
-                    <span class="font-bold text-[9px] px-2 py-0.5 rounded border border-gray-600 shadow-sm ${rank.color}">${rank.text}</span>
-                `;
+            let elGroup = document.getElementById('p-group');
+            if(elGroup) {
+                if(isEliminatedPlayer) {
+                    elGroup.innerHTML = '<span class="text-red-500 font-black text-[10px] bg-red-900/30 px-2 py-0.5 rounded shadow-sm"><i class="fas fa-ban"></i> مقصى (لعب ودي)</span>';
+                } else {
+                    elGroup.innerHTML = `
+                        <span class="text-yellow-500 font-bold bg-yellow-900/40 px-2 py-0.5 rounded border border-yellow-700/50 text-[9px] shadow-sm">${d.group || ""} | ${d.team || ""}</span>
+                        <span class="font-bold text-[9px] px-2 py-0.5 rounded border border-gray-600 shadow-sm ${rank.color}">${rank.text}</span>
+                    `;
+                }
             }
         }
     });
 
     db.collection("settings").doc("global_status").onSnapshot(doc => {
         if(doc.exists) {
-            adminDay = doc.data().currentDay;
-            adminStatus = doc.data().status;
+            adminDay = doc.data().currentDay || 1;
+            adminStatus = doc.data().status || "closed";
             updateLogs();
         }
     });
@@ -84,8 +100,10 @@ function updateLogs() {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
-        document.getElementById('progress-text').innerText = `${Object.keys(myLogs).length} / 29 جولة`;
-        document.getElementById('progress-bar').style.width = `${(Object.keys(myLogs).length/29)*100}%`;
+        let pText = document.getElementById('progress-text');
+        let pBar = document.getElementById('progress-bar');
+        if(pText) pText.innerText = `${Object.keys(myLogs).length} / 29 جولة`;
+        if(pBar) pBar.style.width = `${(Object.keys(myLogs).length/29)*100}%`;
     });
 }
 
@@ -140,6 +158,7 @@ window.showTab = function(t) {
 }
 
 function fetchLeaderboard() {
+    if(!user || !user.group) return;
     db.collection("users").where("group", "==", user.group).get().then(snap => {
         let list = [];
         snap.forEach(d => list.push(d.data()));
@@ -159,7 +178,8 @@ function fetchLeaderboard() {
                 <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
             </div>`;
         });
-        document.getElementById('group-list').innerHTML = html;
+        let gl = document.getElementById('group-list');
+        if(gl) gl.innerHTML = html;
     });
 }
 
@@ -213,10 +233,14 @@ window.startQuizFetch = function(day) {
                 currentQuestions = variationsObj[availableKeys[Math.floor(Math.random() * availableKeys.length)]].questions;
                 currentIndex = 0; sessionScore = 0;
                 showQuestion();
+            } else {
+                throw new Error("لا توجد أسئلة");
             }
+        } else {
+            throw new Error("لم يتم تجهيز الجولة");
         }
     }).catch(err => {
-        document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">حدث خطأ في الاتصال!</p>';
+        document.getElementById('quiz-content').innerHTML = '<p class="text-red-500 font-bold text-center">التحدي لم يجهز بعد!</p>';
         setTimeout(() => location.reload(), 2000);
     });
 }
@@ -226,7 +250,6 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    // شريط التقدم الفخم أعلى الكويز
     let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
 
     let html = `
@@ -291,13 +314,14 @@ function showQuestion() {
     timerInterval = setInterval(() => {
         globalTimeLeft--;
         let timerEl = document.getElementById('timer');
-        timerEl.innerText = globalTimeLeft;
-        
-        if(globalTimeLeft <= 5) {
-            timerEl.classList.remove('border-red-500/80', 'text-white');
-            timerEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse', 'scale-110');
-            vibratePhone(50); 
+        if(timerEl) {
+            timerEl.innerText = globalTimeLeft;
+            if(globalTimeLeft <= 5) {
+                timerEl.classList.remove('border-red-500/80', 'text-white');
+                timerEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse', 'scale-110');
+            }
         }
+        if(globalTimeLeft <= 5) vibratePhone(50); 
         
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
@@ -306,17 +330,22 @@ function showQuestion() {
 window.use5050 = function() {
     if(used5050 || !isQuizActive) return;
     used5050 = true;
-    document.getElementById('btn-5050').classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-    document.getElementById('btn-5050').classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
+    let btn = document.getElementById('btn-5050');
+    if(btn) {
+        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
+    }
     
     let correctIdx = currentQuestions[currentIndex].correctIndex;
     let hiddenCount = 0;
     for(let i=0; i<4; i++) {
         if(i !== correctIdx && hiddenCount < 2) {
-            let btn = document.getElementById(`opt-${i}`);
-            btn.style.opacity = '0.2';
-            btn.style.pointerEvents = 'none';
-            btn.style.filter = 'grayscale(100%)';
+            let optBtn = document.getElementById(`opt-${i}`);
+            if(optBtn) {
+                optBtn.style.opacity = '0.2';
+                optBtn.style.pointerEvents = 'none';
+                optBtn.style.filter = 'grayscale(100%)';
+            }
             hiddenCount++;
         }
     }
@@ -325,18 +354,25 @@ window.use5050 = function() {
 window.useFreeze = function() {
     if(usedFreeze || !isQuizActive) return;
     usedFreeze = true;
-    document.getElementById('btn-freeze').classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-    document.getElementById('btn-freeze').classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]');
+    let btn = document.getElementById('btn-freeze');
+    if(btn) {
+        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]');
+    }
     
     globalTimeLeft += 10;
     let timerEl = document.getElementById('timer');
-    timerEl.innerText = globalTimeLeft;
-    timerEl.classList.remove('animate-pulse', 'scale-110', 'border-red-500', 'text-red-500');
-    timerEl.classList.add('border-blue-500/80', 'text-blue-300');
-    setTimeout(() => {
-        timerEl.classList.remove('border-blue-500/80', 'text-blue-300');
-        timerEl.classList.add('border-red-500/80', 'text-white');
-    }, 2000);
+    if(timerEl) {
+        timerEl.innerText = globalTimeLeft;
+        timerEl.classList.remove('animate-pulse', 'scale-110', 'border-red-500', 'text-red-500');
+        timerEl.classList.add('border-blue-500/80', 'text-blue-300');
+        setTimeout(() => {
+            if(timerEl) {
+                timerEl.classList.remove('border-blue-500/80', 'text-blue-300');
+                timerEl.classList.add('border-red-500/80', 'text-white');
+            }
+        }, 2000);
+    }
 }
 
 window.handleAnswer = function(i) {
@@ -348,19 +384,4 @@ window.handleAnswer = function(i) {
 
     if(i !== -1) {
         let selectedBtn = document.getElementById(`opt-${i}`);
-        
-        if(i === correctIdx) {
-            sessionScore++;
-            vibratePhone(100);
-            
-            // تصميم الإجابة الصحيحة
-            selectedBtn.className = "opt-btn relative overflow-hidden rounded-2xl border-2 border-green-500 bg-green-900/60 p-4 w-full text-right shadow-[0_0_30px_rgba(34,197,94,0.5)] transform scale-[1.02] transition-all z-30";
-            selectedBtn.innerHTML = `<div class="flex justify-between items-center"><span class="text-lg font-black text-white drop-shadow-md">${currentQuestions[currentIndex].options[i]}</span><i class="fas fa-check-circle text-3xl text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,1)]"></i></div>`;
-            
-            if(window.confetti) confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff', '#fbbf24'] });
-
-        } else {
-            vibratePhone([100, 50, 100]);
-            
-            // تصميم الإجابة الخاطئة (وعدم إظهار الصح)
-            selectedBtn.className = "opt-btn relative overflow-hidden rounded-2xl border-2 border-red-500 bg-red-900/60 p-4 w-full text-right shadow-[0_0_30px_rgba(239,68,68,0.5)] transi
+       
