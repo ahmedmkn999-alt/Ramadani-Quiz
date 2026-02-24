@@ -67,12 +67,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 3. جلب البيانات من القاعدة
+// 3. جلب البيانات من القاعدة (بدون أخطاء doc.exists)
 // ==========================================
 function initFirebaseData() {
     db.collection("users").doc(user.id).onSnapshot(doc => {
-        if(doc.exists) {
-            let d = doc.data();
+        let d = doc.data(); // بنسحب الداتا بأمان
+        if(d) {
             let pScore = d.score || 0;
             currentStreak = d.streak || 0;
             isEliminatedPlayer = d.isEliminated || false;
@@ -111,11 +111,15 @@ function initFirebaseData() {
     });
 
     db.collection("settings").doc("global_status").onSnapshot(doc => {
-        if(doc.exists) {
-            adminDay = doc.data().currentDay || 1;
-            adminStatus = doc.data().status || "closed";
-            updateLogs();
+        let d = doc.data();
+        if(d) {
+            adminDay = d.currentDay || 1;
+            adminStatus = d.status || "closed";
+        } else {
+            adminDay = 1;
+            adminStatus = "closed";
         }
+        updateLogs();
     });
 }
 
@@ -123,7 +127,10 @@ function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
-        snap.forEach(d => myLogs[d.data().day] = d.data().score);
+        snap.forEach(doc => {
+            let d = doc.data();
+            if(d) myLogs[d.day] = d.score;
+        });
         renderMap();
         
         let pText = document.getElementById('progress-text');
@@ -193,7 +200,10 @@ function fetchLeaderboard() {
     if(!user || !user.group) return;
     db.collection("users").where("group", "==", user.group).get().then(snap => {
         let list = [];
-        snap.forEach(d => list.push(d.data()));
+        snap.forEach(doc => {
+            let d = doc.data();
+            if(d) list.push(d);
+        });
         list.sort((a,b) => (b.score || 0) - (a.score || 0));
         let html = '';
         list.forEach((u, i) => {
@@ -262,12 +272,12 @@ window.startQuizFetch = function(day) {
     usedFreeze = false;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
-        if(doc.exists && doc.data().variations) {
-            let variationsObj = doc.data().variations;
-            let availableKeys = Object.keys(variationsObj); 
+        let d = doc.data(); // سحب آمن
+        if(d && d.variations) {
+            let availableKeys = Object.keys(d.variations); 
             if(availableKeys.length > 0) {
                 let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
-                currentQuestions = variationsObj[randomKey].questions;
+                currentQuestions = d.variations[randomKey].questions;
                 currentIndex = 0; sessionScore = 0;
                 showQuestion();
             } else {
@@ -360,7 +370,7 @@ function showQuestion() {
         }
         if(globalTimeLeft <= 5 && globalTimeLeft > 0) vibratePhone(50); 
         
-        if(globalTimeLeft <= 0) handleAnswer(-1); // الوقت خلص
+        if(globalTimeLeft <= 0) handleAnswer(-1); 
     }, 1000);
 }
 
@@ -379,7 +389,4 @@ window.use5050 = function() {
     let correctIdx = currentQuestions[currentIndex].correctIndex;
     let hiddenCount = 0;
     for(let i=0; i<4; i++) {
-        if(i !== correctIdx && hiddenCount < 2) {
-            let optBtn = document.getElementById(`opt-${i}`);
-            if(optBtn) {
-                optBtn.style.opac
+        
