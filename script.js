@@ -17,12 +17,10 @@ let used5050 = false;
 let usedFreeze = false;
 let currentStreak = 0;
 
-// الهزاز للموبايل
 function vibratePhone(pattern) {
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
-// نظام الرانكات
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
     if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
@@ -33,26 +31,23 @@ function getRankInfo(score) {
 window.addEventListener('DOMContentLoaded', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
-    document.body.style.webkitTouchCallout = "none";
-
-    // جلب بيانات اللاعب
-    user = JSON.parse(localStorage.getItem('currentUser'));
-    if(!user || !user.id) { 
-        window.location.replace("index.html"); 
-        return; 
-    }
-
-    // 🛡️ الانتظار الذكي لتحميل الفايربيز عشان ميعلقش
-    let fbWait = setInterval(() => {
-        if (typeof firebase !== 'undefined') {
-            clearInterval(fbWait);
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-            initFirebaseData();
+    
+    try {
+        user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user || !user.id) { 
+            window.location.replace("index.html"); 
+            return; 
         }
-    }, 100);
+
+        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+        initFirebaseData();
+
+    } catch(e) { 
+        window.location.replace("index.html"); 
+    }
 });
 
 function initFirebaseData() {
@@ -64,29 +59,39 @@ function initFirebaseData() {
             isEliminatedPlayer = d.isEliminated || false;
             let rank = getRankInfo(pScore);
 
-            document.getElementById('p-score').innerText = pScore;
-            document.getElementById('p-name').innerText = d.name || "مجهول";
+            let elScore = document.getElementById('p-score');
+            if(elScore) elScore.innerText = pScore;
             
             let elStreak = document.getElementById('p-streak');
-            elStreak.innerText = `🔥 ${currentStreak}`;
-            elStreak.classList.remove('hidden');
+            if(elStreak) {
+                elStreak.innerText = `🔥 ${currentStreak}`;
+                elStreak.classList.remove('hidden');
+            }
+
+            let elName = document.getElementById('p-name');
+            if(elName) elName.innerText = d.name || "مجهول";
             
             let elGroup = document.getElementById('p-group');
             let elRank = document.getElementById('p-rank');
 
             if(isEliminatedPlayer) {
-                elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
-                elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
-                elGroup.classList.remove('hidden');
-                elRank.classList.add('hidden');
+                if(elGroup) {
+                    elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
+                    elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
+                    elGroup.classList.remove('hidden');
+                }
+                if(elRank) elRank.classList.add('hidden');
             } else {
-                elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
-                elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
-                elGroup.classList.remove('hidden');
-                
-                elRank.innerText = rank.text;
-                elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
-                elRank.classList.remove('hidden');
+                if(elGroup) {
+                    elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
+                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
+                    elGroup.classList.remove('hidden');
+                }
+                if(elRank) {
+                    elRank.innerText = rank.text;
+                    elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
+                    elRank.classList.remove('hidden');
+                }
             }
         }
     });
@@ -106,8 +111,11 @@ function updateLogs() {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap();
-        document.getElementById('progress-text').innerText = `${Object.keys(myLogs).length} / 29 جولة`;
-        document.getElementById('progress-bar').style.width = `${(Object.keys(myLogs).length/29)*100}%`;
+        
+        let pText = document.getElementById('progress-text');
+        let pBar = document.getElementById('progress-bar');
+        if(pText) pText.innerText = `${Object.keys(myLogs).length} / 29 جولة`;
+        if(pBar) pBar.style.width = `${(Object.keys(myLogs).length/29)*100}%`;
     });
 }
 
@@ -182,7 +190,8 @@ function fetchLeaderboard() {
                 <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
             </div>`;
         });
-        document.getElementById('group-list').innerHTML = html;
+        let gl = document.getElementById('group-list');
+        if(gl) gl.innerHTML = html;
     });
 }
 
@@ -224,7 +233,6 @@ window.startQuizFetch = function(day) {
     `;
     
     window.open = function() { return null; }; 
-
     used5050 = false;
     usedFreeze = false;
 
@@ -388,8 +396,3 @@ window.handleAnswer = function(i) {
     if(i !== -1) {
         let selectedBtn = document.getElementById(`opt-${i}`);
         
-        if(i === correctIdx) {
-            sessionScore++;
-            vibratePhone(100);
-            if(selectedBtn) {
-                selectedBtn.className = "opt-btn relative overflow-hidden rounded-2xl border-2 border-g
