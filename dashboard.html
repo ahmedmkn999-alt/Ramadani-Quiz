@@ -129,18 +129,28 @@
             const splashScreen = document.getElementById('splash-screen');
             const splashName = document.getElementById('splash-name');
             const mainUi = document.getElementById('main-ui');
+            
             try {
                 let u = JSON.parse(localStorage.getItem('currentUser'));
                 if (u && u.name) splashName.innerText = u.name.split(' ')[0];
             } catch(e) {}
-            setTimeout(() => {
-                splashScreen.style.opacity = '0';
+
+            // التعديل: تظهر مرة واحدة بس في الجلسة (طول ما هو فاتح المتصفح)
+            if (!sessionStorage.getItem('splashSeen')) {
                 setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                    mainUi.classList.remove('hidden');
-                    setTimeout(() => { mainUi.classList.remove('opacity-0'); }, 50);
-                }, 700);
-            }, 3000);
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                        mainUi.classList.remove('hidden');
+                        setTimeout(() => { mainUi.classList.remove('opacity-0'); }, 50);
+                    }, 700);
+                }, 3000);
+                sessionStorage.setItem('splashSeen', 'true');
+            } else {
+                // لو شافها قبل كده في نفس الجلسة، نخفيها فوراً
+                splashScreen.style.display = 'none';
+                mainUi.classList.remove('hidden', 'opacity-0');
+            }
         });
     </script>
 </body>
