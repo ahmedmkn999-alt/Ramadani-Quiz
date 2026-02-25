@@ -3,7 +3,7 @@ let timerInterval = null, globalTimeLeft = 20;
 let isQuizActive = false;
 let used5050InRound = false, usedFreezeInRound = false;
 
-// رصيد مجاني لكل كويز 
+// الرصيد المجاني للكويز
 let free5050 = 1, freeFreeze = 1;
 
 window.openQuiz = function(day) {
@@ -16,7 +16,7 @@ window.openQuiz = function(day) {
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center relative z-10">
             <h2 class="text-3xl font-black text-white mb-3">مستعد للمواجهة؟ 🔥</h2>
-            <p class="text-gray-300 text-sm mb-8">لديك (1) تجميد و (1) حذف إجابتين مجاناً في هذا التحدي.</p>
+            <p class="text-gray-300 text-sm mb-8">لديك (1) تجميد و (1) حذف مجاناً في هذا التحدي.</p>
             <div class="flex gap-4">
                 <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-500 text-black font-black p-4 rounded-xl shadow-lg">جاهز ⚔️</button>
                 <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-4 rounded-xl border border-gray-600">تراجع ✋</button>
@@ -56,7 +56,6 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    // حساب الإجمالي (المجاني + المخزون)
     let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
     let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
 
@@ -207,7 +206,6 @@ function endQuiz() {
     isQuizActive = false;
     clearInterval(timerInterval);
     
-    // شاشة تحميل فخمة
     document.getElementById('quiz-content').innerHTML = `
         <div class="flex flex-col items-center justify-center py-10">
             <div class="w-16 h-16 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
@@ -222,31 +220,26 @@ function endQuiz() {
             day: adminDay, score: sessionScore, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
     }).then(() => {
-        // شاشة فوز عالمية بدل ال alert الكئيب
         if(window.confetti) confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff'] });
         
         document.getElementById('quiz-content').innerHTML = `
             <div class="text-center p-2 relative">
                 <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/10 to-transparent rounded-3xl blur-2xl -z-10"></div>
-                
                 <div class="inline-block relative mb-4">
                     <div class="absolute inset-0 bg-yellow-500 blur-xl opacity-40 rounded-full animate-pulse"></div>
                     <div class="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-yellow-500 p-6 rounded-full relative z-10 shadow-[0_0_30px_rgba(212,175,55,0.4)]">
                         <i class="fas fa-trophy text-6xl text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 drop-shadow-lg"></i>
                     </div>
                 </div>
-                
                 <h2 class="text-3xl font-black mb-6 text-white drop-shadow-lg">انتهت المعركة! 🔥</h2>
-                
                 <div class="glass-card p-6 rounded-3xl border border-yellow-500/30 mb-8 w-full shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                     <p class="text-gray-400 text-sm font-bold mb-1 uppercase tracking-wider">غنائمك اليوم</p>
                     <p class="text-6xl font-black text-yellow-400 drop-shadow-md mb-2">${sessionScore}</p>
                 </div>
-                
                 <button onclick="window.location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition-all text-xl">
                     العودة للمعسكر ⛺
                 </button>
             </div>
         `;
     });
-        }
+}
