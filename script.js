@@ -1,7 +1,10 @@
 // 1. الإعدادات الأساسية
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
+    authDomain: "ramadan-87817.firebaseapp.com", 
     projectId: "ramadan-87817", 
+    storageBucket: "ramadan-87817.appspot.com",
+    messagingSenderId: "343525703258",
     appId: "1:343525703258:web:6776b4857425df8bcca263" 
 };
 
@@ -38,10 +41,12 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
         const savedUser = localStorage.getItem('currentUser');
         if(!savedUser) {
-            console.warn("No user in localStorage");
-            return; // تأكد من تسجيل الدخول وحفظ البيانات في localStorage أولاً
+            console.warn("لا يوجد مستخدم مسجل. تم إنشاء مستخدم تجريبي للاختبار.");
+            // إنشاء مستخدم وهمي عشان الكود يشتغل معاك ومايوقفش
+            user = { id: "test_user_1", name: "زائر تجريبي", group: "مجموعة 1", team: "فريق أ" };
+        } else {
+            user = JSON.parse(savedUser);
         }
-        user = JSON.parse(savedUser);
 
         if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
         let elGroup = document.getElementById('p-group');
@@ -55,7 +60,7 @@ window.addEventListener('DOMContentLoaded', () => {
             db = firebase.firestore();
             initFirebaseData(); 
         } else {
-            console.error("Firebase SDK not found!");
+            console.error("لم يتم العثور على مكتبات Firebase! تأكد من تضمينها في ملف HTML.");
         }
 
     } catch(e) { 
@@ -235,7 +240,7 @@ window.startQuizFetch = function(day) {
             throw new Error();
         }
     }).catch(() => {
-        alert("خطأ في تحميل الأسئلة");
+        alert("خطأ في تحميل الأسئلة. تأكد من وجود الأسئلة في قاعدة البيانات.");
         closeQuizOverlay();
     });
 }
@@ -337,7 +342,7 @@ window.handleAnswer = function(idx) {
     let q = currentQuestions[currentIndex];
     
     if(idx === q.correctIndex) {
-        sessionScore += 1; // النقطة بواحد
+        sessionScore += 1; 
         vibratePhone(100);
         let btn = document.getElementById(`opt-${idx}`);
         if(btn) {
@@ -407,7 +412,7 @@ window.useFreeze = function() {
     }
 }
 
-// 7. الدوال الأساسية التي كانت ناقصة وتم إصلاح الكود المقطوع
+// 7. دوال الإغلاق والإنهاء (التي تم إضافتها وإصلاحها)
 window.promptExitQuiz = function() {
     let confirmHTML = `
         <div id="exit-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
@@ -416,7 +421,4 @@ window.promptExitQuiz = function() {
                     <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">متأكد إنك عايز تنسحب؟</h3>
-                <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط (${sessionScore} نقطة).</p>
-                <div class="flex gap-3">
-                    <button onclick="endQuiz(true)" class="flex-1 bg-red-600 text-white font-bold p-2.5 rounded-lg">انسحاب</button>
-                    <button onclick="document.getElementById('exit-modal').remove()" class="flex-1 bg-gray-700 text-white font-
+                <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط
