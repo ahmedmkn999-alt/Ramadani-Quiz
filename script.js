@@ -33,35 +33,37 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// 3. بدء التشغيل
-window.addEventListener('DOMContentLoaded', () => {
+// 3. بدء التشغيل (تم التعديل لضمان استقرار الاتصال بـ Firebase)
+window.addEventListener('load', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
 
     try {
+        if (typeof firebase === 'undefined') {
+            console.error("لم يتم العثور على مكتبات Firebase! تأكد من تضمينها في ملف HTML.");
+            return;
+        }
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+
         const savedUser = localStorage.getItem('currentUser');
         if(!savedUser) {
             console.warn("لا يوجد مستخدم مسجل. تم إنشاء مستخدم تجريبي للاختبار.");
-            // إنشاء مستخدم وهمي عشان الكود يشتغل معاك ومايوقفش
             user = { id: "test_user_1", name: "زائر تجريبي", group: "مجموعة 1", team: "فريق أ" };
+            
+            // إنشاء المستخدم في قاعدة البيانات إن لم يكن موجوداً لتجنب الأخطاء
+            db.collection("users").doc(user.id).set({
+                name: user.name, group: user.group, team: user.team, score: 0, streak: 0, isEliminated: false
+            }, { merge: true });
+
         } else {
             user = JSON.parse(savedUser);
         }
 
         if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
-        let elGroup = document.getElementById('p-group');
-        if(elGroup) {
-            elGroup.innerText = (user.group || "") + " | " + (user.team || "");
-            elGroup.classList.remove('hidden');
-        }
-
-        if (typeof firebase !== 'undefined') {
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            initFirebaseData(); 
-        } else {
-            console.error("لم يتم العثور على مكتبات Firebase! تأكد من تضمينها في ملف HTML.");
-        }
+        
+        initFirebaseData(); 
 
     } catch(e) { 
         console.error("Initialization Error:", e);
@@ -124,7 +126,7 @@ function updateLogs() {
     if(logsUnsubscribe) logsUnsubscribe();
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
-        snap.forEach(d => myLogs[d.data().day] = d.data().score);
+        snap.forEach(d => myLogs[d.id.replace('day_', '')] = d.data().score);
         renderMap();
         
         let pText = document.getElementById('progress-text');
@@ -177,9 +179,7 @@ function renderMap() {
     container.innerHTML = html;
 }
 
-// ==========================================
-// 🛡️ حماية الكويز (خروج / سكرين شوت) 🛡️
-// ==========================================
+// حماية الكويز
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
         alert("تم اكتشاف محاولة خروج أو تصوير! تم إنهاء الجولة وحفظ نتيجتك.");
@@ -272,6 +272,11 @@ function showQuestion() {
                     <i class="fas fa-star text-yellow-500 text-[10px]"></i>
                     <span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400">${sessionScore}</span></span>
                 </div>
+                
+                <button onclick="promptExitQuiz()" class="bg-red-900/50 border border-red-700/50 px-3 py-1 rounded-full flex items-center gap-1">
+                    <i class="fas fa-door-open text-red-500 text-[10px]"></i>
+                    <span class="text-xs text-red-300 font-bold">خروج</span>
+                </button>
             </div>
 
             <div class="glass-card p-4 rounded-2xl mb-4 border border-yellow-500/20 shadow-md relative">
@@ -412,13 +417,11 @@ window.useFreeze = function() {
     }
 }
 
-// 7. دوال الإغلاق والإنهاء (التي تم إضافتها وإصلاحها)
+// 7. دوال الإغلاق والإنهاء (التي تم إكمالها وإصلاحها)
 window.promptExitQuiz = function() {
+    clearInterval(timerInterval); // نوقف التايمر مؤقتاً
+    
     let confirmHTML = `
         <div id="exit-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
             <div class="bg-gray-800 p-6 rounded-2xl border border-red-500/50 text-center w-full max-w-sm shadow-2xl transform transition-all">
-                <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">متأكد إنك عايز تنسحب؟</h3>
-                <p class="text-xs text-gray-400 mb-6">سيتم إنهاء الجولة وحفظ نتيجتك الحالية فقط
+                <div class="w-16 h-16 bg-red-500/20 rounded-fu
