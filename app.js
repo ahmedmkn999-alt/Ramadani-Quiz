@@ -14,6 +14,7 @@ let isEliminatedPlayer = false;
 let currentStreak = 0;
 let logsUnsubscribe = null; 
 
+// دالة الرانكات
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
     if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
@@ -42,7 +43,6 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
-            // التوجيه لصفحة تسجيل الدخول لو مش مسجل
             window.location.replace("index.html"); 
         }
     }, 150);
@@ -102,7 +102,7 @@ function initFirebaseData() {
             adminDay = 1;
             adminStatus = "active";
         }
-        updateLogs(); 
+        updateLogs();
     });
 }
 
@@ -202,4 +202,77 @@ window.logoutUser = function() {
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('splashSeen'); 
     window.location.replace("index.html"); 
+}
+
+// ==========================================
+// 4. عجلة الحظ اليومية (Spin Wheel)
+// ==========================================
+window.openSpinWheel = function() {
+    document.getElementById('spin-overlay').classList.remove('hidden');
+    document.getElementById('spin-overlay').classList.add('flex');
+}
+
+window.closeSpinWheel = function() {
+    document.getElementById('spin-overlay').classList.add('hidden');
+    document.getElementById('spin-overlay').classList.remove('flex');
+}
+
+let isSpinning = false;
+window.spinWheel = function() {
+    if(isSpinning) return;
+    
+    let lastSpin = localStorage.getItem('lastSpinDate_' + user.id);
+    let today = new Date().toDateString();
+    if(lastSpin === today) {
+        alert("إنت لفيت العجلة النهاردة يا بطل! تعالى بكرة جرب حظك تاني 😉");
+        return;
+    }
+
+    isSpinning = true;
+    let wheel = document.getElementById('wheel-spinner');
+    let btn = document.getElementById('spin-btn');
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.innerText = "جاري اللف...";
+    
+    let prizes = [
+        { text: "+10 نقاط", points: 10, stopAngle: 360 }, 
+        { text: "+20 نقطة", points: 20, stopAngle: 270 }, 
+        { text: "+5 نقاط", points: 5, stopAngle: 180 },   
+        { text: "حظ أوفر", points: 0, stopAngle: 90 }     
+    ];
+    
+    let winIndex = Math.floor(Math.random() * prizes.length);
+    let prize = prizes[winIndex];
+    let spinDegrees = (360 * 4) + prize.stopAngle;
+    
+    wheel.style.transform = `rotate(${spinDegrees}deg)`;
+    
+    setTimeout(() => {
+        isSpinning = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerText = "لف العجلة! 🎰";
+        
+        localStorage.setItem('lastSpinDate_' + user.id, today);
+        
+        if(prize.points > 0) {
+            alert(`🎉 مبروووووك! كسبت ${prize.text} 🎁`);
+            db.collection("users").doc(user.id).update({
+                score: firebase.firestore.FieldValue.increment(prize.points)
+            });
+            let elScore = document.getElementById('p-score');
+            if(elScore) elScore.innerText = parseInt(elScore.innerText) + prize.points;
+            if(window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        } else {
+            alert("حظ أوفر المرة الجاية! 😔");
+        }
+        
+        closeSpinWheel();
+        
+        setTimeout(() => {
+            wheel.style.transition = 'none';
+            wheel.style.transform = `rotate(0deg)`;
+            setTimeout(() => wheel.style.transition = 'transform 3000ms ease-out', 50);
+        }, 500);
+
+    }, 3000); 
 }
