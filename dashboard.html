@@ -15,164 +15,110 @@
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <script defer src="app.js?v=201"></script>
-    <script defer src="quiz.js?v=201"></script>
+    <script defer src="app.js?v=300"></script>
+    <script defer src="quiz.js?v=300"></script>
 
-    <script src="https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js"></script>
-    <script src="https://pl28773459.effectivegatecpm.com/0c/2e/75/0c2e7503a2abb6a631fb27fdf3b7ae02.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; background-image: radial-gradient(circle at top right, #112240, #030712); background-attachment: fixed; overflow-x: hidden; }
-        .glass-card { background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(212, 175, 55, 0.2); backdrop-filter: blur(12px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
+        .glass-card { background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6); }
         .tab-btn { transition: 0.4s; cursor: pointer; }
         .tab-btn.active { background: linear-gradient(90deg, #b8860b, #ffd700); color: #000; font-weight: 900; transform: scale(1.02); }
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        body.hide-ads #main-ui, body.hide-ads iframe, body.hide-ads ins { display: none !important; }
-        body.hide-ads { overflow: hidden !important; background: #030712 !important; }
-
+        /* تصميم العجلة الأسطوري */
+        .legendary-wheel { background: conic-gradient(#ef4444 0deg 60deg, #3b82f6 60deg 120deg, #10b981 120deg 180deg, #f59e0b 180deg 240deg, #8b5cf6 240deg 300deg, #64748b 300deg 360deg); border-radius: 50%; border: 6px solid #fbbf24; box-shadow: 0 0 40px rgba(251, 191, 36, 0.4), inset 0 0 20px rgba(0,0,0,0.8); }
+        .wheel-segment { position: absolute; width: 50%; height: 50%; transform-origin: bottom right; display: flex; align-items: center; justify-content: center; font-weight: 900; color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); font-size: 14px; }
+        
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 10px; }
-        .quiz-box { width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 20px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); position: relative; scrollbar-width: none; }
+        .quiz-box { width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; background: linear-gradient(145deg, #111827, #0f172a); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 20px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); scrollbar-width: none; }
         .quiz-box::-webkit-scrollbar { display: none; }
-        .quiz-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b); }
+        
+        .powerup-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; border: 2px solid #111827; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="relative">
 
-    <div id="splash-screen" class="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#030712] transition-opacity duration-700">
-        <div class="glass-card p-10 rounded-3xl flex flex-col items-center text-center border border-yellow-500/30 shadow-[0_0_50px_rgba(212,175,55,0.15)] transform transition-transform duration-700 w-11/12 max-w-sm">
-            <div class="relative mb-6">
-                <div class="absolute inset-0 bg-yellow-500 blur-xl opacity-40 rounded-2xl animate-pulse"></div>
-                <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="relative w-32 h-32 object-cover rounded-2xl shadow-[0_0_25px_rgba(212,175,55,0.5)] border-2 border-yellow-500 animate-bounce">
+    <div class="fixed top-0 left-0 w-full z-[100] bg-gray-900/90 border-b border-gray-700 backdrop-blur-md px-4 py-2 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-900/50 border border-blue-500/50 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+                <i class="fas fa-snowflake text-blue-400"></i>
+                <span id="inv-freeze" class="text-white font-black text-sm drop-shadow-md">0</span>
             </div>
-            <h2 class="text-3xl font-black text-white mb-3 tracking-wide">أهلاً بيك يا <span id="splash-name" class="text-yellow-400 drop-shadow-md">بطل</span>! 👋</h2>
-            <p class="text-gray-300 font-bold text-lg mb-6">جاهز لكويز النهاردة؟ 🚀</p>
-            <div class="flex gap-2">
-                <div class="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full animate-ping"></div>
-                <div class="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full animate-ping" style="animation-delay: 0.2s"></div>
-                <div class="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full animate-ping" style="animation-delay: 0.4s"></div>
+            <div class="bg-purple-900/50 border border-purple-500/50 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+                <i class="fas fa-cut text-purple-400"></i>
+                <span id="inv-5050" class="text-white font-black text-sm drop-shadow-md">0</span>
             </div>
         </div>
+        <button onclick="logoutUser()" class="text-red-400 text-xs font-bold hover:text-red-300"><i class="fas fa-power-off"></i> خروج</button>
     </div>
 
-    <div id="main-ui" class="hidden opacity-0 transition-opacity duration-1000 p-4 pb-24">
-        
-        <div class="flex justify-between items-center max-w-lg mx-auto mb-4">
-            <button onclick="logoutUser()" class="bg-gray-800/80 text-red-400 border border-red-900/50 px-5 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-900 hover:text-white transition-all"><i class="fas fa-power-off ml-1"></i> خروج</button>
-            <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-12 h-12 rounded-full border-2 border-yellow-500 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-        </div>
-
-        <header class="glass-card p-4 rounded-3xl mb-6 max-w-lg mx-auto relative overflow-hidden border border-yellow-500/20 shadow-lg">
+    <div id="main-ui" class="p-4 pt-16 pb-24 transition-opacity duration-1000">
+        <header class="glass-card p-4 rounded-3xl mb-6 max-w-lg mx-auto relative overflow-hidden border border-yellow-500/30 shadow-[0_10px_30px_rgba(212,175,55,0.15)]">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-600 to-yellow-300"></div>
-            
             <div class="flex justify-between items-center gap-2">
                 <div class="flex items-center gap-3 w-3/4 overflow-hidden">
-                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-700 w-12 h-12 rounded-xl flex items-center justify-center text-black shadow-md flex-shrink-0">
-                        <i class="fas fa-shield-alt text-xl"></i>
-                    </div>
+                    <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-14 h-14 rounded-xl border-2 border-yellow-500 shadow-[0_0_15px_rgba(212,175,55,0.4)]">
                     <div class="flex flex-col overflow-hidden w-full">
                         <div class="flex items-center gap-2 mb-1">
-                            <h2 id="p-name" class="font-black text-white text-sm truncate">...</h2>
-                            <span id="p-streak" class="text-orange-400 font-bold text-[10px] bg-orange-900/40 px-1.5 py-0.5 rounded border border-orange-700/50 flex-shrink-0 hidden">🔥 0</span>
+                            <h2 id="p-name" class="font-black text-white text-base truncate">...</h2>
                         </div>
-                        <div class="flex flex-wrap gap-1">
-                            <span id="p-group" class="text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px] hidden">...</span>
-                            <span id="p-rank" class="font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 hidden">...</span>
-                        </div>
+                        <span id="p-group" class="text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[120px]">...</span>
                     </div>
                 </div>
-
                 <div class="bg-gray-900/80 rounded-xl p-2 w-1/4 border border-gray-700 shadow-inner text-center flex-shrink-0">
                     <p class="text-[9px] text-gray-400 font-bold mb-0.5">نقاطك</p>
                     <p id="p-score" class="font-black text-xl text-yellow-400 drop-shadow-md">0</p>
                 </div>
             </div>
-
-            <div class="mt-4 bg-gray-900/60 p-2.5 rounded-xl border border-gray-700/50">
-                <div class="flex justify-between text-[10px] text-gray-400 mb-1.5 font-bold">
-                    <span>تقدمك في البطولة</span><span id="progress-text" class="text-yellow-500">0 / 29 جولة</span>
-                </div>
-                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden shadow-inner">
-                    <div id="progress-bar" class="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
-                </div>
-            </div>
         </header>
 
-        <button onclick="openSpinWheel()" class="w-full max-w-lg mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black py-3 rounded-2xl shadow-[0_0_15px_rgba(147,51,234,0.4)] mb-6 hover:scale-[1.02] transition-transform border border-purple-400/50">
-            <i class="fas fa-dharmachakra animate-spin-slow"></i> جرب حظك اليومي 🎡
-        </button>
-
-        <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-6 max-w-lg mx-auto border border-gray-700 shadow-xl backdrop-blur-sm">
-            <button onclick="showTab('arena')" id="btn-arena" class="tab-btn active flex-1 py-3 text-sm rounded-xl font-bold">الخريطة 🗺️</button>
-            <button onclick="showTab('leaderboard')" id="btn-leader" class="tab-btn flex-1 py-3 text-sm rounded-xl font-bold">المجموعة 🏆</button>
+        <div class="max-w-lg mx-auto mb-6 bg-gradient-to-br from-gray-900 to-gray-800 p-1 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.2)] border border-yellow-500/30 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-yellow-500/20 blur-3xl rounded-full"></div>
+            <div class="relative z-10 p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-black text-white text-lg"><i class="fas fa-gift text-yellow-400 mr-1"></i> مكافأة الـ 3 أيام</h3>
+                    <div class="flex gap-1" id="streak-dots">
+                        </div>
+                </div>
+                <div id="wheel-status-container" class="bg-gray-900/80 rounded-xl p-3 text-center border border-gray-700">
+                    <p id="wheel-timer" class="text-yellow-400 font-black text-xl tracking-widest font-mono">--:--:--</p>
+                    <p id="wheel-timer-text" class="text-xs text-gray-400 font-bold mt-1">يتبقى على اليوم القادم</p>
+                </div>
+                <button id="open-wheel-btn" onclick="openSpinWheel()" class="hidden w-full mt-3 bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 text-black font-black py-3 rounded-xl shadow-[0_0_15px_rgba(251,191,36,0.5)] hover:scale-[1.02] transition-transform text-lg animate-pulse">
+                    افتح العجلة الأسطورية 🎰
+                </button>
+            </div>
         </div>
 
         <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"></div>
-        
-        <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
-            <div class="glass-card p-6 rounded-3xl">
-                <h3 class="text-center text-white font-black mb-6 border-b border-gray-700 pb-3">ترتيب مجموعتك</h3>
-                <div id="group-list" class="space-y-3"></div>
-            </div>
-        </div>
     </div> 
 
     <div id="quiz-overlay"><div class="quiz-box" id="quiz-content"></div></div>
 
-    <div id="spin-overlay" class="fixed inset-0 bg-gray-900/95 z-[99999] hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-card p-6 rounded-3xl w-full max-w-sm text-center relative border border-purple-500/30">
+    <div id="spin-overlay" class="fixed inset-0 bg-gray-900/95 z-[99999] hidden flex-col items-center justify-center p-4 backdrop-blur-md">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-sm text-center relative border-2 border-yellow-500 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
             <button onclick="closeSpinWheel()" class="absolute top-3 left-4 text-gray-400 hover:text-white text-2xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-white mb-6 drop-shadow-md">عجلة الهدايا! 🎁</h2>
+            <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 mb-2 drop-shadow-md">عجلة الحظ</h2>
+            <p class="text-gray-300 text-sm mb-8 font-bold">مكافأة أسطورية لالتزامك 3 أيام متتالية!</p>
             
-            <div class="relative w-56 h-56 mx-auto mb-8">
-                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-5xl text-yellow-400 z-20 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">▼</div>
-                <div id="wheel-spinner" class="w-full h-full rounded-full border-4 border-yellow-500 shadow-[0_0_30px_rgba(147,51,234,0.5)] overflow-hidden relative transition-transform duration-[3000ms] ease-out" style="background: conic-gradient(#ef4444 0deg 90deg, #3b82f6 90deg 180deg, #10b981 180deg 270deg, #f59e0b 270deg 360deg);">
-                    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 font-black text-white text-lg z-10 drop-shadow-md">+10</div>
-                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 font-black text-white text-sm z-10 drop-shadow-md">حظ أوفر</div>
-                    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 font-black text-white text-lg z-10 drop-shadow-md">+5</div>
-                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 font-black text-white text-lg z-10 drop-shadow-md">+20</div>
+            <div class="relative w-64 h-64 mx-auto mb-8">
+                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-5xl text-white z-20 drop-shadow-[0_5px_10px_rgba(0,0,0,1)]"><i class="fas fa-caret-down"></i></div>
+                <div id="wheel-spinner" class="legendary-wheel w-full h-full relative transition-transform duration-[4000ms] ease-out">
+                    <div class="wheel-segment" style="top:0; right:0; transform: rotate(30deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">+50💎</div></div>
+                    <div class="wheel-segment" style="top:50%; right:0; transform: rotate(90deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">✂️ إجابتين</div></div>
+                    <div class="wheel-segment" style="top:50%; right:50%; transform: rotate(150deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">+20🪙</div></div>
+                    <div class="wheel-segment" style="top:0; right:50%; transform: rotate(210deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">❄️ تجميد</div></div>
+                    <div class="wheel-segment" style="top:-50%; right:50%; transform: rotate(270deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">+10🪙</div></div>
+                    <div class="wheel-segment" style="top:-50%; right:0; transform: rotate(330deg) skewY(30deg);"><div style="transform: skewY(-30deg) rotate(-30deg) translateY(-50px);">❌ حظ أوفر</div></div>
                 </div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gray-900 border-4 border-yellow-500 rounded-full z-10 shadow-[0_0_15px_rgba(0,0,0,0.8)]"></div>
             </div>
             
-            <button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition-all text-lg">لف العجلة! 🎰</button>
+            <button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all text-xl border border-yellow-300">لف العجلة الأسطورية! 🎰</button>
         </div>
     </div>
-
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const splashScreen = document.getElementById('splash-screen');
-            const splashName = document.getElementById('splash-name');
-            const mainUi = document.getElementById('main-ui');
-            
-            try {
-                let u = JSON.parse(localStorage.getItem('currentUser'));
-                if (u && u.name) {
-                    splashName.innerText = u.name.split(' ')[0];
-                } else {
-                    splashName.innerText = "يا بطل"; 
-                }
-            } catch(e) {
-                splashName.innerText = "يا بطل";
-            }
-
-            if (!sessionStorage.getItem('splashSeen')) {
-                setTimeout(() => {
-                    splashScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        splashScreen.style.display = 'none';
-                        mainUi.classList.remove('hidden');
-                        setTimeout(() => { mainUi.classList.remove('opacity-0'); }, 50);
-                    }, 700);
-                }, 3000);
-                sessionStorage.setItem('splashSeen', 'true');
-            } else {
-                splashScreen.style.display = 'none';
-                mainUi.classList.remove('hidden', 'opacity-0');
-            }
-        });
-    </script>
 </body>
-                </html>
-                                
+            </html>
+                        
