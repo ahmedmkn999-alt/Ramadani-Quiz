@@ -1,4 +1,6 @@
+// ==========================================
 // 1. الإعدادات الأساسية
+// ==========================================
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     authDomain: "ramadan-87817.firebaseapp.com", 
@@ -21,7 +23,7 @@ let used5050 = false, usedFreeze = false;
 let currentStreak = 0;
 
 // ==========================================
-// 🛡️ نظام الحماية من الغش (Anti-Cheat) 🛡️
+// 🛡️ 2. نظام الحماية من الغش (Anti-Cheat) 🛡️
 // ==========================================
 let cheatWarnings = 0;
 
@@ -51,6 +53,7 @@ function kickCheater(reason) {
         lastCheatTime: firebase.firestore.FieldValue.serverTimestamp()
     });
 
+    // إنهاء الكويز وحفظ النقط اللي جابها لحد دلوقتي مع رسالة طرد
     endQuiz(true, "تم طردك للاشتباه في محاولة غش! 🚫");
 }
 
@@ -62,20 +65,20 @@ function showChicWarning(title, msg) {
                     <i class="fas fa-eye text-4xl text-red-500"></i>
                 </div>
                 <h3 class="text-2xl font-black text-white mb-2">${title}</h3>
-                <p class="text-gray-300 font-bold mb-6">${msg}</p>
-                <button onclick="document.getElementById('cheat-warning-modal').remove()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl transition-all">فهمت، مش هكررها</button>
+                <p class="text-gray-300 font-bold text-sm mb-6 leading-relaxed">${msg}</p>
+                <button onclick="document.getElementById('cheat-warning-modal').remove()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl transition-all shadow-lg">فهمت، مش هكررها</button>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', warningHTML);
 }
 
-// 1. مراقبة تبديل الشاشات
+// مراقبة تبديل الشاشات أو قفل الموبايل
 document.addEventListener("visibilitychange", () => {
-    if (document.hidden && isQuizActive) handleCheatAttempt("الخروج من الصفحة");
+    if (document.hidden && isQuizActive) handleCheatAttempt("الخروج من الصفحة أو قفل الشاشة");
 });
 
-// 2. فخ الرجوع للخلف (Back Button)
+// فخ الرجوع للخلف (Back Button Trap)
 window.history.pushState(null, null, window.location.href);
 window.onpopstate = function () {
     if (isQuizActive) {
@@ -84,12 +87,13 @@ window.onpopstate = function () {
     }
 };
 
-// 3. منع النسخ
+// منع النسخ وتحديد النص
 document.addEventListener('contextmenu', e => { if(isQuizActive) e.preventDefault(); });
 document.addEventListener('copy', e => { if(isQuizActive) e.preventDefault(); });
 
 // ==========================================
-
+// 3. دوال مساعدة وبدء التشغيل
+// ==========================================
 function vibratePhone(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
 
 function getRankInfo(score) {
@@ -119,8 +123,12 @@ window.addEventListener('load', () => {
     initFirebaseData(); 
 });
 
+// ==========================================
+// 4. جلب البيانات من Firestore
+// ==========================================
 function initFirebaseData() {
     if(!user || !user.id) return;
+    
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) {
             let d = doc.data();
@@ -174,6 +182,9 @@ function renderMap() {
     container.innerHTML = html;
 }
 
+// ==========================================
+// 5. نظام الكويز واللعب
+// ==========================================
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     let overlay = document.getElementById('quiz-overlay');
@@ -183,17 +194,19 @@ window.openQuiz = function(day) {
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center relative z-10 p-4 mt-6 w-full max-w-md mx-auto">
             <h2 class="text-2xl font-black text-white mb-2">الجولة ${day} 🔥</h2>
-            <p class="text-gray-300 text-sm mb-6 px-2">ممنوع الخروج أو الرجوع للخلف لتجنب الطرد!</p>
+            <div class="bg-red-900/50 border border-red-500 p-3 rounded-xl mb-6">
+                <p class="text-red-200 text-xs font-bold leading-relaxed">⚠️ تحذير هام: بمجرد الدخول ممنوع تبديل الشاشة، أو قفل الموبايل، أو الرجوع للخلف. أي محاولة ستؤدي للطرد الفوري وحفظ نتيجتك الحالية فقط!</p>
+            </div>
             <div class="flex gap-3">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-3 rounded-xl">ابدأ التحدي ⚔️</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-3 rounded-xl shadow-lg">ابدأ التحدي ⚔️</button>
                 <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-3 rounded-xl border border-gray-600">إغلاق ✋</button>
             </div>
         </div>`;
 }
 
 window.startQuizFetch = function(day) {
-    // محاولة فتح الكويز في وضع الشاشة الكاملة (ميزة إضافية)
-    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch((e)=>{});
+    // محاولة فتح الكويز في وضع الشاشة الكاملة
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
 
     isQuizActive = true; used5050 = false; usedFreeze = false; cheatWarnings = 0;
     
@@ -220,33 +233,33 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    // تم إضافة pt-20 (padding-top) لتنزيل الكويز بعيد عن الإعلانات
+    // تم إضافة pt-28 و mt-8 لتنزيل الكويز بعيد عن الإعلانات العائمة اللي فوق
     document.getElementById('quiz-content').innerHTML = `
-        <div class="w-full max-w-md mx-auto px-3 pb-6 pt-24 sm:pt-16 mt-4 relative">
+        <div class="w-full max-w-md mx-auto px-3 pb-6 pt-28 mt-8 relative">
             
-            <div class="flex justify-between items-center mb-4 border-b border-gray-700/50 pb-3">
+            <div class="flex justify-between items-center mb-5 border-b border-gray-700/50 pb-3">
                 <div class="bg-gray-800 border border-gray-600 px-3 py-1 rounded-full"><span class="text-xs text-gray-300 font-bold">سؤال <span class="text-yellow-400">${currentIndex+1}</span> / ${currentQuestions.length}</span></div>
                 <div class="bg-gray-800 border border-gray-600 px-3 py-1 rounded-full"><span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400">${sessionScore}</span></span></div>
             </div>
 
-            <div class="glass-card p-5 rounded-3xl mb-5 text-center relative border border-yellow-500/30">
-                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-900 border-2 border-yellow-500 rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+            <div class="glass-card p-5 rounded-3xl mb-5 text-center relative border border-yellow-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div class="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-900 border-2 border-yellow-500 rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.4)]">
                     <span id="timer" class="text-white font-black text-xl">${globalTimeLeft}</span>
                 </div>
-                <h3 class="text-lg md:text-xl font-bold text-white mt-4 leading-relaxed">${q.q}</h3>
+                <h3 class="text-base md:text-lg font-bold text-white mt-4 leading-relaxed">${q.q}</h3>
             </div>
             
             <div class="space-y-3" id="options-container">
                 ${q.options.map((opt, i) => `
-                    <button onclick="handleAnswer(${i})" class="relative overflow-hidden rounded-2xl border border-gray-600 bg-gray-800/90 p-3.5 w-full text-right transition-transform active:scale-95" id="opt-${i}">
+                    <button onclick="handleAnswer(${i})" class="relative overflow-hidden rounded-2xl border border-gray-600 bg-gray-800/95 p-3.5 w-full text-right transition-transform active:scale-95 shadow-md" id="opt-${i}">
                         <span class="text-sm md:text-base font-bold text-gray-200 block pr-2">${opt}</span>
                     </button>
                 `).join('')}
             </div>
             
             <div class="flex justify-between mt-6 gap-3">
-                <button id="btn-5050" onclick="use5050()" class="flex-1 bg-gray-800 p-2.5 rounded-xl border border-purple-500 text-xs font-bold text-white shadow-lg ${used5050?'opacity-40 grayscale':''}"><i class="fas fa-cut mr-1 text-purple-400"></i> إجابتين</button>
-                <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-gray-800 p-2.5 rounded-xl border border-blue-500 text-xs font-bold text-white shadow-lg ${usedFreeze?'opacity-40 grayscale':''}"><i class="fas fa-snowflake mr-1 text-blue-400"></i> تجميد</button>
+                <button id="btn-5050" onclick="use5050()" class="flex-1 bg-gray-800 p-3 rounded-xl border border-purple-500/50 text-xs font-bold text-white shadow-lg ${used5050?'opacity-40 grayscale':''}"><i class="fas fa-cut mr-1 text-purple-400"></i> إجابتين</button>
+                <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-gray-800 p-3 rounded-xl border border-blue-500/50 text-xs font-bold text-white shadow-lg ${usedFreeze?'opacity-40 grayscale':''}"><i class="fas fa-snowflake mr-1 text-blue-400"></i> تجميد</button>
             </div>
         </div>
     `;
@@ -306,7 +319,9 @@ window.useFreeze = function() {
     tEl.classList.remove('text-red-500', 'animate-pulse');
 }
 
-// تعديل لإنهاء الجولة إما بشكل طبيعي أو بسبب الغش
+// ==========================================
+// 6. دوال الإنهاء والحفظ
+// ==========================================
 window.endQuiz = function(forceExit = false, customMessage = null) {
     if (!isQuizActive && !forceExit) return;
     isQuizActive = false; 
@@ -318,7 +333,7 @@ window.endQuiz = function(forceExit = false, customMessage = null) {
     let iconClass = customMessage ? "fa-ban text-red-500" : "fa-check text-green-500";
 
     document.getElementById('quiz-content').innerHTML = `
-        <div class="py-10 text-center flex flex-col items-center justify-center h-full">
+        <div class="py-10 text-center flex flex-col items-center justify-center h-full mt-20">
             <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4 border-2 border-gray-600">
                 <i class="fas ${iconClass} text-4xl"></i>
             </div>
@@ -330,7 +345,7 @@ window.endQuiz = function(forceExit = false, customMessage = null) {
     db.collection("users").doc(user.id).collection("game_logs").doc("day_" + adminDay).set({
         day: adminDay, score: sessionScore, timestamp: firebase.firestore.FieldValue.serverTimestamp()
     }).then(() => db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(sessionScore) }))
-      .then(() => setTimeout(closeQuizOverlay, 2500))
+      .then(() => setTimeout(closeQuizOverlay, 3000))
       .catch(() => { alert("خطأ في حفظ النتيجة!"); closeQuizOverlay(); });
 }
 
@@ -342,7 +357,7 @@ window.closeQuizOverlay = function() {
 }
 
 // ==========================================
-// دوال الواجهة
+// 7. دوال الواجهة والتبويبات
 // ==========================================
 window.showTab = function(tabName) {
     document.getElementById('view-arena').style.display = tabName === 'arena' ? 'block' : 'none';
@@ -363,4 +378,30 @@ window.renderLeaderboard = function() {
             snap.forEach(doc => {
                 let d = doc.data(), isMe = doc.id === user.id;
                 let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-bold">${rank}</span>`;
-                html += `<div class="flex items-center justify-between p-3 rounded-xl mb-2 ${isMe ? 'bg-yellow-900/40 border border-yellow-500' : 'bg-gray-800 border borde
+                html += `
+                <div class="flex items-center justify-between p-3 rounded-xl mb-2 ${isMe ? 'bg-yellow-900/40 border border-yellow-500' : 'bg-gray-800 border border-gray-700'}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">${rankIcon}</div>
+                        <p class="font-bold text-sm ${d.isCheater ? 'text-red-500 line-through' : (isMe ? 'text-yellow-400' : 'text-gray-200')}">${d.name} ${d.isCheater ? '🚩' : ''}</p>
+                    </div>
+                    <p class="font-black ${isMe ? 'text-yellow-400' : 'text-white'}">${d.score}</p>
+                </div>`;
+                rank++;
+            });
+            container.innerHTML = html || '<p class="text-center text-gray-400 text-sm">لا يوجد لاعبين</p>';
+        });
+    }
+}
+
+window.logoutUser = function() {
+    if(confirm("متأكد إنك عايز تخرج؟")) { localStorage.removeItem('currentUser'); window.location.reload(); }
+}
+
+window.closeChampPopup = function() {
+    let popup = document.getElementById('champ-flying-popup');
+    if(popup) {
+        popup.style.opacity = '0';
+        popup.style.transform = 'translate(-50%, -40px)';
+        setTimeout(() => popup.style.display = 'none', 700);
+    }
+}
