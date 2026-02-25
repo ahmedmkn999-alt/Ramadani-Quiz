@@ -204,5 +204,4 @@ window.logoutUser = function() {
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('splashSeen'); 
     window.location.replace("index.html"); 
-                }
-                    
+}
