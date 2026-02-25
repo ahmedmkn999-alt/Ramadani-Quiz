@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ملعب رمضان | التحدي الأكبر</title>
     
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -12,8 +15,8 @@
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <script defer src="app.js?v=400"></script>
-    <script defer src="quiz.js?v=400"></script>
+    <script defer src="app.js?v=500"></script>
+    <script defer src="quiz.js?v=500"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -36,6 +39,15 @@
 </head>
 <body class="relative">
 
+    <div id="custom-alert" class="fixed inset-0 bg-black/80 z-[999999] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-sm text-center transform scale-95 transition-transform" id="alert-box">
+            <div id="alert-icon" class="text-5xl mb-4"></div>
+            <h3 id="alert-title" class="text-2xl font-black text-white mb-2"></h3>
+            <p id="alert-msg" class="text-gray-300 font-bold text-sm mb-6 leading-relaxed"></p>
+            <button onclick="closeCustomAlert()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-black py-3 rounded-xl shadow-lg hover:scale-105 transition-all">حسناً يا بطل</button>
+        </div>
+    </div>
+
     <div class="fixed top-0 left-0 w-full z-[100] bg-gray-900/90 border-b border-gray-700 backdrop-blur-md px-4 py-2 flex justify-between items-center shadow-lg">
         <div class="flex items-center gap-3">
             <div class="bg-blue-900/50 border border-blue-500/50 px-3 py-1 rounded-full flex items-center gap-2">
@@ -49,7 +61,6 @@
     </div>
 
     <div id="main-ui" class="p-4 pt-16 pb-24">
-        
         <header class="glass-card p-4 rounded-3xl mb-6 max-w-lg mx-auto relative overflow-hidden border border-yellow-500/30">
             <div class="flex justify-between items-center gap-2">
                 <div class="flex items-center gap-3 w-3/4 overflow-hidden">
@@ -67,14 +78,13 @@
         </header>
 
         <div class="max-w-lg mx-auto mb-8 flex flex-col items-center justify-center">
-            <div onclick="checkWheelStatus()" class="relative cursor-pointer group hover:scale-105 transition-transform duration-300">
+            <div onclick="openSpinWheel()" class="relative cursor-pointer group hover:scale-105 transition-transform duration-300">
                 <div class="w-20 h-20 rounded-full border-4 border-yellow-500 flex items-center justify-center bg-gray-800 shadow-[0_0_20px_rgba(212,175,55,0.4)] overflow-hidden">
                     <i class="fas fa-dharmachakra text-5xl text-yellow-400 group-hover:rotate-180 transition-transform duration-1000"></i>
                 </div>
                 <div id="streak-badge" class="absolute -top-2 -right-2 bg-red-500 text-white font-black text-xs px-2 py-1 rounded-full border-2 border-gray-900">0/3</div>
-                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gray-900 px-3 py-1 rounded-full border border-yellow-500 text-xs font-bold text-yellow-400 whitespace-nowrap">عجلة الهدايا</div>
+                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-600 to-yellow-500 px-3 py-1 rounded-full border border-yellow-700 text-xs font-black text-black whitespace-nowrap shadow-md">عجلة الهدايا</div>
             </div>
-            <p id="wheel-timer-text" class="text-gray-400 text-xs font-mono mt-4 font-bold">--:--:--</p>
         </div>
 
         <div class="flex bg-gray-800/80 p-1.5 rounded-2xl mb-6 max-w-lg mx-auto border border-gray-700">
@@ -83,7 +93,6 @@
         </div>
 
         <div id="view-arena" class="max-w-lg mx-auto space-y-4 pb-10"></div>
-        
         <div id="view-leaderboard" class="max-w-lg mx-auto hidden pb-10">
             <div class="glass-card p-6 rounded-3xl">
                 <h3 class="text-center text-white font-black mb-6 border-b border-gray-700 pb-3">ترتيب مجموعتك</h3>
@@ -98,7 +107,7 @@
         <div class="glass-card p-6 rounded-3xl w-full max-w-sm text-center relative border-2 border-yellow-500 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
             <button onclick="closeSpinWheel()" class="absolute top-3 left-4 text-gray-400 hover:text-white text-2xl font-black">&times;</button>
             <h2 class="text-3xl font-black text-yellow-400 mb-2 drop-shadow-md">عجلة الحظ 🎁</h2>
-            <p class="text-gray-300 text-sm mb-8 font-bold">مكافأة لالتزامك 3 أيام متتالية!</p>
+            <p class="text-gray-300 text-sm mb-6 font-bold">مكافأة أسطورية لالتزامك 3 أيام متتالية!</p>
             
             <div class="relative w-64 h-64 mx-auto mb-8">
                 <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-5xl text-white z-20 drop-shadow-[0_5px_10px_rgba(0,0,0,1)]"><i class="fas fa-caret-down"></i></div>
@@ -113,9 +122,9 @@
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gray-900 border-4 border-yellow-500 rounded-full z-10"></div>
             </div>
             
-            <button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all text-xl">لف العجلة الأسطورية! 🎰</button>
+            <div id="wheel-controls" class="w-full">
+                </div>
         </div>
     </div>
 </body>
-                    </html>
-                    
+</html>
