@@ -9,6 +9,32 @@ let adminDay = 1, adminStatus = "closed";
 let logsUnsubscribe = null;
 window.myPowerups = { freeze: 0, fifty50: 0 }; 
 
+// دالة الرسائل الشيك (بديل alert)
+window.showAlert = function(title, msg, icon = "🔔", type = "normal") {
+    let box = document.getElementById('custom-alert');
+    document.getElementById('alert-title').innerText = title;
+    document.getElementById('alert-msg').innerText = msg;
+    document.getElementById('alert-icon').innerText = icon;
+    
+    let titleEl = document.getElementById('alert-title');
+    if(type === 'success') titleEl.className = "text-2xl font-black text-green-400 mb-2";
+    else if(type === 'error') titleEl.className = "text-2xl font-black text-red-500 mb-2";
+    else titleEl.className = "text-2xl font-black text-yellow-400 mb-2";
+
+    box.classList.remove('hidden');
+    box.classList.add('flex');
+    setTimeout(() => document.getElementById('alert-box').classList.remove('scale-95'), 10);
+}
+
+window.closeCustomAlert = function() {
+    let box = document.getElementById('custom-alert');
+    document.getElementById('alert-box').classList.add('scale-95');
+    setTimeout(() => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+    }, 200);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     try {
         user = JSON.parse(localStorage.getItem('currentUser'));
@@ -52,7 +78,6 @@ function updateLogs() {
     });
 }
 
-// دالة التبديل بين الخريطة والترتيب
 window.showTab = function(t) {
     let arena = document.getElementById('view-arena');
     let leader = document.getElementById('view-leaderboard');
@@ -105,7 +130,7 @@ function fetchLeaderboard() {
 window.logoutUser = function() { localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
 
 // ==========================================
-// نظام الستريك للعجلة (3 أيام متتالية)
+// عجلة الحظ (داخلياً)
 // ==========================================
 function setupWheelTimer() {
     let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id)) || { streak: 0, lastLogin: null };
@@ -118,10 +143,10 @@ function setupWheelTimer() {
         let diffTime = Math.abs(today - lastLogin);
         let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays === 1) { // يوم متتالي
+        if (diffDays === 1) { 
             if (wheelData.streak < 3) wheelData.streak++;
             wheelData.lastLogin = today.toISOString();
-        } else if (diffDays > 1) { // غاب يوم
+        } else if (diffDays > 1) { 
             wheelData.streak = 1;
             wheelData.lastLogin = today.toISOString();
         }
@@ -132,29 +157,40 @@ function setupWheelTimer() {
     localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
 
     document.getElementById('streak-badge').innerText = `${wheelData.streak}/3`;
-
-    setInterval(() => {
-        if (wheelData.streak >= 3) {
-            document.getElementById('wheel-timer-text').innerText = "جاهزة للدوران! 🎰";
-            document.getElementById('wheel-timer-text').classList.add('text-green-400');
-        } else {
-            let now = new Date();
-            let tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-            let diff = tomorrow - now;
-            let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            let s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            document.getElementById('wheel-timer-text').innerText = `تكتمل في: ${h}:${m}:${s}`;
-        }
-    }, 1000);
 }
 
-window.checkWheelStatus = function() {
+window.openSpinWheel = function() {
+    document.getElementById('spin-overlay').style.display = 'flex';
     let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id));
+    let controls = document.getElementById('wheel-controls');
+    
+    // إظهار الزرار لو كمل 3 أيام، غير كده إظهار العداد جوه النافذة
     if (wheelData.streak >= 3) {
-        document.getElementById('spin-overlay').style.display = 'flex';
+        controls.innerHTML = `<button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all text-xl border border-yellow-300">لف العجلة الأسطورية! 🎰</button>`;
     } else {
-        alert(`لسه بدري يا بطل! ادخل ${3 - wheelData.streak} أيام كمان ورا بعض عشان العجلة تفتح.`);
+        controls.innerHTML = `
+            <div class="bg-gray-800/80 border border-gray-700 p-4 rounded-xl">
+                <p class="text-gray-300 font-bold mb-2">عشان تلف العجلة، لازم تدخل ${3 - wheelData.streak} أيام كمان ورا بعض!</p>
+                <div class="bg-gray-900 rounded-lg py-2">
+                    <p id="wheel-timer-inside" class="text-yellow-400 font-black text-2xl tracking-widest font-mono">--:--:--</p>
+                    <p class="text-xs text-gray-500 font-bold mt-1">يتبقى على اليوم القادم</p>
+                </div>
+            </div>
+        `;
+        
+        // تشغيل العداد جوه النافذة
+        setInterval(() => {
+            let el = document.getElementById('wheel-timer-inside');
+            if(el) {
+                let now = new Date();
+                let tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                let diff = tomorrow - now;
+                let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                let s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                el.innerText = `${h}:${m}:${s}`;
+            }
+        }, 1000);
     }
 }
 
@@ -188,13 +224,13 @@ window.spinWheel = function() {
         isSpinning = false;
         
         let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id));
-        wheelData.streak = 0; // تصفير عشان يحوش 3 أيام تاني
+        wheelData.streak = 0; 
         localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
         
         if (prize.text === "حظ أوفر") {
-            alert("حظ أوفر المرة الجاية! 😔");
+            window.showAlert("حظ أوفر!", "معلش يا بطل، حظك أحسن المرة الجاية. كمل ستريك وهتكسب.", "😔", "normal");
         } else {
-            alert(`🎉 مبروووووك! كسبت ${prize.text} 🎁`);
+            window.showAlert("مبرووووك!", `أنت كسبت: ${prize.text} 🎁`, "🎉", "success");
             if(window.confetti) confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }});
             
             if (prize.points > 0) {
@@ -207,7 +243,8 @@ window.spinWheel = function() {
                 db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
             }
         }
-        setTimeout(() => { location.reload(); }, 2000); 
+        
+        setTimeout(() => { location.reload(); }, 3500); 
     }, 4000); 
-        }
-                
+                }
+            
