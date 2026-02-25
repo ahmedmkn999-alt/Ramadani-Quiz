@@ -1,96 +1,37 @@
-// ==========================================
-// 1. إعدادات فايربيز والمتغيرات العامة
-// ==========================================
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
     appId: "1:343525703258:web:6776b4857425df8bcca263" 
 };
 
-let db = null;
-let user = null;
-let myLogs = {}, adminDay = 1, adminStatus = "closed";
-let isEliminatedPlayer = false; 
-let currentStreak = 0;
-let logsUnsubscribe = null; 
+let db = null; let user = null; let myLogs = {}; 
+let adminDay = 1, adminStatus = "closed";
+let logsUnsubscribe = null;
+window.myPowerups = { freeze: 0, fifty50: 0 }; 
 
-// دالة الرانكات
-function getRankInfo(score) {
-    if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
-    if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
-    if(score >= 21) return { text: "هداف الفريق 🥈", color: "text-gray-300 bg-gray-700/50" };
-    return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
-}
-
-// ==========================================
-// 2. تشغيل الموقع وربط البيانات
-// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    document.body.style.userSelect = "none";
-    document.body.style.webkitUserSelect = "none";
-    document.body.style.webkitTouchCallout = "none";
-
-    setTimeout(() => {
-        try {
-            user = JSON.parse(localStorage.getItem('currentUser'));
-            if(!user || !user.id) throw new Error("No User");
-
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-
-            initFirebaseData();
-
-        } catch(e) { 
-            window.location.replace("index.html"); 
-        }
-    }, 150);
+    try {
+        user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user || !user.id) throw new Error("No User");
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        initFirebaseData();
+        setupWheelTimer(); // تشغيل عداد العجلة
+    } catch(e) { window.location.replace("index.html"); }
 });
 
 function initFirebaseData() {
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) {
             let d = doc.data();
-            let pScore = d.score || 0;
-            currentStreak = d.streak || 0;
-            isEliminatedPlayer = d.isEliminated || false;
-            let rank = getRankInfo(pScore);
-
-            let elScore = document.getElementById('p-score');
-            if(elScore) elScore.innerText = pScore;
+            document.getElementById('p-score').innerText = d.score || 0;
+            document.getElementById('p-name').innerText = d.name || "بطل";
+            document.getElementById('p-group').innerText = d.group || "";
             
-            let elStreak = document.getElementById('p-streak');
-            if(elStreak) {
-                elStreak.innerText = `🔥 ${currentStreak}`;
-                elStreak.classList.remove('hidden');
-            }
-
-            let elName = document.getElementById('p-name');
-            if(elName) elName.innerText = d.name || "مجهول";
-            
-            let elGroup = document.getElementById('p-group');
-            let elRank = document.getElementById('p-rank');
-
-            if(isEliminatedPlayer) {
-                if(elGroup) {
-                    elGroup.innerHTML = '<i class="fas fa-ban"></i> مقصى';
-                    elGroup.className = 'text-red-400 font-bold bg-red-900/40 px-2 py-0.5 rounded text-[10px] border border-red-700';
-                    elGroup.classList.remove('hidden');
-                }
-                if(elRank) elRank.classList.add('hidden');
-            } else {
-                if(elGroup) {
-                    elGroup.innerText = `${d.group || ""} | ${d.team || ""}`;
-                    elGroup.className = 'text-yellow-400 font-bold bg-gray-800 px-2 py-0.5 rounded text-[10px] border border-gray-600 truncate max-w-[100px]';
-                    elGroup.classList.remove('hidden');
-                }
-                if(elRank) {
-                    elRank.innerText = rank.text;
-                    elRank.className = `font-bold text-[10px] px-2 py-0.5 rounded border border-gray-600 ${rank.color}`;
-                    elRank.classList.remove('hidden');
-                }
-            }
+            // سحب المخزون (Inventory)
+            window.myPowerups = d.powerups || { freeze: 0, fifty50: 0 };
+            document.getElementById('inv-freeze').innerText = window.myPowerups.freeze;
+            document.getElementById('inv-5050').innerText = window.myPowerups.fifty50;
         }
     });
 
@@ -99,8 +40,7 @@ function initFirebaseData() {
             adminDay = doc.data().currentDay || 1;
             adminStatus = doc.data().status || "closed";
         } else {
-            adminDay = 1;
-            adminStatus = "active";
+            adminDay = 1; adminStatus = "active";
         }
         updateLogs();
     });
@@ -112,17 +52,9 @@ function updateLogs() {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
         renderMap(); 
-        
-        let pText = document.getElementById('progress-text');
-        let pBar = document.getElementById('progress-bar');
-        if(pText) pText.innerText = `${Object.keys(myLogs).length} / 29 جولة`;
-        if(pBar) pBar.style.width = `${(Object.keys(myLogs).length/29)*100}%`;
     });
 }
 
-// ==========================================
-// 3. واجهة الخريطة والترتيب
-// ==========================================
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
@@ -130,149 +62,118 @@ function renderMap() {
     for (let i = 1; i <= 29; i++) {
         let isPlayed = myLogs[i] !== undefined;
         let isActive = (i === adminDay && adminStatus === 'active');
-        let isSoon = (i === adminDay && adminStatus === 'soon'); 
         
         if (isPlayed) {
-            html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4 transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-check"></i></div>
-                    <div><p class="font-bold text-gray-300">الجولة ${i}</p></div>
-                </div>
-                <p class="font-black text-2xl text-green-400 drop-shadow-md">${myLogs[i]}</p>
-            </div>`;
+            html += `<div class="glass-card p-5 rounded-2xl flex justify-between opacity-80 border-r-4 border-r-green-500 mb-4"><div class="flex items-center gap-4"><div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div><p class="font-bold text-gray-300">الجولة ${i}</p></div><p class="font-black text-2xl text-green-400">${myLogs[i]}</p></div>`;
         } else if (isActive) {
-            html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                <div class="flex items-center gap-4">
-                    <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black shadow-lg"><i class="fas fa-play text-xl ml-1"></i></div>
-                    <div><p class="font-black text-white text-xl drop-shadow-md">الجولة ${i}</p><p class="text-xs text-yellow-400 font-bold mt-1">العب الآن!</p></div>
-                </div>
-                <i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-40"></i>
-            </div>`;
-        } else if (isSoon) {
-            html += `<div class="glass-card p-6 rounded-2xl flex justify-between mb-4 border border-blue-500/30">
-                <div class="flex items-center gap-4">
-                    <div class="bg-blue-900/50 text-blue-400 w-14 h-14 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-hourglass-half text-2xl animate-pulse"></i></div>
-                    <div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-blue-400 font-bold mt-1">تفتح قريباً ⏳</p></div>
-                </div>
-            </div>`;
+            html += `<div onclick="openQuiz(${i})" class="day-active p-6 rounded-2xl flex justify-between mb-4"><div class="flex items-center gap-4"><div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-14 h-14 rounded-full flex justify-center items-center text-black"><i class="fas fa-play text-xl ml-1"></i></div><div><p class="font-black text-white text-xl">الجولة ${i}</p><p class="text-xs text-yellow-400 font-bold mt-1">العب الآن!</p></div></div><i class="fas fa-chevron-left text-yellow-500 text-3xl opacity-40"></i></div>`;
         } else {
-            html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-40 mb-4 grayscale">
-                <div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center shadow-inner"><i class="fas fa-lock text-sm"></i></div>
-                <p class="font-bold text-sm text-gray-500">الجولة ${i}</p>
-            </div>`;
+            html += `<div class="glass-card p-5 rounded-2xl flex items-center gap-4 opacity-40 mb-4 grayscale"><div class="bg-gray-800 text-gray-500 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-lock text-sm"></i></div><p class="font-bold text-sm text-gray-500">الجولة ${i}</p></div>`;
         }
     }
     container.innerHTML = html;
 }
 
-window.showTab = function(t) {
-    document.getElementById('view-arena').classList.toggle('hidden', t !== 'arena');
-    document.getElementById('view-leaderboard').classList.toggle('hidden', t !== 'leaderboard');
-    document.getElementById('btn-arena').classList.toggle('active', t === 'arena');
-    document.getElementById('btn-leader').classList.toggle('active', t === 'leaderboard');
-    if(t === 'leaderboard') fetchLeaderboard();
-}
-
-function fetchLeaderboard() {
-    if(!user || !user.group) return;
-    db.collection("users").where("group", "==", user.group).get().then(snap => {
-        let list = [];
-        snap.forEach(d => list.push(d.data()));
-        list.sort((a,b) => (b.score || 0) - (a.score || 0));
-        let html = '';
-        list.forEach((u, i) => {
-            let rank = i + 1;
-            let uRank = getRankInfo(u.score || 0);
-            html += `<div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl mb-2 border border-gray-700 hover:border-yellow-500/30 transition-colors shadow-sm">
-                <div class="flex items-center gap-3">
-                    <span class="w-6 text-center font-black ${rank <= 3 ? 'text-yellow-500 text-xl drop-shadow-md' : 'text-gray-400'}">${rank}</span>
-                    <div>
-                        <span class="font-bold block ${u.name === user.name ? 'text-yellow-400' : 'text-white'}">${u.name} <span class="text-orange-500 text-[10px]">🔥 ${u.streak||0}</span></span>
-                        <span class="text-[10px] ${uRank.color} px-1.5 py-0.5 rounded mt-1 inline-block shadow-sm">${uRank.text}</span>
-                    </div>
-                </div>
-                <span class="font-black text-yellow-500 text-lg">${u.score || 0}</span>
-            </div>`;
-        });
-        document.getElementById('group-list').innerHTML = html;
-    });
-}
-
-window.logoutUser = function() {
-    localStorage.removeItem('currentUser');
-    sessionStorage.removeItem('splashSeen'); 
-    window.location.replace("index.html"); 
-}
+window.logoutUser = function() { localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
 
 // ==========================================
-// 4. عجلة الحظ اليومية (Spin Wheel)
+// نظام الستريك للعجلة (3 أيام)
 // ==========================================
-window.openSpinWheel = function() {
-    document.getElementById('spin-overlay').classList.remove('hidden');
-    document.getElementById('spin-overlay').classList.add('flex');
+function setupWheelTimer() {
+    let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id)) || { streak: 0, lastLogin: null };
+    let today = new Date().toDateString();
+    
+    // تحديث الستريك عند الدخول في يوم جديد
+    if (wheelData.lastLogin !== today) {
+        if(wheelData.streak < 3) wheelData.streak++;
+        wheelData.lastLogin = today;
+        localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
+    }
+
+    // رسم النقط (الستريك)
+    let dotsHtml = '';
+    for(let i=1; i<=3; i++) {
+        if(i <= wheelData.streak) dotsHtml += `<div class="w-4 h-4 rounded-full bg-green-500 border-2 border-green-300 shadow-[0_0_10px_rgba(34,197,94,0.8)]"></div>`;
+        else dotsHtml += `<div class="w-4 h-4 rounded-full bg-gray-700 border-2 border-gray-600"></div>`;
+    }
+    document.getElementById('streak-dots').innerHTML = dotsHtml;
+
+    // إظهار العجلة أو العداد
+    if (wheelData.streak >= 3) {
+        document.getElementById('wheel-status-container').classList.add('hidden');
+        document.getElementById('open-wheel-btn').classList.remove('hidden');
+    } else {
+        document.getElementById('open-wheel-btn').classList.add('hidden');
+        document.getElementById('wheel-status-container').classList.remove('hidden');
+        
+        // عداد تنازلي لمنتصف الليل
+        setInterval(() => {
+            let now = new Date();
+            let tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            let diff = tomorrow - now;
+            let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            let s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            document.getElementById('wheel-timer').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    }
 }
 
-window.closeSpinWheel = function() {
-    document.getElementById('spin-overlay').classList.add('hidden');
-    document.getElementById('spin-overlay').classList.remove('flex');
-}
+window.openSpinWheel = function() { document.getElementById('spin-overlay').style.display = 'flex'; }
+window.closeSpinWheel = function() { document.getElementById('spin-overlay').style.display = 'none'; }
 
 let isSpinning = false;
 window.spinWheel = function() {
     if(isSpinning) return;
-    
-    let lastSpin = localStorage.getItem('lastSpinDate_' + user.id);
-    let today = new Date().toDateString();
-    if(lastSpin === today) {
-        alert("إنت لفيت العجلة النهاردة يا بطل! تعالى بكرة جرب حظك تاني 😉");
-        return;
-    }
-
     isSpinning = true;
     let wheel = document.getElementById('wheel-spinner');
     let btn = document.getElementById('spin-btn');
     btn.classList.add('opacity-50', 'cursor-not-allowed');
     btn.innerText = "جاري اللف...";
     
+    // زوايا الجوايز حسب الـ CSS اللي فوق
     let prizes = [
-        { text: "+10 نقاط", points: 10, stopAngle: 360 }, 
-        { text: "+20 نقطة", points: 20, stopAngle: 270 }, 
-        { text: "+5 نقاط", points: 5, stopAngle: 180 },   
-        { text: "حظ أوفر", points: 0, stopAngle: 90 }     
+        { text: "50 نقطة", points: 50, item: null, angle: 330 },   // أحمر
+        { text: "حذف إجابتين", points: 0, item: 'fifty50', angle: 270 }, // أزرق
+        { text: "20 نقطة", points: 20, item: null, angle: 210 },   // أخضر
+        { text: "تجميد الوقت", points: 0, item: 'freeze', angle: 150 }, // برتقالي
+        { text: "10 نقاط", points: 10, item: null, angle: 90 },    // بنفسجي
+        { text: "حظ أوفر", points: 0, item: null, angle: 30 }      // رمادي
     ];
     
     let winIndex = Math.floor(Math.random() * prizes.length);
     let prize = prizes[winIndex];
-    let spinDegrees = (360 * 4) + prize.stopAngle;
+    let spinDegrees = (360 * 5) + prize.angle; // 5 لفات كاملة للإثارة
     
     wheel.style.transform = `rotate(${spinDegrees}deg)`;
     
     setTimeout(() => {
         isSpinning = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        btn.innerText = "لف العجلة! 🎰";
         
-        localStorage.setItem('lastSpinDate_' + user.id, today);
+        // تصفير الستريك عشان يبدأ 3 أيام جديدة
+        let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id));
+        wheelData.streak = 0;
+        localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
         
-        if(prize.points > 0) {
-            alert(`🎉 مبروووووك! كسبت ${prize.text} 🎁`);
-            db.collection("users").doc(user.id).update({
-                score: firebase.firestore.FieldValue.increment(prize.points)
-            });
-            let elScore = document.getElementById('p-score');
-            if(elScore) elScore.innerText = parseInt(elScore.innerText) + prize.points;
-            if(window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        } else {
+        if (prize.text === "حظ أوفر") {
             alert("حظ أوفر المرة الجاية! 😔");
+        } else {
+            alert(`🎉 مبروووووك! كسبت ${prize.text} 🎁`);
+            if(window.confetti) confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ['#fbbf24', '#ffffff'] });
+            
+            // إضافة الجايزة للداتا بيز
+            if (prize.points > 0) {
+                db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(prize.points) });
+            } else if (prize.item === 'freeze') {
+                window.myPowerups.freeze += 1;
+                db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+            } else if (prize.item === 'fifty50') {
+                window.myPowerups.fifty50 += 1;
+                db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+            }
         }
         
-        closeSpinWheel();
-        
-        setTimeout(() => {
-            wheel.style.transition = 'none';
-            wheel.style.transform = `rotate(0deg)`;
-            setTimeout(() => wheel.style.transition = 'transform 3000ms ease-out', 50);
-        }, 500);
-
-    }, 3000); 
+        setTimeout(() => { location.reload(); }, 2000); // تحديث الصفحة لغلق العجلة وبدء عداد جديد
+    }, 4000); 
 }
+    
