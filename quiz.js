@@ -80,57 +80,57 @@ function showQuestion() {
     let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
 
     let html = `
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900 rounded-t-2xl overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900 rounded-t-2xl overflow-hidden z-50">
             <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,1)]" style="width: ${progressPercent}%"></div>
         </div>
 
-        <div class="flex justify-between items-center mb-8 mt-4 px-2">
-            <div class="bg-gray-800/80 border border-gray-700/50 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2">
-                <i class="fas fa-crosshairs text-yellow-500 text-xs animate-spin-slow"></i>
-                <span class="text-sm text-gray-300 font-bold">سؤال <span class="text-yellow-400 text-base">${currentIndex+1}</span> / ${currentQuestions.length}</span>
+        <div class="flex justify-between items-center mb-4 mt-2 px-1 relative z-10">
+            <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full shadow-inner flex items-center gap-1.5">
+                <i class="fas fa-crosshairs text-yellow-500 text-[10px] animate-spin-slow"></i>
+                <span class="text-xs text-gray-300 font-bold">سؤال <span class="text-yellow-400 text-sm">${currentIndex+1}</span> / ${currentQuestions.length}</span>
             </div>
             
-            <div class="bg-gray-800/80 border border-gray-700/50 px-4 py-1.5 rounded-full shadow-inner flex items-center gap-2">
-                <i class="fas fa-star text-yellow-500 text-xs"></i>
-                <span class="text-sm text-gray-300 font-bold">نقاط: <span class="text-yellow-400 text-base">${sessionScore}</span></span>
+            <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full shadow-inner flex items-center gap-1.5">
+                <i class="fas fa-star text-yellow-500 text-[10px]"></i>
+                <span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400 text-sm">${sessionScore}</span></span>
             </div>
         </div>
 
-        <div class="glass-card p-6 rounded-3xl mb-8 border border-yellow-500/20 shadow-[0_15px_35px_rgba(0,0,0,0.6)] relative overflow-hidden">
+        <div class="glass-card p-4 rounded-2xl mb-4 border border-yellow-500/20 shadow-lg relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 blur-3xl rounded-full"></div>
-            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-black px-5 py-0.5 rounded-b-xl text-[10px] font-black tracking-widest shadow-md">سؤال الجولة</div>
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-black px-4 py-0.5 rounded-b-lg text-[9px] font-black tracking-widest shadow-md">سؤال الجولة</div>
             
-            <div class="mt-4 flex flex-col items-center">
-                <span id="timer" class="text-white font-black text-3xl bg-gray-900 border-2 border-red-500/80 px-4 py-2 rounded-2xl shadow-[0_0_20px_rgba(239,68,68,0.3)] mb-4 transition-all w-20 text-center">${globalTimeLeft}</span>
-                <h3 class="text-xl md:text-2xl font-black text-center leading-relaxed text-white drop-shadow-lg relative z-10">${q.q}</h3>
+            <div class="mt-3 flex flex-col items-center">
+                <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.3)] mb-3 transition-all w-16 text-center">${globalTimeLeft}</span>
+                <h3 class="text-lg md:text-xl font-black text-center leading-snug text-white drop-shadow-md relative z-10">${q.q}</h3>
             </div>
         </div>
         
-        <div class="space-y-3 relative z-20 px-1">
+        <div class="space-y-2 relative z-20 px-1">
             ${q.options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-2xl border border-gray-600 bg-gray-800/90 p-4 w-full text-right transition-all duration-300 hover:border-yellow-500/60 hover:shadow-[0_0_25px_rgba(212,175,55,0.2)]" id="opt-${i}">
-                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-600/10 to-yellow-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-xl border border-gray-600 bg-gray-800/90 p-3 w-full text-right transition-all duration-300 hover:border-yellow-500/60" id="opt-${i}">
+                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-600/10 to-yellow-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="flex justify-between items-center relative z-10">
-                        <span class="text-base md:text-lg font-bold text-gray-200 group-hover:text-yellow-400 transition-colors">${opt}</span>
-                        <div class="w-8 h-8 rounded-full border-2 border-gray-600 flex items-center justify-center text-sm font-black text-gray-400 group-hover:border-yellow-500 group-hover:bg-yellow-500/10 group-hover:text-yellow-400 transition-colors">${String.fromCharCode(65+i)}</div>
+                        <span class="text-sm md:text-base font-bold text-gray-200 group-hover:text-yellow-400 transition-colors">${opt}</span>
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-600 flex items-center justify-center text-xs font-black text-gray-400 group-hover:border-yellow-500 group-hover:text-yellow-400 transition-colors">${String.fromCharCode(65+i)}</div>
                     </div>
                 </button>
             `).join('')}
         </div>
         
-        <div class="flex justify-between mt-8 gap-4 border-t border-gray-700/50 pt-5 px-1">
-            <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden group rounded-xl p-[1px] transition-all ${used5050?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)]'}">
-                <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl"></span>
-                <div class="bg-gray-900 px-4 py-2.5 rounded-[11px] flex items-center justify-center gap-2 relative z-10">
-                    <i class="fas fa-cut text-purple-400"></i>
-                    <span class="text-xs font-black text-gray-200">إجابتين</span>
+        <div class="flex justify-between mt-4 gap-3 border-t border-gray-700/50 pt-3 px-1 pb-2">
+            <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${used5050?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)]'}">
+                <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg"></span>
+                <div class="bg-gray-900 px-3 py-2 rounded-[7px] flex items-center justify-center gap-2 relative z-10">
+                    <i class="fas fa-cut text-purple-400 text-xs"></i>
+                    <span class="text-[11px] font-black text-gray-200">إجابتين</span>
                 </div>
             </button>
-            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden group rounded-xl p-[1px] transition-all ${usedFreeze?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)]'}">
-                <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-xl"></span>
-                <div class="bg-gray-900 px-4 py-2.5 rounded-[11px] flex items-center justify-center gap-2 relative z-10">
-                    <i class="fas fa-snowflake text-blue-400"></i>
-                    <span class="text-xs font-black text-gray-200">تجميد</span>
+            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${usedFreeze?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)]'}">
+                <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg"></span>
+                <div class="bg-gray-900 px-3 py-2 rounded-[7px] flex items-center justify-center gap-2 relative z-10">
+                    <i class="fas fa-snowflake text-blue-400 text-xs"></i>
+                    <span class="text-[11px] font-black text-gray-200">تجميد</span>
                 </div>
             </button>
         </div>
@@ -216,16 +216,16 @@ window.handleAnswer = function(i) {
             sessionScore++;
             vibratePhone(100);
             if(selectedBtn) {
-                selectedBtn.className = "opt-btn relative overflow-hidden rounded-2xl border-2 border-green-500 bg-green-900/60 p-4 w-full text-right shadow-[0_0_30px_rgba(34,197,94,0.5)] transform scale-[1.02] transition-all z-30";
-                selectedBtn.innerHTML = `<div class="flex justify-between items-center"><span class="text-lg font-black text-white drop-shadow-md">${currentQuestions[currentIndex].options[i]}</span><i class="fas fa-check-circle text-3xl text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,1)]"></i></div>`;
+                selectedBtn.className = "opt-btn relative overflow-hidden rounded-xl border-2 border-green-500 bg-green-900/60 p-3 w-full text-right shadow-[0_0_30px_rgba(34,197,94,0.5)] transform scale-[1.02] transition-all z-30";
+                selectedBtn.innerHTML = `<div class="flex justify-between items-center"><span class="text-base font-black text-white drop-shadow-md">${currentQuestions[currentIndex].options[i]}</span><i class="fas fa-check-circle text-2xl text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,1)]"></i></div>`;
             }
             if(window.confetti) confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff', '#fbbf24'] });
 
         } else {
             vibratePhone([100, 50, 100]);
             if(selectedBtn) {
-                selectedBtn.className = "opt-btn relative overflow-hidden rounded-2xl border-2 border-red-500 bg-red-900/60 p-4 w-full text-right shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all z-30";
-                selectedBtn.innerHTML = `<div class="flex justify-between items-center"><span class="text-lg font-black text-white line-through opacity-80">${currentQuestions[currentIndex].options[i]}</span><i class="fas fa-times-circle text-3xl text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,1)]"></i></div>`;
+                selectedBtn.className = "opt-btn relative overflow-hidden rounded-xl border-2 border-red-500 bg-red-900/60 p-3 w-full text-right shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all z-30";
+                selectedBtn.innerHTML = `<div class="flex justify-between items-center"><span class="text-base font-black text-white line-through opacity-80">${currentQuestions[currentIndex].options[i]}</span><i class="fas fa-times-circle text-2xl text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,1)]"></i></div>`;
             }
         }
     } else {
