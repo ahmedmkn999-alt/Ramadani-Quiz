@@ -9,7 +9,7 @@ let adminDay = 1, adminStatus = "closed";
 let logsUnsubscribe = null;
 window.myPowerups = { freeze: 0, fifty50: 0 }; 
 
-// دالة الرسائل الشيك (بديل alert)
+// دالة الرسايل الشيك
 window.showAlert = function(title, msg, icon = "🔔", type = "normal") {
     let box = document.getElementById('custom-alert');
     document.getElementById('alert-title').innerText = title;
@@ -130,7 +130,7 @@ function fetchLeaderboard() {
 window.logoutUser = function() { localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
 
 // ==========================================
-// عجلة الحظ (داخلياً)
+// العجلة (التحديث الجديد للعداد)
 // ==========================================
 function setupWheelTimer() {
     let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id)) || { streak: 0, lastLogin: null };
@@ -164,13 +164,12 @@ window.openSpinWheel = function() {
     let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id));
     let controls = document.getElementById('wheel-controls');
     
-    // إظهار الزرار لو كمل 3 أيام، غير كده إظهار العداد جوه النافذة
     if (wheelData.streak >= 3) {
         controls.innerHTML = `<button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all text-xl border border-yellow-300">لف العجلة الأسطورية! 🎰</button>`;
     } else {
         controls.innerHTML = `
             <div class="bg-gray-800/80 border border-gray-700 p-4 rounded-xl">
-                <p class="text-gray-300 font-bold mb-2">عشان تلف العجلة، لازم تدخل ${3 - wheelData.streak} أيام كمان ورا بعض!</p>
+                <p class="text-gray-300 font-bold mb-2">للدوران، لازم تدخل ${3 - wheelData.streak} أيام كمان ورا بعض!</p>
                 <div class="bg-gray-900 rounded-lg py-2">
                     <p id="wheel-timer-inside" class="text-yellow-400 font-black text-2xl tracking-widest font-mono">--:--:--</p>
                     <p class="text-xs text-gray-500 font-bold mt-1">يتبقى على اليوم القادم</p>
@@ -178,7 +177,6 @@ window.openSpinWheel = function() {
             </div>
         `;
         
-        // تشغيل العداد جوه النافذة
         setInterval(() => {
             let el = document.getElementById('wheel-timer-inside');
             if(el) {
@@ -246,5 +244,5 @@ window.spinWheel = function() {
         
         setTimeout(() => { location.reload(); }, 3500); 
     }, 4000); 
-                }
+                                    }
             
