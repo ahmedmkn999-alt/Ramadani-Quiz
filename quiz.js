@@ -3,16 +3,19 @@ let timerInterval = null, globalTimeLeft = 20;
 let isQuizActive = false;
 let used5050InRound = false, usedFreezeInRound = false;
 
+// رصيد مجاني لكل كويز
+let free5050 = 1, freeFreeze = 1;
+
 window.openQuiz = function(day) {
     document.body.classList.add('hide-ads'); 
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
         <div class="text-center relative z-10">
-            <h2 class="text-3xl font-black text-white mb-3">مستعد للمواجهة؟ 🔥</h2>
+            <h2 class="text-3xl font-black text-white mb-3 drop-shadow-lg">مستعد للمواجهة؟ 🔥</h2>
             <p class="text-gray-300 text-sm mb-8">بمجرد دخولك سيبدأ التحدي. لا توجد فرصة للرجوع!</p>
             <div class="flex gap-4">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-500 text-black font-black p-4 rounded-xl">جاهز ⚔️</button>
-                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-4 rounded-xl">تراجع ✋</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-4 rounded-xl shadow-lg hover:scale-105 transition-all">جاهز ⚔️</button>
+                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-4 rounded-xl border border-gray-600 hover:bg-gray-700 transition-all">تراجع ✋</button>
             </div>
         </div>
     `;
@@ -25,8 +28,13 @@ window.closeQuizOverlay = function() {
 
 window.startQuizFetch = function(day) {
     isQuizActive = true;
-    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 text-lg">جاري تجهيز ساحة المعركة...</p>`;
-    used5050InRound = false; usedFreezeInRound = false;
+    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري تجهيز ساحة المعركة...</p>`;
+    
+    // تجديد الرصيد المجاني مع بداية الكويز
+    free5050 = 1; 
+    freeFreeze = 1;
+    used5050InRound = false; 
+    usedFreezeInRound = false;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
@@ -44,36 +52,39 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    let count5050 = window.myPowerups.fifty50;
-    let countFreeze = window.myPowerups.freeze;
-    let btn50Class = (count5050 > 0 && !used5050InRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
-    let btnFreezeClass = (countFreeze > 0 && !usedFreezeInRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
+    // دمج الرصيد المجاني مع رصيد عجلة الحظ
+    let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
+    let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
+
+    let btn50Class = (total5050 > 0 && !used5050InRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
+    let btnFreezeClass = (totalFreeze > 0 && !usedFreezeInRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
 
     let html = `
         <div class="flex justify-between items-center mb-4 px-1">
-            <div class="bg-gray-800 px-3 py-1 rounded-full text-xs font-bold text-gray-300">سؤال <span class="text-yellow-400">${currentIndex+1}</span> / ${currentQuestions.length}</div>
-            <div class="bg-gray-800 px-3 py-1 rounded-full text-xs font-bold text-gray-300">نقاط: <span class="text-yellow-400">${sessionScore}</span></div>
+            <div class="bg-gray-800 border border-gray-700 px-3 py-1 rounded-full text-xs font-bold text-gray-300">سؤال <span class="text-yellow-400 text-sm">${currentIndex+1}</span> / ${currentQuestions.length}</div>
+            <div class="bg-gray-800 border border-gray-700 px-3 py-1 rounded-full text-xs font-bold text-gray-300">نقاط: <span class="text-yellow-400 text-sm">${sessionScore}</span></div>
         </div>
 
-        <div class="glass-card p-4 rounded-2xl mb-4 text-center">
-            <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-3 py-1 rounded-xl mb-3 inline-block">${globalTimeLeft}</span>
-            <h3 class="text-lg md:text-xl font-black text-white drop-shadow-md">${q.q}</h3>
+        <div class="glass-card p-5 rounded-2xl mb-4 text-center relative overflow-hidden border border-yellow-500/20">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 blur-3xl rounded-full"></div>
+            <span id="timer" class="text-white font-black text-3xl bg-gray-900 border-2 border-red-500/80 px-4 py-1 rounded-xl mb-4 inline-block shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-colors">${globalTimeLeft}</span>
+            <h3 class="text-lg md:text-xl font-black text-white drop-shadow-md relative z-10 leading-relaxed">${q.q}</h3>
         </div>
         
-        <div class="space-y-2">
-            ${q.options.map((opt, i) => `<button onclick="handleAnswer(${i})" class="opt-btn bg-gray-800/90 p-3 w-full text-right rounded-xl border border-gray-600 font-bold text-gray-200" id="opt-${i}">${opt}</button>`).join('')}
+        <div class="space-y-3 relative z-20">
+            ${q.options.map((opt, i) => `<button onclick="handleAnswer(${i})" class="opt-btn bg-gray-800/90 p-4 w-full text-right rounded-xl border border-gray-600 font-bold text-gray-200 hover:border-yellow-500/60 transition-colors" id="opt-${i}">${opt}</button>`).join('')}
         </div>
         
-        <div class="flex justify-between mt-4 gap-3 border-t border-gray-700/50 pt-3">
-            <div onclick="use5050()" class="flex-1 relative ${btn50Class} transition-all">
-                ${count5050 > 0 ? `<div class="powerup-badge">${count5050}</div>` : ''}
-                <div class="bg-gray-900 border border-purple-500/50 px-3 py-2 rounded-lg flex items-center justify-center gap-2">
+        <div class="flex justify-between mt-5 gap-3 border-t border-gray-700/50 pt-4">
+            <div id="btn-5050" onclick="use5050()" class="flex-1 relative ${btn50Class} transition-all">
+                ${total5050 > 0 ? `<div id="badge-5050" class="powerup-badge">${total5050}</div>` : ''}
+                <div class="bg-gray-900 border border-purple-500/50 px-3 py-2.5 rounded-xl flex items-center justify-center gap-2">
                     <i class="fas fa-cut text-purple-400"></i><span class="text-xs font-black text-gray-200">إجابتين</span>
                 </div>
             </div>
-            <div onclick="useFreeze()" class="flex-1 relative ${btnFreezeClass} transition-all">
-                ${countFreeze > 0 ? `<div class="powerup-badge">${countFreeze}</div>` : ''}
-                <div class="bg-gray-900 border border-blue-500/50 px-3 py-2 rounded-lg flex items-center justify-center gap-2">
+            <div id="btn-freeze" onclick="useFreeze()" class="flex-1 relative ${btnFreezeClass} transition-all">
+                ${totalFreeze > 0 ? `<div id="badge-freeze" class="powerup-badge">${totalFreeze}</div>` : ''}
+                <div class="bg-gray-900 border border-blue-500/50 px-3 py-2.5 rounded-xl flex items-center justify-center gap-2">
                     <i class="fas fa-snowflake text-blue-400"></i><span class="text-xs font-black text-gray-200">تجميد</span>
                 </div>
             </div>
@@ -84,17 +95,39 @@ function showQuestion() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         globalTimeLeft--;
-        document.getElementById('timer').innerText = globalTimeLeft;
+        let timerEl = document.getElementById('timer');
+        if(timerEl) timerEl.innerText = globalTimeLeft;
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
 window.use5050 = function() {
-    if(used5050InRound || window.myPowerups.fifty50 <= 0 || !isQuizActive) return;
+    let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
+    if(used5050InRound || total5050 <= 0 || !isQuizActive) return;
     used5050InRound = true;
-    window.myPowerups.fifty50 -= 1;
-    db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
-    document.getElementById('inv-5050').innerText = window.myPowerups.fifty50;
+    
+    // سحب من المجاني الأول، لو خلص نسحب من المخزون
+    if (free5050 > 0) {
+        free5050--;
+    } else {
+        window.myPowerups.fifty50 -= 1;
+        db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+        let invEl = document.getElementById('inv-5050');
+        if(invEl) invEl.innerText = window.myPowerups.fifty50;
+    }
+    
+    // تحديث شكل الزرار
+    let btn = document.getElementById('btn-5050');
+    if(btn) {
+        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]', 'cursor-pointer');
+        let badge = document.getElementById('badge-5050');
+        if(badge) {
+            let newTotal = free5050 + (window.myPowerups?.fifty50 || 0);
+            badge.innerText = newTotal;
+            if(newTotal <= 0) badge.style.display = 'none';
+        }
+    }
     
     let correctIdx = currentQuestions[currentIndex].correctIndex;
     let hiddenCount = 0;
@@ -105,19 +138,42 @@ window.use5050 = function() {
             hiddenCount++;
         }
     }
-    showQuestion();
 }
 
 window.useFreeze = function() {
-    if(usedFreezeInRound || window.myPowerups.freeze <= 0 || !isQuizActive) return;
+    let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
+    if(usedFreezeInRound || totalFreeze <= 0 || !isQuizActive) return;
     usedFreezeInRound = true;
-    window.myPowerups.freeze -= 1;
-    db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
-    document.getElementById('inv-freeze').innerText = window.myPowerups.freeze;
+    
+    // سحب من المجاني الأول، لو خلص نسحب من المخزون
+    if (freeFreeze > 0) {
+        freeFreeze--;
+    } else {
+        window.myPowerups.freeze -= 1;
+        db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+        let invEl = document.getElementById('inv-freeze');
+        if(invEl) invEl.innerText = window.myPowerups.freeze;
+    }
+    
+    // تحديث شكل الزرار
+    let btn = document.getElementById('btn-freeze');
+    if(btn) {
+        btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]', 'cursor-pointer');
+        let badge = document.getElementById('badge-freeze');
+        if(badge) {
+            let newTotal = freeFreeze + (window.myPowerups?.freeze || 0);
+            badge.innerText = newTotal;
+            if(newTotal <= 0) badge.style.display = 'none';
+        }
+    }
     
     globalTimeLeft += 10;
-    document.getElementById('timer').innerText = globalTimeLeft;
-    showQuestion(); 
+    let timerEl = document.getElementById('timer');
+    if(timerEl) {
+        timerEl.innerText = globalTimeLeft;
+        timerEl.classList.add('border-blue-500', 'text-blue-300');
+    }
 }
 
 window.handleAnswer = function(i) {
@@ -129,18 +185,34 @@ window.handleAnswer = function(i) {
         let selectedBtn = document.getElementById(`opt-${i}`);
         if(i === correctIdx) {
             sessionScore++;
-            if(selectedBtn) selectedBtn.classList.add('border-green-500', 'bg-green-900/60', 'text-green-400');
+            if(selectedBtn) {
+                selectedBtn.classList.add('border-green-500', 'bg-green-900/60', 'text-green-400', 'scale-[1.02]');
+                selectedBtn.innerHTML += ` <i class="fas fa-check-circle float-left mt-1 text-xl drop-shadow-[0_0_10px_rgba(34,197,94,1)]"></i>`;
+            }
         } else {
-            if(selectedBtn) selectedBtn.classList.add('border-red-500', 'bg-red-900/60', 'line-through');
+            if(selectedBtn) {
+                selectedBtn.classList.add('border-red-500', 'bg-red-900/60', 'line-through', 'opacity-80');
+                selectedBtn.innerHTML += ` <i class="fas fa-times-circle float-left mt-1 text-xl drop-shadow-[0_0_10px_rgba(239,68,68,1)]"></i>`;
+            }
         }
     }
-    setTimeout(() => { currentIndex++; used5050InRound = false; usedFreezeInRound = false; showQuestion(); }, 1200);
+    setTimeout(() => { 
+        currentIndex++; 
+        used5050InRound = false; 
+        usedFreezeInRound = false; 
+        showQuestion(); 
+    }, 1200);
 }
 
 function endQuiz() {
     isQuizActive = false;
     clearInterval(timerInterval);
-    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 text-lg">جاري توثيق المعركة...</p>`;
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10">
+            <div class="w-16 h-16 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري توثيق المعركة...</p>
+        </div>
+    `;
 
     db.collection("users").doc(user.id).update({
         score: firebase.firestore.FieldValue.increment(sessionScore)
@@ -149,7 +221,32 @@ function endQuiz() {
             day: adminDay, score: sessionScore, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
     }).then(() => {
-        alert("المعركة انتهت! غنائمك: " + sessionScore);
-        window.location.reload();
+        // شاشة الفوز الأسطورية (بدل الـ alert)
+        if(window.confetti) confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff'] });
+        
+        document.getElementById('quiz-content').innerHTML = `
+            <div class="text-center p-2 relative">
+                <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/10 to-transparent rounded-3xl blur-2xl -z-10"></div>
+                
+                <div class="inline-block relative mb-4">
+                    <div class="absolute inset-0 bg-yellow-500 blur-xl opacity-40 rounded-full animate-pulse"></div>
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-yellow-500 p-6 rounded-full relative z-10 shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+                        <i class="fas fa-trophy text-6xl text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 drop-shadow-lg"></i>
+                    </div>
+                </div>
+                
+                <h2 class="text-3xl md:text-4xl font-black mb-6 text-white drop-shadow-lg">انتهت المعركة! 🔥</h2>
+                
+                <div class="glass-card p-6 rounded-3xl border border-yellow-500/30 mb-8 w-full shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+                    <p class="text-gray-400 text-sm font-bold mb-1 uppercase tracking-wider">غنائمك اليوم</p>
+                    <p class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 drop-shadow-xl mb-5">${sessionScore}</p>
+                </div>
+                
+                <button onclick="window.location.reload()" class="w-full relative group overflow-hidden rounded-2xl p-[2px] shadow-[0_10px_20px_rgba(212,175,55,0.3)]">
+                    <span class="absolute inset-0 bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 group-hover:scale-[1.05] transition-transform duration-500"></span>
+                    <span class="relative block bg-gray-900 px-6 py-4 rounded-[14px] text-yellow-400 font-black text-xl group-hover:bg-transparent group-hover:text-gray-900 transition-colors duration-300">العودة للمعسكر ⛺</span>
+                </button>
+            </div>
+        `;
     });
 }
