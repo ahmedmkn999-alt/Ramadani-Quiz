@@ -14,7 +14,6 @@ let isEliminatedPlayer = false;
 let currentStreak = 0;
 let logsUnsubscribe = null; 
 
-// دالة الرانكات
 function getRankInfo(score) {
     if(score >= 101) return { text: "أسطورة رمضان 👑", color: "text-yellow-400 bg-yellow-900/50" };
     if(score >= 51) return { text: "كابتن الملعب 🥇", color: "text-yellow-300 bg-yellow-800/50" };
@@ -33,11 +32,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
             user = JSON.parse(localStorage.getItem('currentUser'));
-            // التعديل: لو مفيش مستخدم متسجل هيرجعه لصفحة اللوجن
-            if(!user || !user.id) {
-                window.location.replace("index.html");
-                return;
-            }
+            if(!user || !user.id) throw new Error("No User");
 
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -47,6 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
             initFirebaseData();
 
         } catch(e) { 
+            // التوجيه لصفحة تسجيل الدخول لو مش مسجل
             window.location.replace("index.html"); 
         }
     }, 150);
@@ -102,9 +98,11 @@ function initFirebaseData() {
         if(doc.exists) {
             adminDay = doc.data().currentDay || 1;
             adminStatus = doc.data().status || "closed";
+        } else {
+            adminDay = 1;
+            adminStatus = "active";
         }
-        // التعديل: استدعاء الخريطة بره الشرط عشان تترسم دايماً
-        updateLogs();
+        updateLogs(); 
     });
 }
 
@@ -113,7 +111,7 @@ function updateLogs() {
     logsUnsubscribe = db.collection("users").doc(user.id).collection("game_logs").onSnapshot(snap => {
         myLogs = {};
         snap.forEach(d => myLogs[d.data().day] = d.data().score);
-        renderMap();
+        renderMap(); 
         
         let pText = document.getElementById('progress-text');
         let pBar = document.getElementById('progress-bar');
