@@ -1,10 +1,10 @@
 // ==========================================
-// محرك الكويز (Quiz Engine)
+// محرك الكويز (Quiz Engine) - النسخة الكاملة
 // ==========================================
 let currentQuestions = [], currentIndex = 0, sessionScore = 0;
 let timerInterval = null, globalTimeLeft = 20;
 let isQuizActive = false;
-let used5050 = false, usedFreeze = false;
+let used5050InRound = false, usedFreezeInRound = false;
 
 function vibratePhone(pattern) {
     if (navigator.vibrate) navigator.vibrate(pattern);
@@ -49,8 +49,8 @@ window.startQuizFetch = function(day) {
     
     window.open = function() { return null; }; 
 
-    used5050 = false;
-    usedFreeze = false;
+    used5050InRound = false;
+    usedFreezeInRound = false;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
@@ -78,6 +78,12 @@ function showQuestion() {
     globalTimeLeft = 20;
     
     let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
+    
+    let count5050 = (window.myPowerups && window.myPowerups.fifty50) ? window.myPowerups.fifty50 : 0;
+    let countFreeze = (window.myPowerups && window.myPowerups.freeze) ? window.myPowerups.freeze : 0;
+
+    let btn50Class = (count5050 > 0 && !used5050InRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
+    let btnFreezeClass = (countFreeze > 0 && !usedFreezeInRound) ? "hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)] cursor-pointer" : "opacity-40 grayscale cursor-not-allowed";
 
     let html = `
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900 rounded-t-2xl overflow-hidden z-50">
@@ -119,14 +125,16 @@ function showQuestion() {
         </div>
         
         <div class="flex justify-between mt-4 gap-3 border-t border-gray-700/50 pt-3 px-1 pb-2">
-            <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${used5050?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(147,51,234,0.3)]'}">
+            <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${btn50Class}">
+                ${count5050 > 0 ? `<div id="badge-5050" class="powerup-badge">${count5050}</div>` : ''}
                 <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg"></span>
                 <div class="bg-gray-900 px-3 py-2 rounded-[7px] flex items-center justify-center gap-2 relative z-10">
                     <i class="fas fa-cut text-purple-400 text-xs"></i>
                     <span class="text-[11px] font-black text-gray-200">إجابتين</span>
                 </div>
             </button>
-            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${usedFreeze?'opacity-40 grayscale cursor-not-allowed':'hover:scale-105 shadow-[0_5px_15px_rgba(59,130,246,0.3)]'}">
+            <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden group rounded-lg p-[1px] transition-all ${btnFreezeClass}">
+                ${countFreeze > 0 ? `<div id="badge-freeze" class="powerup-badge">${countFreeze}</div>` : ''}
                 <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg"></span>
                 <div class="bg-gray-900 px-3 py-2 rounded-[7px] flex items-center justify-center gap-2 relative z-10">
                     <i class="fas fa-snowflake text-blue-400 text-xs"></i>
@@ -155,12 +163,25 @@ function showQuestion() {
 }
 
 window.use5050 = function() {
-    if(used5050 || !isQuizActive) return;
-    used5050 = true;
+    if(used5050InRound || window.myPowerups.fifty50 <= 0 || !isQuizActive) return;
+    used5050InRound = true;
+    
+    // خصم مساعدة وتحديث المخزون وقاعدة البيانات
+    window.myPowerups.fifty50 -= 1;
+    db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+    let topInv = document.getElementById('inv-5050');
+    if(topInv) topInv.innerText = window.myPowerups.fifty50;
+    
+    // تحديث شكل الزرار جوه الكويز
     let btn = document.getElementById('btn-5050');
     if(btn) {
         btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(147,51,234,0.3)]', 'cursor-pointer');
+        let badge = document.getElementById('badge-5050');
+        if(badge) {
+            badge.innerText = window.myPowerups.fifty50;
+            if(window.myPowerups.fifty50 === 0) badge.style.display = 'none';
+        }
     }
     
     let correctIdx = currentQuestions[currentIndex].correctIndex;
@@ -179,12 +200,25 @@ window.use5050 = function() {
 }
 
 window.useFreeze = function() {
-    if(usedFreeze || !isQuizActive) return;
-    usedFreeze = true;
+    if(usedFreezeInRound || window.myPowerups.freeze <= 0 || !isQuizActive) return;
+    usedFreezeInRound = true;
+    
+    // خصم مساعدة وتحديث المخزون وقاعدة البيانات
+    window.myPowerups.freeze -= 1;
+    db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
+    let topInv = document.getElementById('inv-freeze');
+    if(topInv) topInv.innerText = window.myPowerups.freeze;
+    
+    // تحديث شكل الزرار جوه الكويز
     let btn = document.getElementById('btn-freeze');
     if(btn) {
         btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]');
+        btn.classList.remove('hover:scale-105', 'shadow-[0_5px_15px_rgba(59,130,246,0.3)]', 'cursor-pointer');
+        let badge = document.getElementById('badge-freeze');
+        if(badge) {
+            badge.innerText = window.myPowerups.freeze;
+            if(window.myPowerups.freeze === 0) badge.style.display = 'none';
+        }
     }
     
     globalTimeLeft += 10;
@@ -204,14 +238,12 @@ window.useFreeze = function() {
 
 window.handleAnswer = function(i) {
     clearInterval(timerInterval);
-    
     document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
     
     let correctIdx = currentQuestions[currentIndex].correctIndex;
 
     if(i !== -1) {
         let selectedBtn = document.getElementById(`opt-${i}`);
-        
         if(i === correctIdx) {
             sessionScore++;
             vibratePhone(100);
@@ -236,7 +268,12 @@ window.handleAnswer = function(i) {
         });
     }
     
-    setTimeout(() => { currentIndex++; showQuestion(); }, 1200);
+    setTimeout(() => { 
+        currentIndex++; 
+        used5050InRound = false; 
+        usedFreezeInRound = false; 
+        showQuestion(); 
+    }, 1200);
 }
 
 // ==========================================
@@ -358,33 +395,4 @@ function endQuiz(isForceExit = false) {
                     
                     <div class="glass-card p-6 rounded-3xl border border-yellow-500/30 mb-8 w-full shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                         <p class="text-gray-400 text-sm font-bold mb-1 uppercase tracking-wider">غنائمك اليوم</p>
-                        <p class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600 drop-shadow-xl mb-5">${sessionScore}</p>
-                        
-                        <div class="flex justify-center gap-6 text-sm border-t border-gray-700/60 pt-5">
-                            <div class="text-center flex-1">
-                                <span class="block text-gray-500 mb-1 font-bold">رقم الجولة</span>
-                                <span class="text-white font-black text-lg bg-gray-800 px-3 py-1 rounded-lg border border-gray-600">${adminDay}</span>
-                            </div>
-                            <div class="w-px bg-gray-700/60"></div>
-                            <div class="text-center flex-1">
-                                <span class="block text-gray-500 mb-1 font-bold">شعلة الحماس</span>
-                                <span class="text-orange-400 font-black text-lg bg-orange-900/30 px-3 py-1 rounded-lg border border-orange-700/50">🔥 ${newStreak}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="window.location.reload()" class="w-full relative group overflow-hidden rounded-2xl p-[2px] shadow-[0_10px_20px_rgba(212,175,55,0.3)]">
-                        <span class="absolute inset-0 bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 group-hover:scale-[1.05] transition-transform duration-500"></span>
-                        <span class="relative block bg-gray-900 px-6 py-4 rounded-[14px] text-yellow-400 font-black text-xl group-hover:bg-transparent group-hover:text-gray-900 transition-colors duration-300">العودة للمعسكر ⛺</span>
-                    </button>
-                </div>
-            `;
-        } else {
-            setTimeout(() => { window.location.reload(); }, 2500);
-        }
-    }).catch(e => {
-        alert("حصلت مشكلة في حفظ النتيجة، حاول تاني.");
-        console.error(e);
-        window.location.reload();
-    });
-}
+                        <p class="tex
