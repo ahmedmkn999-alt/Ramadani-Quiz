@@ -33,41 +33,35 @@ function getRankInfo(score) {
     return { text: "لاعب ناشئ 🥉", color: "text-orange-400 bg-orange-900/50" };
 }
 
-// 3. بدء التشغيل (تم التعديل لضمان استقرار الاتصال بـ Firebase)
+// 3. بدء التشغيل
 window.addEventListener('load', () => {
     document.body.style.userSelect = "none";
     document.body.style.webkitUserSelect = "none";
 
-    try {
-        if (typeof firebase === 'undefined') {
-            console.error("لم يتم العثور على مكتبات Firebase! تأكد من تضمينها في ملف HTML.");
-            return;
-        }
-
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-
-        const savedUser = localStorage.getItem('currentUser');
-        if(!savedUser) {
-            console.warn("لا يوجد مستخدم مسجل. تم إنشاء مستخدم تجريبي للاختبار.");
-            user = { id: "test_user_1", name: "زائر تجريبي", group: "مجموعة 1", team: "فريق أ" };
-            
-            // إنشاء المستخدم في قاعدة البيانات إن لم يكن موجوداً لتجنب الأخطاء
-            db.collection("users").doc(user.id).set({
-                name: user.name, group: user.group, team: user.team, score: 0, streak: 0, isEliminated: false
-            }, { merge: true });
-
-        } else {
-            user = JSON.parse(savedUser);
-        }
-
-        if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
-        
-        initFirebaseData(); 
-
-    } catch(e) { 
-        console.error("Initialization Error:", e);
+    if (typeof firebase === 'undefined') {
+        console.error("لم يتم العثور على مكتبات Firebase! تأكد من تضمينها في ملف HTML.");
+        return;
     }
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+
+    const savedUser = localStorage.getItem('currentUser');
+    if(!savedUser) {
+        console.warn("لا يوجد مستخدم مسجل. تم إنشاء مستخدم تجريبي للاختبار.");
+        user = { id: "test_user_1", name: "زائر تجريبي", group: "مجموعة 1", team: "فريق أ" };
+        
+        // إنشاء المستخدم تجريبياً في DB لتجنب الأخطاء
+        db.collection("users").doc(user.id).set({
+            name: user.name, group: user.group, team: user.team, score: 0, streak: 0, isEliminated: false
+        }, { merge: true });
+
+    } else {
+        user = JSON.parse(savedUser);
+    }
+
+    if(document.getElementById('p-name')) document.getElementById('p-name').innerText = user.name;
+    initFirebaseData(); 
 });
 
 // 4. جلب البيانات من Firestore
@@ -179,7 +173,7 @@ function renderMap() {
     container.innerHTML = html;
 }
 
-// حماية الكويز
+// 6. نظام المسابقة والكويز
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
         alert("تم اكتشاف محاولة خروج أو تصوير! تم إنهاء الجولة وحفظ نتيجتك.");
@@ -187,47 +181,27 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-// 6. نظام المسابقة
 window.openQuiz = function(day) {
     if (myLogs[day] !== undefined) return alert("لعبت الجولة دي قبل كدة!");
     
     let overlay = document.getElementById('quiz-overlay');
-    if(!overlay) return console.error("عنصر quiz-overlay غير موجود في الـ HTML");
-    
     overlay.style.display = 'flex';
-    overlay.className = "fixed inset-0 z-50 bg-black/95 flex flex-col overflow-y-auto";
+    overlay.className = "fixed inset-0 z-[99999] bg-black/95 flex flex-col overflow-y-auto";
 
     document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md">
-            [ مساحة الإعلان هنا ]
-        </div>
-
         <div class="text-center relative z-10 p-4 mt-6 w-full max-w-md mx-auto">
-            <div class="absolute inset-0 bg-yellow-500/10 blur-3xl rounded-full -z-10"></div>
-            <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(255,215,0,0.4)] border-4 border-gray-900">
-                <i class="fas fa-bolt text-3xl text-black"></i>
-            </div>
             <h2 class="text-2xl font-black text-white mb-2 drop-shadow-lg">الجولة ${day} 🔥</h2>
             <p class="text-gray-300 text-sm mb-6 leading-relaxed px-2">بمجرد دخولك سيبدأ التحدي.<br>أي محاولة للخروج ستحفظ نتيجتك الحالية فقط!</p>
             <div class="flex gap-3">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-3 rounded-xl shadow-[0_10px_20px_rgba(34,197,94,0.3)]">ابدأ ⚔️</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-black font-black p-3 rounded-xl">ابدأ ⚔️</button>
                 <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-3 rounded-xl border border-gray-600">إغلاق ✋</button>
             </div>
         </div>`;
 }
 
 window.startQuizFetch = function(day) {
-    isQuizActive = true;
-    used5050 = false; usedFreeze = false;
-    
-    document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md">
-            [ مساحة الإعلان هنا ]
-        </div>
-        <div class="flex flex-col items-center justify-center py-10 w-full max-w-md mx-auto">
-            <div class="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-            <p class="text-center font-bold text-yellow-500 text-base animate-pulse">جاري تجهيز ساحة المعركة...</p>
-        </div>`;
+    isQuizActive = true; used5050 = false; usedFreeze = false;
+    document.getElementById('quiz-content').innerHTML = `<div class="flex flex-col items-center py-10"><p class="font-bold text-yellow-500 animate-pulse">جاري تجهيز ساحة المعركة...</p></div>`;
 
     db.collection("quizzes_pool").doc("day_" + day).get().then(doc => {
         if(doc.exists && doc.data().variations) {
@@ -240,7 +214,7 @@ window.startQuizFetch = function(day) {
             throw new Error();
         }
     }).catch(() => {
-        alert("خطأ في تحميل الأسئلة. تأكد من وجود الأسئلة في قاعدة البيانات.");
+        alert("خطأ في تحميل الأسئلة.");
         closeQuizOverlay();
     });
 }
@@ -250,72 +224,33 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 20;
     
-    let progressPercent = ((currentIndex + 1) / currentQuestions.length) * 100;
-
     document.getElementById('quiz-content').innerHTML = `
-        <div id="quiz-ad-container" class="w-full bg-gray-900 border-b border-gray-700 py-2 text-center text-xs text-gray-500 shadow-md mb-2">
-            [ مساحة الإعلان هنا ]
-        </div>
-
         <div class="w-full max-w-md mx-auto px-3 pb-6">
-            <div class="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden mb-4">
-                <div class="bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 h-full transition-all duration-500" style="width: ${progressPercent}%"></div>
-            </div>
-
             <div class="flex justify-between items-center mb-4">
-                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1">
-                    <i class="fas fa-crosshairs text-yellow-500 text-[10px]"></i>
-                    <span class="text-xs text-gray-300 font-bold">سؤال <span class="text-yellow-400">${currentIndex+1}</span> / ${currentQuestions.length}</span>
-                </div>
-                
-                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full flex items-center gap-1">
-                    <i class="fas fa-star text-yellow-500 text-[10px]"></i>
-                    <span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400">${sessionScore}</span></span>
-                </div>
-                
-                <button onclick="promptExitQuiz()" class="bg-red-900/50 border border-red-700/50 px-3 py-1 rounded-full flex items-center gap-1">
-                    <i class="fas fa-door-open text-red-500 text-[10px]"></i>
-                    <span class="text-xs text-red-300 font-bold">خروج</span>
-                </button>
+                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full"><span class="text-xs text-gray-300 font-bold">سؤال <span class="text-yellow-400">${currentIndex+1}</span> / ${currentQuestions.length}</span></div>
+                <div class="bg-gray-800/80 border border-gray-700/50 px-3 py-1 rounded-full"><span class="text-xs text-gray-300 font-bold">نقاط: <span class="text-yellow-400">${sessionScore}</span></span></div>
+                <button onclick="promptExitQuiz()" class="bg-red-900/50 border border-red-700/50 px-3 py-1 rounded-full text-xs text-red-300 font-bold">خروج</button>
             </div>
 
-            <div class="glass-card p-4 rounded-2xl mb-4 border border-yellow-500/20 shadow-md relative">
-                <div class="flex flex-col items-center">
-                    <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-4 py-1 rounded-xl mb-3 w-16 text-center">${globalTimeLeft}</span>
-                    <h3 class="text-lg md:text-xl font-bold text-center leading-snug text-white drop-shadow-md">${q.q}</h3>
-                </div>
+            <div class="glass-card p-4 rounded-2xl mb-4 text-center">
+                <span id="timer" class="text-white font-black text-2xl bg-gray-900 border-2 border-red-500/80 px-4 py-1 rounded-xl mb-3 w-16 text-center inline-block">${globalTimeLeft}</span>
+                <h3 class="text-lg font-bold text-white mt-2">${q.q}</h3>
             </div>
             
-            <div class="space-y-2 relative z-20" id="options-container">
+            <div class="space-y-2" id="options-container">
                 ${q.options.map((opt, i) => `
-                    <button onclick="handleAnswer(${i})" class="opt-btn relative group overflow-hidden rounded-xl border border-gray-600 bg-gray-800/90 p-3 w-full text-right transition-all duration-300 active:scale-95" id="opt-${i}">
-                        <div class="flex justify-between items-center relative z-10">
-                            <span class="text-sm md:text-base font-bold text-gray-200">${opt}</span>
-                            <div class="w-6 h-6 rounded-full border border-gray-600 flex items-center justify-center text-xs font-black text-gray-400">${String.fromCharCode(65+i)}</div>
-                        </div>
+                    <button onclick="handleAnswer(${i})" class="opt-btn relative group rounded-xl border border-gray-600 bg-gray-800/90 p-3 w-full text-right" id="opt-${i}">
+                        <span class="text-sm font-bold text-gray-200">${opt}</span>
                     </button>
                 `).join('')}
             </div>
             
-            <div class="flex justify-between mt-5 gap-3 border-t border-gray-700/50 pt-3">
-                <button id="btn-5050" onclick="use5050()" class="flex-1 relative overflow-hidden rounded-lg p-[1px] ${used5050?'opacity-40 grayscale':'active:scale-95'}">
-                    <span class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600"></span>
-                    <div class="bg-gray-900 px-2 py-2 rounded-md flex items-center justify-center gap-1.5 relative z-10">
-                        <i class="fas fa-cut text-purple-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-200">إجابتين</span>
-                    </div>
-                </button>
-                <button id="btn-freeze" onclick="useFreeze()" class="flex-1 relative overflow-hidden rounded-lg p-[1px] ${usedFreeze?'opacity-40 grayscale':'active:scale-95'}">
-                    <span class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500"></span>
-                    <div class="bg-gray-900 px-2 py-2 rounded-md flex items-center justify-center gap-1.5 relative z-10">
-                        <i class="fas fa-snowflake text-blue-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-200">تجميد</span>
-                    </div>
-                </button>
+            <div class="flex justify-between mt-5 gap-3">
+                <button id="btn-5050" onclick="use5050()" class="flex-1 bg-gray-900 p-2 rounded-md border border-purple-500 text-xs font-bold text-gray-200 ${used5050?'opacity-40':''}">إجابتين</button>
+                <button id="btn-freeze" onclick="useFreeze()" class="flex-1 bg-gray-900 p-2 rounded-md border border-blue-500 text-xs font-bold text-gray-200 ${usedFreeze?'opacity-40':''}">تجميد</button>
             </div>
         </div>
     `;
-
     startTimer();
 }
 
@@ -324,15 +259,7 @@ function startTimer() {
     timerInterval = setInterval(() => {
         globalTimeLeft--;
         let tEl = document.getElementById('timer');
-        if(tEl) {
-            tEl.innerText = globalTimeLeft;
-            if(globalTimeLeft <= 5) {
-                tEl.classList.remove('border-red-500/80', 'text-white', 'border-blue-500/80', 'text-blue-300');
-                tEl.classList.add('border-red-500', 'text-red-500', 'animate-pulse');
-            }
-        }
-        if(globalTimeLeft <= 5 && globalTimeLeft > 0) vibratePhone(50);
-        
+        if(tEl) tEl.innerText = globalTimeLeft;
         if(globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
@@ -340,88 +267,134 @@ function startTimer() {
 window.handleAnswer = function(idx) {
     if (!isQuizActive) return;
     clearInterval(timerInterval);
-    
-    let container = document.getElementById('options-container');
-    if(container) container.style.pointerEvents = 'none';
-
+    document.getElementById('options-container').style.pointerEvents = 'none';
     let q = currentQuestions[currentIndex];
     
     if(idx === q.correctIndex) {
-        sessionScore += 1; 
-        vibratePhone(100);
-        let btn = document.getElementById(`opt-${idx}`);
-        if(btn) {
-            btn.classList.add('bg-green-600/50', 'border-green-500');
-            btn.classList.remove('border-gray-600', 'bg-gray-800/90');
-        }
+        sessionScore += 1; vibratePhone(100);
+        document.getElementById(`opt-${idx}`).classList.add('bg-green-600/50', 'border-green-500');
     } else {
         vibratePhone([100, 50, 100]);
-        if(idx !== -1) {
-            let btn = document.getElementById(`opt-${idx}`);
-            if(btn) {
-                btn.classList.add('bg-red-600/50', 'border-red-500');
-                btn.classList.remove('border-gray-600', 'bg-gray-800/90');
-            }
-        }
-        let correctBtn = document.getElementById(`opt-${q.correctIndex}`);
-        if(correctBtn) {
-            correctBtn.classList.add('bg-green-600/50', 'border-green-500');
-            correctBtn.classList.remove('border-gray-600', 'bg-gray-800/90');
-        }
+        if(idx !== -1) document.getElementById(`opt-${idx}`).classList.add('bg-red-600/50', 'border-red-500');
+        document.getElementById(`opt-${q.correctIndex}`).classList.add('bg-green-600/50', 'border-green-500');
     }
-    
     currentIndex++;
     setTimeout(showQuestion, 1200); 
 }
 
 window.use5050 = function() {
     if(used5050 || !isQuizActive) return;
-    used5050 = true;
-    let btn = document.getElementById('btn-5050');
-    if(btn) btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
-    
-    let correct = currentQuestions[currentIndex].correctIndex;
-    let removed = 0;
+    used5050 = true; document.getElementById('btn-5050').classList.add('opacity-40');
+    let correct = currentQuestions[currentIndex].correctIndex, removed = 0;
     for(let i=0; i<4; i++) {
-        if(i !== correct && removed < 2) {
-            let el = document.getElementById(`opt-${i}`);
-            if(el) {
-                el.style.opacity = '0.2';
-                el.style.pointerEvents = 'none';
-                el.style.filter = 'grayscale(100%)';
-            }
-            removed++;
-        }
+        if(i !== correct && removed < 2) { document.getElementById(`opt-${i}`).style.opacity = '0.2'; removed++; }
     }
 }
 
 window.useFreeze = function() {
     if(usedFreeze || !isQuizActive) return;
-    usedFreeze = true;
-    let btn = document.getElementById('btn-freeze');
-    if(btn) btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+    usedFreeze = true; document.getElementById('btn-freeze').classList.add('opacity-40');
+    globalTimeLeft += 15; document.getElementById('timer').innerText = globalTimeLeft;
+}
+
+window.promptExitQuiz = function() {
+    clearInterval(timerInterval);
+    let html = `
+        <div id="exit-modal" class="fixed inset-0 z-[100000] flex items-center justify-center bg-black/90 p-4">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-red-500/50 text-center w-full max-w-sm">
+                <h3 class="text-xl font-bold text-white mb-2">متأكد إنك عايز تنسحب؟</h3>
+                <p class="text-xs text-gray-400 mb-6">سيتم حفظ (${sessionScore} نقاط)</p>
+                <div class="flex gap-3">
+                    <button onclick="confirmExitQuiz()" class="flex-1 bg-red-600 text-white font-bold py-2 rounded-xl">انسحاب</button>
+                    <button onclick="closeExitModal()" class="flex-1 bg-gray-600 text-white font-bold py-2 rounded-xl">تراجع</button>
+                </div>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+window.closeExitModal = function() { document.getElementById('exit-modal').remove(); startTimer(); }
+window.confirmExitQuiz = function() { document.getElementById('exit-modal').remove(); endQuiz(true); }
+
+window.endQuiz = function(forceExit = false) {
+    if (!isQuizActive) return;
+    isQuizActive = false; clearInterval(timerInterval);
+    document.getElementById('quiz-content').innerHTML = `<div class="py-10 text-center"><h2 class="text-2xl font-black text-white">تم الإنهاء!</h2><p class="text-yellow-400 font-bold">${sessionScore} نقطة</p></div>`;
+
+    db.collection("users").doc(user.id).collection("game_logs").doc("day_" + adminDay).set({
+        day: adminDay, score: sessionScore, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(sessionScore) }))
+      .then(() => setTimeout(closeQuizOverlay, 2000))
+      .catch(() => { alert("خطأ في الحفظ"); closeQuizOverlay(); });
+}
+
+window.closeQuizOverlay = function() { document.getElementById('quiz-overlay').style.display = 'none'; isQuizActive = false; clearInterval(timerInterval); }
+
+// ==========================================
+// 8. دوال الواجهة (اللي كانت مفقودة في HTML)
+// ==========================================
+
+window.showTab = function(tabName) {
+    // إخفاء/إظهار المحتوى
+    document.getElementById('view-arena').style.display = tabName === 'arena' ? 'block' : 'none';
+    document.getElementById('view-leaderboard').style.display = tabName === 'leaderboard' ? 'block' : 'none';
     
-    globalTimeLeft += 15;
-    let timerEl = document.getElementById('timer');
-    if(timerEl) {
-        timerEl.innerText = globalTimeLeft;
-        timerEl.classList.remove('animate-pulse', 'border-red-500', 'text-red-500');
-        timerEl.classList.add('border-blue-500/80', 'text-blue-300');
-        
-        setTimeout(() => {
-            if(timerEl && globalTimeLeft > 5) {
-                timerEl.classList.remove('border-blue-500/80', 'text-blue-300');
-                timerEl.classList.add('border-red-500/80', 'text-white');
-            }
-        }, 2000);
+    // تفعيل/إلغاء تفعيل شكل الأزرار
+    document.getElementById('btn-arena').classList.toggle('active', tabName === 'arena');
+    document.getElementById('btn-leader').classList.toggle('active', tabName === 'leaderboard');
+
+    // لو فتحنا المجموعة، نجيب الترتيب
+    if(tabName === 'leaderboard') {
+        renderLeaderboard();
     }
 }
 
-// 7. دوال الإغلاق والإنهاء (التي تم إكمالها وإصلاحها)
-window.promptExitQuiz = function() {
-    clearInterval(timerInterval); // نوقف التايمر مؤقتاً
+window.renderLeaderboard = function() {
+    let container = document.getElementById('group-list');
+    if(!container) return;
     
-    let confirmHTML = `
-        <div id="exit-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4">
-            <div class="bg-gray-800 p-6 rounded-2xl border border-red-500/50 text-center w-full max-w-sm shadow-2xl transform transition-all">
-                <div class="w-16 h-16 bg-red-500/20 rounded-fu
+    if(user && user.group) {
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-yellow-500 text-2xl"></i><p class="text-gray-400 text-xs mt-2">جاري جلب ترتيب الأبطال...</p></div>';
+        
+        db.collection("users").where("group", "==", user.group).orderBy("score", "desc").limit(20).get()
+        .then(snap => {
+            let html = '';
+            let rank = 1;
+            snap.forEach(doc => {
+                let d = doc.data();
+                let isMe = doc.id === user.id;
+                let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `<span class="text-gray-400 font-bold">${rank}</span>`;
+                
+                html += `
+                <div class="flex items-center justify-between p-3 rounded-xl mb-2 ${isMe ? 'bg-yellow-900/40 border border-yellow-500/50 shadow-[0_0_15px_rgba(212,175,55,0.2)]' : 'bg-gray-800/50 border border-gray-700'}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center border border-gray-700">${rankIcon}</div>
+                        <p class="font-bold ${isMe ? 'text-yellow-400' : 'text-gray-200'} text-sm">${d.name}</p>
+                    </div>
+                    <p class="font-black text-lg ${isMe ? 'text-yellow-400' : 'text-white'}">${d.score}</p>
+                </div>`;
+                rank++;
+            });
+            container.innerHTML = html || '<p class="text-center text-gray-400 text-sm">لا يوجد لاعبين في هذه المجموعة حتى الآن.</p>';
+        }).catch(err => {
+            console.error("Leaderboard Error:", err);
+            container.innerHTML = '<p class="text-center text-red-400 text-sm">حدث خطأ أثناء جلب الترتيب. تأكد من إعدادات قاعدة البيانات.</p>';
+        });
+    }
+}
+
+window.logoutUser = function() {
+    if(confirm("هل أنت متأكد أنك تريد الخروج من حسابك؟")) {
+        localStorage.removeItem('currentUser');
+        window.location.reload(); 
+    }
+}
+
+window.closeChampPopup = function() {
+    let popup = document.getElementById('champ-flying-popup');
+    if(popup) {
+        popup.style.opacity = '0';
+        popup.style.transform = 'translate(-50%, -40px)';
+        setTimeout(() => popup.style.display = 'none', 700);
+    }
+}
