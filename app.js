@@ -33,7 +33,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
             user = JSON.parse(localStorage.getItem('currentUser'));
-            if(!user || !user.id) throw new Error("No User");
+            // التعديل: لو مفيش مستخدم متسجل هيرجعه لصفحة اللوجن
+            if(!user || !user.id) {
+                window.location.replace("index.html");
+                return;
+            }
 
             if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -98,8 +102,9 @@ function initFirebaseData() {
         if(doc.exists) {
             adminDay = doc.data().currentDay || 1;
             adminStatus = doc.data().status || "closed";
-            updateLogs();
         }
+        // التعديل: استدعاء الخريطة بره الشرط عشان تترسم دايماً
+        updateLogs();
     });
 }
 
@@ -199,4 +204,5 @@ window.logoutUser = function() {
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('splashSeen'); 
     window.location.replace("index.html"); 
-}
+                }
+                    
