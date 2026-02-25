@@ -18,9 +18,6 @@
     <script defer src="app.js?v=200"></script>
     <script defer src="quiz.js?v=200"></script>
 
-    <script src="https://pl28752538.effectivegatecpm.com/c3/3c/34/c33c34082705fc844e7a83f1bbebcf42.js"></script>
-    <script src="https://pl28773459.effectivegatecpm.com/0c/2e/75/0c2e7503a2abb6a631fb27fdf3b7ae02.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; background-image: radial-gradient(circle at top right, #112240, #030712); background-attachment: fixed; overflow-x: hidden; }
@@ -30,7 +27,7 @@
         .day-active { border: 2px solid #ffd700; background: linear-gradient(145deg, rgba(212,175,55,0.1), rgba(0,0,0,0.8)); animation: neonPulse 2s infinite; cursor: pointer; }
         @keyframes neonPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
         
-        body.hide-ads #main-ui, body.hide-ads iframe, body.hide-ads ins { display: none !important; }
+        body.hide-ads #main-ui { display: none !important; }
         body.hide-ads { overflow: hidden !important; background: #030712 !important; }
 
         #quiz-overlay { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 2147483647 !important; display: none; align-items: center; justify-content: center; padding: 15px; }
@@ -58,23 +55,6 @@
 
     <div id="main-ui" class="hidden opacity-0 transition-opacity duration-1000 p-4 pb-24">
         
-        <div id="champ-flying-popup" class="fixed top-4 left-1/2 transform -translate-x-1/2 w-11/12 max-w-sm z-[5000] transition-all duration-700 opacity-0 -translate-y-10" style="display:none;">
-            <div id="champ-popup-card" class="bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 p-[2px] rounded-2xl shadow-[0_10px_40px_rgba(212,175,55,0.4)]">
-                <div class="bg-gray-900 rounded-[14px] p-4 flex flex-col relative overflow-hidden">
-                    <button onclick="closeChampPopup()" class="absolute top-2 left-3 text-gray-400 hover:text-white font-black text-xl">&times;</button>
-                    <div class="flex items-center gap-3 mb-2 border-b border-gray-800 pb-2">
-                        <div class="bg-yellow-500/20 p-2 rounded-full"><i class="fas fa-crown text-2xl text-yellow-400 animate-bounce"></i></div>
-                        <h2 class="text-lg font-black text-white">تحية لبطل اليوم!</h2>
-                    </div>
-                    <p id="champ-popup-text" class="text-yellow-400 font-bold text-sm leading-relaxed pr-1"></p>
-                </div>
-            </div>
-        </div>
-
-        <div class="sticky top-2 z-[4000] max-w-lg mx-auto mb-6">
-            <div id="daily-msg-box" class="bg-gradient-to-r from-blue-900/90 to-purple-900/90 border border-blue-500 p-3 rounded-2xl text-center text-sm text-blue-100 hidden shadow-[0_4px_20px_rgba(0,0,255,0.3)] font-bold backdrop-blur-md"></div>
-        </div>
-
         <div class="flex justify-between items-center max-w-lg mx-auto mb-4">
             <button onclick="logoutUser()" class="bg-gray-800/80 text-red-400 border border-red-900/50 px-5 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-red-900 hover:text-white transition-all"><i class="fas fa-power-off ml-1"></i> خروج</button>
             <img src="https://i.postimg.cc/9Fpp5TVC/IMG-20260217-031514.png" class="w-12 h-12 rounded-full border-2 border-yellow-500 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
@@ -141,7 +121,11 @@
             
             try {
                 let u = JSON.parse(localStorage.getItem('currentUser'));
-                if (u && u.name) splashName.innerText = u.name.split(' ')[0];
+                if (u && u.name) {
+                    splashName.innerText = u.name.split(' ')[0];
+                } else {
+                    splashName.innerText = "يا بطل";
+                }
             } catch(e) {}
 
             if (!sessionStorage.getItem('splashSeen')) {
@@ -161,5 +145,5 @@
         });
     </script>
 </body>
-  </html>
-                                        
+    </html>
+                
