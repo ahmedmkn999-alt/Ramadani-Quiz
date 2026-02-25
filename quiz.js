@@ -382,17 +382,9 @@ function endQuiz(isForceExit = false) {
         } else {
             setTimeout(() => { window.location.reload(); }, 2500);
         }
-    }).catch(error => {
-        if(!isForceExit) alert("خطأ في الحفظ! جرب تسجل خروج وتدخل تاني.");
-        document.body.classList.remove('hide-ads');
+    }).catch(e => {
+        alert("حصلت مشكلة في حفظ النتيجة، حاول تاني.");
+        console.error(e);
+        window.location.reload();
     });
 }
-
-window.closeQuizAndRefresh = function() {
-    closeQuizOverlay();
-    window.location.reload(); 
-}
-
-window.addEventListener('beforeunload', function (e) {
-    if (isQuizActive) { endQuiz(true); e.preventDefault(); e.returnValue = ''; }
-});
