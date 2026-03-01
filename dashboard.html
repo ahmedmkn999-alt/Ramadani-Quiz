@@ -8,58 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { background-color: #0b1120; font-family: 'Cairo', sans-serif; color: white; margin: 0; overflow-x: hidden; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
         
-        body { 
-            background-color: #0b1120; 
-            font-family: 'Cairo', sans-serif; 
-            color: white; 
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
+        /* 🏮 أنيميشن الفانوس */
+        @keyframes swing-mini { 0% { transform: rotate(7deg); } 50% { transform: rotate(-7deg); } 100% { transform: rotate(7deg); } }
+        .fanous-mini { width: 28px; transform-origin: top center; animation: swing-mini 2.5s ease-in-out infinite; position: absolute; right: -8px; top: -12px; z-index: 20; }
 
-        .glass-card { 
-            background: rgba(30, 41, 59, 0.7); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255,255,255,0.05); 
-        }
-
-        /* 🏮 أنيميشن الفانوس الصغير (زي اتصالات) */
-        @keyframes swing-mini {
-            0% { transform: rotate(7deg); }
-            50% { transform: rotate(-7deg); }
-            100% { transform: rotate(7deg); }
-        }
-
-        .fanous-mini {
-            width: 28px;
-            transform-origin: top center;
-            animation: swing-mini 2.5s ease-in-out infinite;
-            position: absolute;
-            right: -8px;
-            top: -12px;
-            z-index: 20;
-            filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6));
-        }
-
-        /* تنسيق التبويبات */
-        .tab-btn { transition: all 0.3s ease; }
-        .tab-btn.active { 
-            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); 
-            color: black; 
-            font-weight: 900; 
-            box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
-        }
-
-        /* تنسيق الجولات النشطة */
-        .day-active { 
-            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); 
-            box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); 
-            border: 2px solid #fde047; 
-            color: black ! shadow;
-        }
-
-        /* إخفاء السكرول بار */
+        .tab-btn.active { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: black; font-weight: 900; }
+        .day-active { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: black; border: 2px solid #fde047; }
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -70,103 +27,74 @@
             <i class="fas fa-power-off text-sm"></i> خروج
         </button>
         <div class="flex gap-3">
-            <div class="bg-gray-800/80 px-4 py-2 rounded-xl border border-gray-700 flex items-center gap-2">
-                <span id="inv-5050" class="text-purple-400 font-black">0</span> 
-                <i class="fas fa-cut text-purple-400 text-xs"></i>
+            <div class="bg-gray-800 px-4 py-2 rounded-xl border border-gray-700 flex items-center gap-2">
+                <span id="inv-5050" class="text-purple-400 font-black">0</span> <i class="fas fa-cut text-purple-400 text-xs"></i>
             </div>
-            <div class="bg-gray-800/80 px-4 py-2 rounded-xl border border-gray-700 flex items-center gap-2">
-                <span id="inv-freeze" class="text-blue-400 font-black">0</span> 
-                <i class="fas fa-snowflake text-blue-400 text-xs"></i>
+            <div class="bg-gray-800 px-4 py-2 rounded-xl border border-gray-700 flex items-center gap-2">
+                <span id="inv-freeze" class="text-blue-400 font-black">0</span> <i class="fas fa-snowflake text-blue-400 text-xs"></i>
             </div>
         </div>
     </div>
 
     <div class="px-6 mb-8">
-        <div class="glass-card p-6 rounded-[35px] flex items-center justify-between relative border-b-4 border-yellow-500/30">
+        <div class="glass-card p-6 rounded-[35px] flex items-center justify-between relative">
             <div class="relative">
-                <img src="https://i.ibb.co/m0Ym8pL/fanous.png" class="fanous-mini" alt="fanous">
+                <img src="https://i.ibb.co/m0Ym8pL/fanous.png" class="fanous-mini">
                 <div class="w-16 h-16 rounded-full border-2 border-yellow-500 p-1 bg-gray-900">
-                    <img id="user-avatar" src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-full h-full rounded-full object-cover">
+                    <img id="user-avatar" src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-full h-full rounded-full">
                 </div>
             </div>
-            
             <div class="flex-1 mr-4">
-                <h2 id="p-name" class="font-black text-xl text-white truncate w-32">جاري التحميل...</h2>
-                <p id="p-group" class="text-gray-400 text-[10px] font-bold tracking-widest uppercase">الفريق الملكي</p>
+                <h2 id="p-name" class="font-black text-xl truncate w-32 text-white">تحميل...</h2>
+                <p id="p-group" class="text-gray-400 text-[10px] font-bold">المجموعة</p>
             </div>
-
-            <div class="text-center bg-black/40 px-5 py-3 rounded-2xl border border-white/5 shadow-inner">
-                <p class="text-[9px] text-gray-500 font-black uppercase">إجمالي النقاط</p>
-                <p id="p-score" class="text-2xl font-black text-yellow-500 leading-none mt-1">0</p>
+            <div class="text-center bg-black/40 px-5 py-3 rounded-2xl border border-white/5">
+                <p class="text-[9px] text-gray-400 font-black uppercase">النقاط</p>
+                <p id="p-score" class="text-2xl font-black text-yellow-500">0</p>
             </div>
         </div>
-    </div>
-
-    <div id="wheel-section" class="px-6 mb-8 text-center hidden">
-         <button onclick="openSpinWheel()" class="relative inline-block group">
-            <div class="absolute -top-2 -right-2 bg-red-500 text-[10px] font-bold px-2 py-1 rounded-full text-white z-10" id="streak-badge">0/3</div>
-            <img src="https://cdn-icons-png.flaticon.com/512/8147/8147057.png" class="w-16 h-16 animate-bounce">
-            <p class="text-[10px] font-black text-yellow-500 mt-1">عجلة الهدايا</p>
-         </button>
     </div>
 
     <div class="px-6 flex gap-2 mb-6">
-        <button id="btn-arena" onclick="showTab('arena')" class="tab-btn active flex-1 py-4 rounded-2xl font-black flex items-center justify-center gap-2">
-            <i class="fas fa-map-marked-alt"></i> الخريطة
-        </button>
-        <button id="btn-leader" onclick="showTab('leaderboard')" class="tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400 flex items-center justify-center gap-2">
-            <i class="fas fa-trophy"></i> المجموعة
-        </button>
+        <button id="btn-arena" onclick="showTab('arena')" class="tab-btn active flex-1 py-4 rounded-2xl font-black">🗺️ الخريطة</button>
+        <button id="btn-leader" onclick="showTab('leaderboard')" class="tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400">🏆 المجموعة</button>
     </div>
 
     <div id="view-arena" class="px-6 space-y-4">
-        <div class="text-center py-10 opacity-20">
-            <i class="fas fa-spinner fa-spin text-3xl"></i>
         </div>
-    </div>
 
     <div id="view-leaderboard" class="px-6 hidden">
-        <div class="glass-card rounded-[30px] p-2">
-            <div class="bg-black/20 p-4 rounded-t-[25px] border-b border-white/5 mb-2">
-                <h3 class="text-center font-black text-yellow-500">🏆 ترتيب مجموعتك</h3>
+        <div id="group-list" class="space-y-2"></div>
+    </div>
+
+    <div id="quiz-overlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6">
+        <div id="quiz-content" class="w-full max-w-md">
             </div>
-            <div id="group-list" class="space-y-2 p-2 max-h-[400px] overflow-y-auto">
-                </div>
-        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <script src="app.js"></script>
+    <script src="quiz.js"></script> 
 
     <script>
-        // دالة إضافية للتأكد من التبديل السلس بين التبويبات
-        window.showTab = function(tab) {
-            const arena = document.getElementById('view-arena');
-            const leader = document.getElementById('view-leaderboard');
-            const btnArena = document.getElementById('btn-arena');
-            const btnLeader = document.getElementById('btn-leader');
-
-            if(tab === 'arena') {
-                arena.classList.remove('hidden');
-                leader.classList.add('hidden');
-                btnArena.classList.add('active');
-                btnArena.classList.remove('bg-gray-800', 'text-gray-400');
-                btnLeader.classList.remove('active');
-                btnLeader.classList.add('bg-gray-800', 'text-gray-400');
+        // دالة الدخول للجولة (تصحيح العطل)
+        window.goToQuiz = function(day) {
+            console.log("Entering Day:", day);
+            if (typeof openQuiz === 'function') {
+                openQuiz(day);
             } else {
-                arena.classList.add('hidden');
-                leader.classList.remove('hidden');
-                btnLeader.classList.add('active');
-                btnLeader.classList.remove('bg-gray-800', 'text-gray-400');
-                btnArena.classList.remove('active');
-                btnArena.classList.add('bg-gray-800', 'text-gray-400');
-                // استدعاء دالة تحديث الترتيب من app.js إذا كانت موجودة
-                if(typeof fetchLeaderboard === 'function') fetchLeaderboard();
+                alert("خطأ: لم يتم تحميل ملف الأسئلة بعد، انتظر ثانية وحاول مجدداً.");
             }
+        }
+
+        window.showTab = function(tab) {
+            document.getElementById('view-arena').classList.toggle('hidden', tab !== 'arena');
+            document.getElementById('view-leaderboard').classList.toggle('hidden', tab !== 'leaderboard');
+            document.getElementById('btn-arena').className = tab === 'arena' ? 'tab-btn active flex-1 py-4 rounded-2xl font-black' : 'tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400';
+            document.getElementById('btn-leader').className = tab === 'leaderboard' ? 'tab-btn active flex-1 py-4 rounded-2xl font-black' : 'tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400';
         }
     </script>
 </body>
-                </html>
-                
+</html>
