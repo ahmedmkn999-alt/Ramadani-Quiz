@@ -6,38 +6,70 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b1120">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/QN7YYDZb/1772330473684.png">
-    <title>ملعب رمضان | RAMADAN QUIZ</title>
+    
+    <title>ملعب رمضان | تسجيل الدخول</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { background-color: #0b1120; color: white; font-family: 'Cairo', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 10% 10%, rgba(212, 175, 55, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.15) 0%, transparent 40%); }
-        .glass-card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.2); width: 90%; max-width: 380px; border-radius: 2.5rem; padding: 2.5rem; }
-        .logo-img { width: 120px; height: 120px; margin: 0 auto 1.5rem; border-radius: 50%; border: 3px solid #ca8a04; object-fit: cover; box-shadow: 0 0 25px rgba(202, 138, 4, 0.4); }
-        .btn-gold { background: linear-gradient(135deg, #ca8a04, #eab308); color: #000; font-weight: 900; }
-        .btn-green { background: #10b981 !important; color: white !important; font-weight: 900; }
-        #install-overlay { position: fixed; inset: 0; background: rgba(11, 17, 32, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
+        body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 80%); }
+        
+        /* انيميشن لرسالة الآيفون */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .ios-guide { animation: slideUp 0.5s ease-out; border-radius: 30px 30px 0 0; }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-glow"></div>
-    <div id="login-container" class="glass-card text-center">
-        <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-img">
-        <h1 class="text-3xl font-black mb-1 italic">RAMADAN QUIZ</h1>
-        <p class="text-yellow-500 text-[11px] font-bold mb-8 tracking-[0.2em]">The Ultimate Challenge</p>
-        <div class="space-y-4">
-            <input type="password" id="login-pass" placeholder="أدخل كود الدخول" class="bg-black/40 border border-white/10 w-full p-4 rounded-2xl text-center font-black text-2xl text-yellow-400">
-            <button onclick="loginUser()" id="login-btn" class="btn-gold w-full py-4 rounded-2xl text-xl">دخول الملعب ⚽</button>
+
+    <div id="login-box" class="glass-card p-8 rounded-[40px] w-full max-w-sm text-center shadow-2xl relative">
+        <div class="absolute -top-12 left-1/2 -translate-x-1/2">
+            <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-24 h-24 rounded-full border-4 border-yellow-500 shadow-[0_0_20px_rgba(212,175,55,0.5)]">
         </div>
-        <p id="error-msg" class="text-red-500 text-xs mt-4 font-bold opacity-0 transition-opacity"></p>
+        
+        <h1 class="text-3xl font-black mt-10 mb-2 text-white italic">RAMADAN QUIZ</h1>
+        <p class="text-yellow-500 text-[10px] font-bold tracking-[0.3em] mb-8 uppercase">The Ultimate Challenge</p>
+
+        <div class="space-y-4">
+            <div class="relative">
+                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <input type="password" id="login-pass" placeholder="كود الدخول" 
+                    class="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl text-center font-black text-2xl text-yellow-400 focus:border-yellow-500 outline-none transition-all">
+            </div>
+            
+            <button onclick="handleLoginAttempt()" id="login-btn" 
+                class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
+                دخول الملعب ⚽
+            </button>
+        </div>
+        <p id="error-msg" class="text-red-500 text-xs mt-4 font-bold hidden"></p>
     </div>
 
-    <div id="install-overlay">
-        <div class="glass-card text-center">
-            <h2 class="text-3xl font-black text-white mb-3">ثبت التطبيق! 🚀</h2>
-            <p id="install-text" class="text-gray-400 text-sm mb-8 font-bold leading-relaxed">عشان تدخل الملعب علطول وتلعب بدون تقطيع، ثبت التطبيق دلوقتي.</p>
-            <button id="real-install-btn" onclick="triggerInstall()" class="btn-green w-full py-5 rounded-2xl text-xl mb-4">تثبيت الآن</button>
-            <button onclick="skipToDashboard()" class="text-gray-500 underline text-sm font-bold">متابعة للموقع بدون تثبيت</button>
+    <div id="ios-overlay" class="fixed inset-0 bg-black/90 z-[9999] hidden flex-col justify-end">
+        <div class="ios-guide bg-gray-900 p-8 text-center border-t-2 border-yellow-500">
+            <div class="w-16 h-1 bg-gray-700 mx-auto rounded-full mb-6"></div>
+            <h2 class="text-2xl font-black text-white mb-4">ثبت التطبيق للدخول! 📱</h2>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed">عشان نظام مكافحة الغش، لازم تدخل من التطبيق مش المتصفح. اتبع الخطوات:</p>
+            
+            <div class="space-y-6 mb-10 text-right inline-block">
+                <div class="flex items-center gap-4">
+                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">1</div>
+                    <p class="text-white font-bold text-sm">اضغط على زر المشاركة <i class="fa-solid fa-arrow-up-from-bracket text-blue-400 mx-1"></i> في الأسفل</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
+                    <p class="text-white font-bold text-sm">اختر "إضافة إلى الشاشة الرئيسية" <i class="fa-regular fa-square-plus text-gray-300 mx-1"></i></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">3</div>
+                    <p class="text-white font-bold text-sm">افتح اللعبة من الأيقونة اللي ظهرت برا</p>
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('ios-overlay').style.display='none'" class="w-full bg-gray-800 text-white font-black py-4 rounded-2xl mb-4">فهمت</button>
         </div>
     </div>
 
@@ -48,46 +80,36 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let deferredPrompt;
+        // فحص وضع التشغيل (تطبيق ولا متصفح)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
+        function handleLoginAttempt() {
+            const pass = document.getElementById('login-pass').value.trim();
+            const errorEl = document.getElementById('error-msg');
 
-        function loginUser() {
-            const p = document.getElementById('login-pass').value.trim();
-            if (!p) return alert("اكتب الكود!");
-            
-            db.collection("users").where("password", "==", p).get().then(snap => {
-                if (snap.empty) return alert("كود خطأ!");
-                const user = snap.docs[0].data();
-                localStorage.setItem('currentUser', JSON.stringify({id: snap.docs[0].id, ...user}));
-                
-                if (isApp) {
-                    window.location.href = 'dashboard.html';
+            // 🛡️ حماية: لو مش تطبيق، اظهره رسالة التثبيت
+            if (!isStandalone) {
+                if (isIOS) {
+                    document.getElementById('ios-overlay').style.display = 'flex';
                 } else {
-                    document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('install-overlay').style.display = 'flex';
-                    if(isIOS) {
-                        document.getElementById('install-text').innerText = "للآيفون: اضغط على زر المشاركة بالأسفل ثم (Add to Home Screen) ➕";
-                        document.getElementById('real-install-btn').style.display = 'none';
-                    }
+                    alert("⛔ يجب تثبيت التطبيق أولاً (Install App) من خيارات المتصفح لمنع الغش.");
+                }
+                return;
+            }
+
+            if (!pass) return;
+
+            db.collection("users").where("password", "==", pass).get().then(snap => {
+                if (snap.empty) {
+                    errorEl.innerText = "❌ كود غير صحيح يا بطل";
+                    errorEl.classList.remove('hidden');
+                } else {
+                    const user = snap.docs[0].data();
+                    localStorage.setItem('currentUser', JSON.stringify({id: snap.docs[0].id, ...user}));
+                    window.location.href = 'dashboard.html';
                 }
             });
-        }
-
-        function skipToDashboard() { window.location.href = 'dashboard.html'; }
-        
-        function triggerInstall() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(c => { if(c.outcome==='accepted') skipToDashboard(); });
-            } else {
-                alert("اضغط على خيارات المتصفح ثم Install App");
-            }
         }
     </script>
 </body>
