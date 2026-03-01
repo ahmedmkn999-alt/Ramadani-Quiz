@@ -1,3 +1,12 @@
+// 1. نظام الحماية الذكي: التأكد إن المستخدم داخل من "أيقونة التطبيق" المنصبة
+const isInApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+// لو المستخدم فاتح من المتصفح (مش من التطبيق)، رجعه لصفحة الدخول عشان تظهرله رسالة التثبيت
+if (!isInApp) {
+    window.location.replace('index.html');
+}
+
+// 2. إعدادات Firebase
 const firebaseConfig = { 
     apiKey: "AIzaSyBZMnIJ_IOqeAfXqFt-m4tM1Lvo0tUDnk8", 
     projectId: "ramadan-87817", 
@@ -9,7 +18,7 @@ let adminDay = 1, adminStatus = "closed";
 let logsUnsubscribe = null;
 window.myPowerups = { freeze: 0, fifty50: 0 }; 
 
-// دالة الرسايل الشيك
+// 3. نظام التنبيهات الشيك (Alerts)
 window.showAlert = function(title, msg, icon = "🔔", type = "normal") {
     let box = document.getElementById('custom-alert');
     document.getElementById('alert-title').innerText = title;
@@ -35,6 +44,7 @@ window.closeCustomAlert = function() {
     }, 200);
 }
 
+// 4. تهيئة البيانات عند التحميل
 window.addEventListener('DOMContentLoaded', () => {
     try {
         user = JSON.parse(localStorage.getItem('currentUser'));
@@ -78,6 +88,7 @@ function updateLogs() {
     });
 }
 
+// 5. التحكم في التبويبات (الخريطة / المتصدرين)
 window.showTab = function(t) {
     let arena = document.getElementById('view-arena');
     let leader = document.getElementById('view-leaderboard');
@@ -129,9 +140,7 @@ function fetchLeaderboard() {
 
 window.logoutUser = function() { localStorage.removeItem('currentUser'); window.location.replace("index.html"); }
 
-// ==========================================
-// العجلة (التحديث الجديد للعداد)
-// ==========================================
+// 6. نظام عجلة الحظ (Streak + Probability)
 function setupWheelTimer() {
     let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id)) || { streak: 0, lastLogin: null };
     let today = new Date();
@@ -140,8 +149,7 @@ function setupWheelTimer() {
     if (wheelData.lastLogin) {
         let lastLogin = new Date(wheelData.lastLogin);
         lastLogin.setHours(0,0,0,0);
-        let diffTime = Math.abs(today - lastLogin);
-        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        let diffDays = Math.floor(Math.abs(today - lastLogin) / (1000 * 60 * 60 * 24));
         
         if (diffDays === 1) { 
             if (wheelData.streak < 3) wheelData.streak++;
@@ -155,7 +163,6 @@ function setupWheelTimer() {
         wheelData.lastLogin = today.toISOString();
     }
     localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
-
     document.getElementById('streak-badge').innerText = `${wheelData.streak}/3`;
 }
 
@@ -165,27 +172,25 @@ window.openSpinWheel = function() {
     let controls = document.getElementById('wheel-controls');
     
     if (wheelData.streak >= 3) {
-        controls.innerHTML = `<button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-[0_10px_20px_rgba(212,175,55,0.4)] hover:scale-[1.02] transition-all text-xl border border-yellow-300">لف العجلة الأسطورية! 🎰</button>`;
+        controls.innerHTML = `<button id="spin-btn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black font-black py-4 rounded-xl shadow-lg text-xl">لف العجلة الأسطورية! 🎰</button>`;
     } else {
         controls.innerHTML = `
-            <div class="bg-gray-800/80 border border-gray-700 p-4 rounded-xl">
+            <div class="bg-gray-800/80 p-4 rounded-xl">
                 <p class="text-gray-300 font-bold mb-2">للدوران، لازم تدخل ${3 - wheelData.streak} أيام كمان ورا بعض!</p>
                 <div class="bg-gray-900 rounded-lg py-2">
                     <p id="wheel-timer-inside" class="text-yellow-400 font-black text-2xl tracking-widest font-mono">--:--:--</p>
-                    <p class="text-xs text-gray-500 font-bold mt-1">يتبقى على اليوم القادم</p>
                 </div>
             </div>
         `;
-        
         setInterval(() => {
             let el = document.getElementById('wheel-timer-inside');
             if(el) {
                 let now = new Date();
                 let tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
                 let diff = tomorrow - now;
-                let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-                let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-                let s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                let h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                let m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                let s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
                 el.innerText = `${h}:${m}:${s}`;
             }
         }, 1000);
@@ -199,50 +204,48 @@ window.spinWheel = function() {
     if(isSpinning) return;
     isSpinning = true;
     let wheel = document.getElementById('wheel-spinner');
-    let btn = document.getElementById('spin-btn');
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
-    btn.innerText = "جاري اللف...";
     
+    // نظام الاحتمالات (20 نقطة نادرة جداً بنسبة 2%)
     let prizes = [
-        { text: "50 نقطة", points: 50, item: null, angle: 330 },
-        { text: "حذف إجابتين", points: 0, item: 'fifty50', angle: 270 },
-        { text: "20 نقطة", points: 20, item: null, angle: 210 },
-        { text: "تجميد الوقت", points: 0, item: 'freeze', angle: 150 },
-        { text: "10 نقاط", points: 10, item: null, angle: 90 },
-        { text: "حظ أوفر", points: 0, item: null, angle: 30 }
+        { text: "50 نقطة", points: 50, item: null, angle: 330, chance: 5 }, 
+        { text: "حذف إجابتين", points: 0, item: 'fifty50', angle: 270, chance: 25 }, 
+        { text: "20 نقطة", points: 20, item: null, angle: 210, chance: 2 }, 
+        { text: "تجميد الوقت", points: 0, item: 'freeze', angle: 150, chance: 28 }, 
+        { text: "10 نقاط", points: 10, item: null, angle: 90, chance: 20 }, 
+        { text: "حظ أوفر", points: 0, item: null, angle: 30, chance: 20 } 
     ];
     
-    let winIndex = Math.floor(Math.random() * prizes.length);
-    let prize = prizes[winIndex];
-    let spinDegrees = (360 * 5) + prize.angle; 
+    let rand = Math.random() * 100;
+    let sum = 0;
+    let winIndex = 0;
     
-    wheel.style.transform = `rotate(${spinDegrees}deg)`;
+    for (let i = 0; i < prizes.length; i++) {
+        sum += prizes[i].chance;
+        if (rand <= sum) { winIndex = i; break; }
+    }
+    
+    let prize = prizes[winIndex];
+    wheel.style.transform = `rotate(${(360 * 6) + prize.angle}deg)`;
     
     setTimeout(() => {
         isSpinning = false;
-        
         let wheelData = JSON.parse(localStorage.getItem('wheelData_' + user.id));
         wheelData.streak = 0; 
         localStorage.setItem('wheelData_' + user.id, JSON.stringify(wheelData));
         
         if (prize.text === "حظ أوفر") {
-            window.showAlert("حظ أوفر!", "معلش يا بطل، حظك أحسن المرة الجاية. كمل ستريك وهتكسب.", "😔", "normal");
+            window.showAlert("حظ أوفر!", "معلش يا بطل، حاول تاني المرة الجاية.", "😔");
         } else {
-            window.showAlert("مبرووووك!", `أنت كسبت: ${prize.text} 🎁`, "🎉", "success");
-            if(window.confetti) confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }});
+            window.showAlert("مبروك!", `كسبت: ${prize.text} 🎁`, "🎉", "success");
+            if(window.confetti) confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }});
             
             if (prize.points > 0) {
                 db.collection("users").doc(user.id).update({ score: firebase.firestore.FieldValue.increment(prize.points) });
-            } else if (prize.item === 'freeze') {
-                window.myPowerups.freeze += 1;
-                db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
-            } else if (prize.item === 'fifty50') {
-                window.myPowerups.fifty50 += 1;
+            } else {
+                window.myPowerups[prize.item]++;
                 db.collection("users").doc(user.id).update({ powerups: window.myPowerups });
             }
         }
-        
         setTimeout(() => { location.reload(); }, 3500); 
     }, 4000); 
-                                    }
-            
+}
