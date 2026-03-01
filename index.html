@@ -6,149 +6,38 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b1120">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/QN7YYDZb/1772330473684.png">
-    
     <title>ملعب رمضان | RAMADAN QUIZ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        
-        body { 
-            background-color: #0b1120;
-            color: white; 
-            font-family: 'Cairo', sans-serif; 
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        /* توهج الخلفية الاحترافي */
-        .bg-glow {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 10% 10%, rgba(212, 175, 55, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.15) 0%, transparent 40%);
-        }
-
-        /* كارت التصميم الزجاجي */
-        .glass-card {
-            background: rgba(17, 24, 39, 0.8);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 380px;
-            border-radius: 2.5rem;
-            padding: 2.5rem;
-        }
-
-        .logo-container {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 1.5rem;
-        }
-
-        .logo-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid #ca8a04;
-            object-fit: cover;
-            box-shadow: 0 0 25px rgba(202, 138, 4, 0.4);
-        }
-
-        /* ستايل المدخلات */
-        .input-field {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #facc15;
-            transition: all 0.3s ease;
-        }
-
-        .input-field:focus {
-            border-color: #eab308;
-            box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
-            outline: none;
-        }
-
-        /* الزراير عشان تظهر بالألوان صح في كل المتصفحات */
-        .btn-gold {
-            background: linear-gradient(135deg, #ca8a04, #eab308);
-            color: #000;
-            font-weight: 900;
-            box-shadow: 0 10px 20px rgba(202, 138, 4, 0.3);
-        }
-
-        .btn-green {
-            background: #10b981 !important; /* لون أخضر صريح */
-            color: white !important;
-            font-weight: 900;
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-green:active { transform: scale(0.98); }
-
-        /* شاشة التثبيت */
-        #install-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(11, 17, 32, 0.98);
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-            backdrop-blur: 10px;
-        }
+        body { background-color: #0b1120; color: white; font-family: 'Cairo', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 10% 10%, rgba(212, 175, 55, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.15) 0%, transparent 40%); }
+        .glass-card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.2); width: 90%; max-width: 380px; border-radius: 2.5rem; padding: 2.5rem; }
+        .logo-img { width: 120px; height: 120px; margin: 0 auto 1.5rem; border-radius: 50%; border: 3px solid #ca8a04; object-fit: cover; box-shadow: 0 0 25px rgba(202, 138, 4, 0.4); }
+        .btn-gold { background: linear-gradient(135deg, #ca8a04, #eab308); color: #000; font-weight: 900; }
+        .btn-green { background: #10b981 !important; color: white !important; font-weight: 900; }
+        #install-overlay { position: fixed; inset: 0; background: rgba(11, 17, 32, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
     </style>
 </head>
 <body>
     <div class="bg-glow"></div>
-
-    <div id="login-container" class="glass-card text-center transition-all duration-500">
-        <div class="logo-container">
-            <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-img">
-        </div>
-        
-        <h1 class="text-3xl font-black mb-1 text-white italic">RAMADAN QUIZ</h1>
-        <p class="text-yellow-500 text-[11px] font-bold mb-8 uppercase tracking-[0.2em]">The Ultimate Challenge</p>
-
+    <div id="login-container" class="glass-card text-center">
+        <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-img">
+        <h1 class="text-3xl font-black mb-1 italic">RAMADAN QUIZ</h1>
+        <p class="text-yellow-500 text-[11px] font-bold mb-8 tracking-[0.2em]">The Ultimate Challenge</p>
         <div class="space-y-4">
-            <input type="password" id="login-pass" placeholder="أدخل كود الدخول" 
-                class="input-field w-full p-4 rounded-2xl text-center font-black text-2xl shadow-inner">
-            
-            <button onclick="loginUser()" id="login-btn" 
-                class="btn-gold w-full py-4 rounded-2xl transition-all text-xl">
-                دخول الملعب ⚽
-            </button>
+            <input type="password" id="login-pass" placeholder="أدخل كود الدخول" class="bg-black/40 border border-white/10 w-full p-4 rounded-2xl text-center font-black text-2xl text-yellow-400">
+            <button onclick="loginUser()" id="login-btn" class="btn-gold w-full py-4 rounded-2xl text-xl">دخول الملعب ⚽</button>
         </div>
-        
         <p id="error-msg" class="text-red-500 text-xs mt-4 font-bold opacity-0 transition-opacity"></p>
     </div>
 
     <div id="install-overlay">
-        <div class="glass-card text-center border-white/5">
-            <div class="logo-container">
-                <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-img">
-            </div>
-            
+        <div class="glass-card text-center">
             <h2 class="text-3xl font-black text-white mb-3">ثبت التطبيق! 🚀</h2>
-            <p class="text-gray-400 text-sm mb-8 font-bold leading-relaxed px-2">
-                عشان تدخل الملعب علطول المرة الجاية وتلعب بدون تقطيع، ثبت التطبيق دلوقتي.
-            </p>
-            
-            <button onclick="triggerInstall()" 
-                class="btn-green w-full py-5 rounded-2xl text-xl shadow-2xl">
-                تثبيت الآن
-            </button>
+            <p id="install-text" class="text-gray-400 text-sm mb-8 font-bold leading-relaxed">عشان تدخل الملعب علطول وتلعب بدون تقطيع، ثبت التطبيق دلوقتي.</p>
+            <button id="real-install-btn" onclick="triggerInstall()" class="btn-green w-full py-5 rounded-2xl text-xl mb-4">تثبيت الآن</button>
+            <button onclick="skipToDashboard()" class="text-gray-500 underline text-sm font-bold">متابعة للموقع بدون تثبيت</button>
         </div>
     </div>
 
@@ -160,75 +49,44 @@
         const db = firebase.firestore();
 
         let deferredPrompt;
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        // ميزة حفظ واسترجاع الكود
-        window.onload = function() {
-            const savedPass = localStorage.getItem('savedUserPass');
-            if (savedPass) {
-                document.getElementById('login-pass').value = savedPass;
-            }
-        };
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
         });
 
-        // دخول تلقائي لو فاتح من التطبيق
-        if (isApp && localStorage.getItem('currentUser')) {
-            window.location.replace('dashboard.html');
-        }
-
         function loginUser() {
             const p = document.getElementById('login-pass').value.trim();
-            const err = document.getElementById('error-msg');
-            const btn = document.getElementById('login-btn');
+            if (!p) return alert("اكتب الكود!");
             
-            if (!p) { showErr("⚠️ اكتب الكود أولاً!"); return; }
-            
-            btn.innerText = "جاري التحقق...";
-            btn.disabled = true;
-
             db.collection("users").where("password", "==", p).get().then(snap => {
-                if (snap.empty) {
-                    showErr("❌ كود غير صحيح!");
-                    btn.innerText = "دخول الملعب ⚽";
-                    btn.disabled = false;
+                if (snap.empty) return alert("كود خطأ!");
+                const user = snap.docs[0].data();
+                localStorage.setItem('currentUser', JSON.stringify({id: snap.docs[0].id, ...user}));
+                
+                if (isApp) {
+                    window.location.href = 'dashboard.html';
                 } else {
-                    const user = snap.docs[0].data();
-                    if (user.isBanned) {
-                        showErr("⛔ حسابك محظور!");
-                        btn.disabled = false;
-                    } else {
-                        localStorage.setItem('savedUserPass', p);
-                        localStorage.setItem('currentUser', JSON.stringify({id: snap.docs[0].id, ...user}));
-                        
-                        if (isApp) {
-                            window.location.replace('dashboard.html');
-                        } else {
-                            document.getElementById('login-container').classList.add('hidden');
-                            document.getElementById('install-overlay').style.display = 'flex';
-                        }
+                    document.getElementById('login-container').classList.add('hidden');
+                    document.getElementById('install-overlay').style.display = 'flex';
+                    if(isIOS) {
+                        document.getElementById('install-text').innerText = "للآيفون: اضغط على زر المشاركة بالأسفل ثم (Add to Home Screen) ➕";
+                        document.getElementById('real-install-btn').style.display = 'none';
                     }
                 }
-            }).catch(() => { showErr("خطأ في الاتصال!"); btn.disabled = false; });
+            });
         }
 
-        function showErr(msg) {
-            const err = document.getElementById('error-msg');
-            err.innerText = msg;
-            err.style.opacity = '1';
-        }
-
+        function skipToDashboard() { window.location.href = 'dashboard.html'; }
+        
         function triggerInstall() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choice) => {
-                    if (choice.outcome === 'accepted') window.location.replace('dashboard.html');
-                });
+                deferredPrompt.userChoice.then(c => { if(c.outcome==='accepted') skipToDashboard(); });
             } else {
-                alert("اضغط على الثلاث نقاط بالأعلى ثم (Install App) أو (إضافة للشاشة الرئيسية).");
+                alert("اضغط على خيارات المتصفح ثم Install App");
             }
         }
     </script>
