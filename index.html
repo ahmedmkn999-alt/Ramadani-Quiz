@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a0f1d">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/QN7YYDZb/1772330473684.png">
     
-    <title>كويز الرمضاني | تسجيل الدخول</title>
+    <title>ملعب رمضان | تسجيل الدخول</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -36,16 +36,19 @@
         <p id="error-msg" class="text-red-500 text-sm mt-4 font-bold hidden"></p>
     </div>
 
-    <div id="install-overlay" class="fixed inset-0 bg-black/90 z-[999999] hidden flex-col items-center justify-center p-4 backdrop-blur-xl">
-        <div class="login-box p-8 rounded-3xl w-full max-w-sm text-center border-2 border-yellow-500 relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500 blur-[80px] rounded-full opacity-40"></div>
-            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600 blur-[80px] rounded-full opacity-40"></div>
-
-            <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-fix w-28 h-28 mx-auto border-2 border-yellow-500 mb-6 relative z-10">
-            <h2 class="text-3xl font-black text-white mb-2 relative z-10">ثبت التطبيق! 🚀</h2>
-            <p class="text-gray-300 text-sm mb-8 font-bold relative z-10">عشان تدخل الملعب علطول المرة الجاية وتلعب بدون تقطيع، ثبت التطبيق دلوقتي.</p>
-            <button onclick="triggerInstall()" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-black py-4 rounded-xl text-xl mb-4 relative z-10 shadow-lg hover:scale-105 transition-transform">تثبيت الآن</button>
-            <button onclick="goToDashboard()" class="text-gray-400 text-sm font-bold underline relative z-10">متابعة للموقع بدون تثبيت (مرة واحدة)</button>
+    <div id="install-overlay" class="fixed inset-0 bg-[#0b1120] z-[999999] hidden flex-col items-center justify-center p-4">
+        <div class="bg-[#111827] relative overflow-hidden w-full max-w-sm p-8 rounded-[2rem] border border-gray-800 shadow-2xl text-center">
+            
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-600/30 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600/30 rounded-full blur-2xl"></div>
+            
+            <div class="relative z-10">
+                <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="logo-fix w-28 h-28 mx-auto border-4 border-yellow-500 mb-6 shadow-[0_0_15px_rgba(234,179,8,0.4)]">
+                <h2 class="text-3xl font-black text-white mb-2">ثبت التطبيق! 🚀</h2>
+                <p class="text-gray-300 text-sm mb-8 font-bold leading-relaxed">عشان تدخل الملعب علطول المرة الجاية وتلعب بدون تقطيع، ثبت التطبيق دلوقتي.</p>
+                
+                <button onclick="triggerInstall()" class="w-full bg-[#10b981] hover:bg-[#059669] text-white text-xl font-black py-4 rounded-2xl shadow-[0_0_15px_rgba(16,185,129,0.3)] transition transform hover:scale-105">تثبيت الآن</button>
+            </div>
         </div>
     </div>
 
@@ -57,13 +60,16 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // فحص ذكي: لو داخل من التطبيق مش هيشوف شاشة التثبيت
+        // فحص وضع التطبيق
         const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         let deferredPrompt; let userDataToSave = null;
 
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+        window.addEventListener('beforeinstallprompt', (e) => { 
+            e.preventDefault(); 
+            deferredPrompt = e; 
+        });
 
-        // لو داخل من التطبيق ومسجل قبل كدة، يدخل الملعب علطول
+        // الدخول التلقائي لو فاتح من التطبيق ومسجل قبل كده
         if (isApp && localStorage.getItem('currentUser')) {
             window.location.replace('dashboard.html');
         }
@@ -93,11 +99,11 @@
                         localStorage.setItem('savedUserPass', p);
                         localStorage.setItem('currentUser', JSON.stringify(userDataToSave));
 
-                        // لو داخل من التطبيق يدخل الملعب مباشرة
+                        // لو فاتح من التطبيق هيدخل الخريطة مباشرة
                         if (isApp) {
                             window.location.replace('dashboard.html');
                         } else {
-                            // لو داخل من المتصفح، اخفي الدخول واظهر التثبيت
+                            // لو فاتح من المتصفح هتظهرله شاشة التثبيت الإجبارية
                             document.getElementById('login-container').classList.add('hidden');
                             document.getElementById('install-overlay').classList.remove('hidden');
                             document.getElementById('install-overlay').classList.add('flex');
@@ -110,11 +116,16 @@
         function triggerInstall() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((res) => { if (res.outcome === 'accepted') window.location.replace('dashboard.html'); });
-            } else { window.location.replace('dashboard.html'); }
+                deferredPrompt.userChoice.then((res) => { 
+                    if (res.outcome === 'accepted') {
+                        window.location.replace('dashboard.html'); 
+                    }
+                });
+            } else { 
+                // رسالة بتظهر لو المتصفح مابيدعمش التثبيت التلقائي
+                alert("برجاء تثبيت التطبيق من إعدادات المتصفح (Add to Home Screen) أو (Install App) للدخول إلى الملعب.");
+            }
         }
-
-        function goToDashboard() { window.location.replace('dashboard.html'); }
     </script>
 </body>
 </html>
