@@ -15,33 +15,48 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         body { background-color: #030712; color: white; font-family: 'Cairo', sans-serif; overflow: hidden; }
         .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 80%); }
         
+        /* 🏮 أنيميشن اهتزاز الفانوس */
+        @keyframes swing {
+            0% { transform: rotate(8deg); }
+            50% { transform: rotate(-8deg); }
+            100% { transform: rotate(8deg); }
+        }
+        .fanous-container {
+            position: absolute;
+            top: -110px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            transform-origin: top center;
+            animation: swing 3s ease-in-out infinite;
+        }
+        .fanous-img { width: 100px; filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.4)); }
+
         /* انيميشن لرسالة الآيفون */
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .ios-guide { animation: slideUp 0.5s ease-out; border-radius: 30px 30px 0 0; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-glow"></div>
-
+    
     <div id="login-box" class="glass-card p-8 rounded-[40px] w-full max-w-sm text-center shadow-2xl relative">
+        
         <div class="absolute -top-12 left-1/2 -translate-x-1/2">
+            <div class="fanous-container">
+                <img src="https://i.ibb.co/m0Ym8pL/fanous.png" class="fanous-img">
+            </div>
             <img src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-24 h-24 rounded-full border-4 border-yellow-500 shadow-[0_0_20px_rgba(212,175,55,0.5)]">
         </div>
         
-        <h1 class="text-3xl font-black mt-10 mb-2 text-white italic">RAMADAN QUIZ</h1>
+        <h1 class="text-3xl font-black mt-14 mb-2 text-white italic">RAMADAN QUIZ</h1>
         <p class="text-yellow-500 text-[10px] font-bold tracking-[0.3em] mb-8 uppercase">The Ultimate Challenge</p>
 
         <div class="space-y-4">
-            <div class="relative">
-                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                <input type="password" id="login-pass" placeholder="كود الدخول" 
-                    class="w-full bg-black/40 border border-white/10 p-4 pl-12 rounded-2xl text-center font-black text-2xl text-yellow-400 focus:border-yellow-500 outline-none transition-all">
-            </div>
+            <input type="password" id="login-pass" placeholder="كود الدخول" 
+                class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl text-center font-black text-2xl text-yellow-400 focus:border-yellow-500 outline-none transition-all">
             
-            <button onclick="handleLoginAttempt()" id="login-btn" 
-                class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
+            <button onclick="handleLoginAttempt()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
                 دخول الملعب ⚽
             </button>
         </div>
@@ -50,26 +65,9 @@
 
     <div id="ios-overlay" class="fixed inset-0 bg-black/90 z-[9999] hidden flex-col justify-end">
         <div class="ios-guide bg-gray-900 p-8 text-center border-t-2 border-yellow-500">
-            <div class="w-16 h-1 bg-gray-700 mx-auto rounded-full mb-6"></div>
             <h2 class="text-2xl font-black text-white mb-4">ثبت التطبيق للدخول! 📱</h2>
-            <p class="text-gray-400 text-sm mb-8 leading-relaxed">عشان نظام مكافحة الغش، لازم تدخل من التطبيق مش المتصفح. اتبع الخطوات:</p>
-            
-            <div class="space-y-6 mb-10 text-right inline-block">
-                <div class="flex items-center gap-4">
-                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">1</div>
-                    <p class="text-white font-bold text-sm">اضغط على زر المشاركة <i class="fa-solid fa-arrow-up-from-bracket text-blue-400 mx-1"></i> في الأسفل</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
-                    <p class="text-white font-bold text-sm">اختر "إضافة إلى الشاشة الرئيسية" <i class="fa-regular fa-square-plus text-gray-300 mx-1"></i></p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="bg-yellow-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black">3</div>
-                    <p class="text-white font-bold text-sm">افتح اللعبة من الأيقونة اللي ظهرت برا</p>
-                </div>
-            </div>
-
-            <button onclick="document.getElementById('ios-overlay').style.display='none'" class="w-full bg-gray-800 text-white font-black py-4 rounded-2xl mb-4">فهمت</button>
+            <p class="text-gray-400 text-sm mb-6">اضغط على زر المشاركة <i class="fa-solid fa-arrow-up-from-bracket text-blue-400"></i> ثم "إضافة إلى الشاشة الرئيسية" <i class="fa-regular fa-square-plus"></i></p>
+            <button onclick="location.reload()" class="w-full bg-gray-800 text-white font-black py-4 rounded-2xl">فهمت</button>
         </div>
     </div>
 
@@ -80,30 +78,21 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // فحص وضع التشغيل (تطبيق ولا متصفح)
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
         function handleLoginAttempt() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const pass = document.getElementById('login-pass').value.trim();
-            const errorEl = document.getElementById('error-msg');
 
-            // 🛡️ حماية: لو مش تطبيق، اظهره رسالة التثبيت
             if (!isStandalone) {
-                if (isIOS) {
-                    document.getElementById('ios-overlay').style.display = 'flex';
-                } else {
-                    alert("⛔ يجب تثبيت التطبيق أولاً (Install App) من خيارات المتصفح لمنع الغش.");
-                }
+                if (isIOS) document.getElementById('ios-overlay').style.display = 'flex';
+                else alert("يرجى تثبيت التطبيق أولاً من خيارات المتصفح (Install App)");
                 return;
             }
 
-            if (!pass) return;
-
             db.collection("users").where("password", "==", pass).get().then(snap => {
                 if (snap.empty) {
-                    errorEl.innerText = "❌ كود غير صحيح يا بطل";
-                    errorEl.classList.remove('hidden');
+                    document.getElementById('error-msg').innerText = "❌ الكود غلط يا بطل";
+                    document.getElementById('error-msg').classList.remove('hidden');
                 } else {
                     const user = snap.docs[0].data();
                     localStorage.setItem('currentUser', JSON.stringify({id: snap.docs[0].id, ...user}));
