@@ -1,5 +1,5 @@
 let currentQuestions = [], currentIndex = 0, sessionScore = 0;
-let timerInterval = null, globalTimeLeft = 20;
+let timerInterval = null, globalTimeLeft = 15; // وقت السؤال 15 ثانية
 let isQuizActive = false;
 let used5050InRound = false, usedFreezeInRound = false;
 
@@ -18,8 +18,8 @@ window.openQuiz = function(day) {
             <h2 class="text-3xl font-black text-white mb-3">مستعد للمواجهة؟ 🔥</h2>
             <p class="text-gray-300 text-sm mb-8">لديك (1) تجميد و (1) حذف مجاناً في هذا التحدي.</p>
             <div class="flex gap-4">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-500 text-black font-black p-4 rounded-xl shadow-lg">جاهز ⚔️</button>
-                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-4 rounded-xl border border-gray-600">تراجع ✋</button>
+                <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-500 text-black font-black p-4 rounded-xl shadow-lg hover:scale-105 transition-transform">جاهز ⚔️</button>
+                <button onclick="closeQuizOverlay()" class="flex-1 bg-gray-800 text-white font-bold p-4 rounded-xl border border-gray-600 hover:bg-gray-700 transition-colors">تراجع ✋</button>
             </div>
         </div>
     `;
@@ -54,7 +54,7 @@ window.startQuizFetch = function(day) {
 function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
     let q = currentQuestions[currentIndex];
-    globalTimeLeft = 20;
+    globalTimeLeft = 15; // وقت السؤال 15 ثانية هنا برضه
     
     let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
     let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
@@ -236,10 +236,11 @@ function endQuiz() {
                     <p class="text-gray-400 text-sm font-bold mb-1 uppercase tracking-wider">غنائمك اليوم</p>
                     <p class="text-6xl font-black text-yellow-400 drop-shadow-md mb-2">${sessionScore}</p>
                 </div>
-                <button onclick="window.location.reload()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition-all text-xl">
+                <button onclick="window.location.replace('dashboard.html');" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-4 rounded-xl shadow-lg hover:scale-105 transition-all text-xl">
                     العودة للمعسكر ⛺
                 </button>
             </div>
         `;
     });
-}
+    }
+                    
