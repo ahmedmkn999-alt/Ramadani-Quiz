@@ -1,66 +1,61 @@
 let currentQuestions = [], currentIndex = 0, sessionScore = 0;
 let timerInterval = null, globalTimeLeft = 15;
 let isQuizActive = false;
-let used5050InRound = false, usedFreezeInRound = false;
-let free5050 = 1, freeFreeze = 1;
+let currentDayPlaying = 1;
 
-// 🛡️ نظام الحماية العالمي - منع الدخول إلا من التطبيق الرسمي
+// 🛡️ حماية الآيفون والتطبيق الرسمي
 const isOfficialApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if (!isOfficialApp) {
-    alert("⛔ تم اكتشاف محاولة دخول غير مصرح بها. يجب تشغيل اللعبة من أيقونة التطبيق على الشاشة الرئيسية لمنع الغش.");
+if (!isOfficialApp && !window.location.href.includes('localhost')) {
+    alert("⛔ يجب تشغيل اللعبة من أيقونة التطبيق على الشاشة الرئيسية.");
     window.location.replace('index.html');
 }
 
 window.openQuiz = function(day) {
-    if (myLogs[day] !== undefined) { 
-        window.showAlert("انتباه!", "أنت لعبت الجولة دي خلاص يا بطل!", "⚠️", "error"); 
+    currentDayPlaying = day;
+    // التأكد من أن المستخدم لم يلعب الجولة (بناءً على myLogs اللي في app.js)
+    if (window.myLogs && window.myLogs[day] !== undefined) { 
+        alert("أنت لعبت الجولة دي خلاص يا بطل!"); 
         return; 
     }
-    // حماية إضافية: منع كليك يمين أو اختصارات المطورين أثناء الكويز
-    document.onkeydown = (e) => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false; };
     
-    document.body.classList.add('hide-ads'); 
     document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-content').innerHTML = `
-        <div class="text-center">
-            <h2 class="text-3xl font-black text-white mb-3">الجولة ${day} 🔥</h2>
-            <p class="text-gray-300 text-sm mb-8">نظام مكافحة الغش نشط 🛡️</p>
-            <div class="flex gap-4">
-                <button onclick="startQuizFetch(${day})" class="flex-1 bg-green-500 text-black font-black p-4 rounded-xl shadow-lg">إبدأ التحدي ⚔️</button>
-            </div>
+        <div class="text-center p-6">
+            <h2 class="text-3xl font-black text-white mb-3 italic">الجولة ${day} 🔥</h2>
+            <p class="text-gray-400 mb-8 font-bold">استعد للبدء، مفيش وقت للغش! 🛡️</p>
+            <button onclick="startQuizFetch(${day})" class="w-full bg-yellow-500 text-black font-black p-4 rounded-2xl shadow-lg active:scale-95 transition-transform">دخول الملعب ⚔️</button>
         </div>`;
 }
 
 window.startQuizFetch = async function(day) {
     isQuizActive = true;
-    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 animate-pulse">جاري التحقق من النزاهة وتجهيز الأسئلة...</p>`;
+    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 animate-pulse">جاري سحب الأسئلة من المخازن...</p>`;
     
     try {
-        // سحب الأسئلة من المسار الصحيح (تأكد أن الأدمن يرفعها بهذا الاسم)
+        // 🛠️ مطابق للوحة التحكم: بنسحب النسخة v0 تلقائياً
         const doc = await db.collection("quizzes").doc(`day_${day}_v0`).get();
 
         if (!doc.exists) {
-            window.showAlert("عفواً", "الأسئلة غير متوفرة لهذه الجولة حالياً.", "⏳");
+            alert("⚠️ الأسئلة لسه مرفعهاش الأدمن للجولة دي.");
             closeQuizOverlay();
             return;
         }
 
         const data = doc.data();
-        currentQuestions = data.questions;
+        currentQuestions = data.questions || [];
         
-        // تأكد أن الأسئلة موجودة وليست undefined
-        if (!currentQuestions || currentQuestions.length === 0) {
-            throw new Error("Data format error");
+        if (currentQuestions.length === 0) {
+            alert("عفواً، لا توجد أسئلة.");
+            closeQuizOverlay();
+            return;
         }
 
         currentIndex = 0; 
         sessionScore = 0;
-        free5050 = 1; 
-        freeFreeze = 1;
         showQuestion();
     } catch (e) {
-        console.error("Quiz Fetch Error:", e);
-        window.showAlert("خطأ فني", "فشل تحميل الأسئلة. تأكد من جودة الإنترنت.", "❌");
+        console.error("Quiz Error:", e);
+        alert("فشل في تحميل الأسئلة.");
         closeQuizOverlay();
     }
 }
@@ -71,40 +66,30 @@ function showQuestion() {
     let q = currentQuestions[currentIndex];
     globalTimeLeft = 15;
     
-    // حل مشكلة الـ undefined: التأكد من عرض نص السؤال والخيارات
-    const questionText = q.q || q.question || "سؤال مفقود؟";
+    // ✅ مطابقة الأسماء مع لوحة التحكم (text و options)
+    const questionText = q.text || "سؤال مفقود؟"; 
     const options = q.options || [];
 
     document.getElementById('quiz-content').innerHTML = `
         <div class="flex justify-between mb-4 px-2">
-            <span class="text-xs font-bold text-gray-400">سؤال ${currentIndex + 1} من ${currentQuestions.length}</span>
-            <span class="text-xs font-bold text-yellow-500">نقاطك: ${sessionScore}</span>
+            <span class="text-[10px] font-bold text-gray-400 uppercase">سؤال ${currentIndex + 1} / ${currentQuestions.length}</span>
+            <span class="text-[10px] font-bold text-yellow-500 uppercase">نقاطك: ${sessionScore}</span>
         </div>
         
-        <div class="glass-card p-6 rounded-3xl mb-6 text-center border-2 border-yellow-500/20 shadow-2xl relative overflow-hidden">
-            <div id="timer-bar" class="absolute bottom-0 left-0 h-1 bg-red-500 transition-all duration-1000" style="width: 100%"></div>
-            <span id="timer" class="text-white font-black text-4xl mb-4 block">${globalTimeLeft}</span>
-            <h3 class="text-xl font-black text-white leading-tight">${questionText}</h3>
+        <div class="glass-card p-6 rounded-[30px] mb-6 text-center border border-white/10 relative overflow-hidden">
+            <div id="timer-bar" class="absolute bottom-0 left-0 h-1 bg-yellow-500 transition-all duration-1000" style="width: 100%"></div>
+            <span id="timer" class="text-white font-black text-4xl mb-2 block">${globalTimeLeft}</span>
+            <h3 class="text-lg font-bold text-white leading-relaxed">${questionText}</h3>
         </div>
 
         <div class="grid grid-cols-1 gap-3">
             ${options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" 
-                        id="opt-${i}" 
-                        class="opt-btn bg-gray-800/80 hover:bg-gray-700 p-4 w-full text-right rounded-2xl border border-gray-600 font-bold text-white transition-all active:scale-95">
-                    <span class="inline-block w-8 h-8 bg-gray-900 rounded-lg text-center leading-8 ml-3 text-yellow-500 text-sm">${i+1}</span>
+                <button onclick="handleAnswer(${i})" id="opt-${i}" 
+                    class="opt-btn bg-gray-800/50 p-4 w-full text-right rounded-2xl border border-white/5 font-bold text-white transition-all flex items-center">
+                    <span class="w-8 h-8 bg-black/30 rounded-lg text-center leading-8 ml-3 text-yellow-500 text-xs">${i+1}</span>
                     ${opt}
                 </button>
             `).join('')}
-        </div>
-
-        <div class="flex gap-3 mt-6">
-            <button onclick="use5050()" id="btn-5050" class="flex-1 bg-purple-900/40 p-4 rounded-2xl border border-purple-500/50 text-white font-black text-xs flex items-center justify-center gap-2">
-                <i class="fas fa-cut"></i> حذف إجابتين (${free5050 + (window.myPowerups.fifty50||0)})
-            </button>
-            <button onclick="useFreeze()" id="btn-freeze" class="flex-1 bg-blue-900/40 p-4 rounded-2xl border border-blue-500/50 text-white font-black text-xs flex items-center justify-center gap-2">
-                <i class="fas fa-snowflake"></i> تجميد (${freeFreeze + (window.myPowerups.freeze||0)})
-            </button>
         </div>
     `;
 
@@ -115,69 +100,65 @@ function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         globalTimeLeft--;
-        const timerEl = document.getElementById('timer');
-        const barEl = document.getElementById('timer-bar');
-        
-        if (timerEl) timerEl.innerText = globalTimeLeft;
-        if (barEl) barEl.style.width = (globalTimeLeft / 15 * 100) + "%";
-
-        if (globalTimeLeft <= 0) {
-            handleAnswer(-1); // الوقت خلص
-        }
+        if (document.getElementById('timer')) document.getElementById('timer').innerText = globalTimeLeft;
+        if (document.getElementById('timer-bar')) document.getElementById('timer-bar').style.width = (globalTimeLeft / 15 * 100) + "%";
+        if (globalTimeLeft <= 0) handleAnswer(-1);
     }, 1000);
 }
 
-window.handleAnswer = function(selectedIndex) {
+window.handleAnswer = function(idx) {
     clearInterval(timerInterval);
     
-    // تعطيل الأزرار لمنع الضغط المتكرر
-    const buttons = document.querySelectorAll('.opt-btn');
-    buttons.forEach(btn => btn.disabled = true);
+    // ✅ مطابق للوحة التحكم: الإجابة اسمها answer وبيكون نوعها string في اللوحة
+    const correctIdx = parseInt(currentQuestions[currentIndex].answer); 
+    
+    const btns = document.querySelectorAll('.opt-btn');
+    btns.forEach(b => b.disabled = true);
 
-    const correctIndex = currentQuestions[currentIndex].correctIndex;
-    const correctBtn = document.getElementById(`opt-${correctIndex}`);
-    const selectedBtn = document.getElementById(`opt-${selectedIndex}`);
-
-    if (selectedIndex === correctIndex) {
+    if (idx === correctIdx) {
         sessionScore++;
-        if (selectedBtn) selectedBtn.classList.replace('bg-gray-800/80', 'bg-green-600');
+        document.getElementById(`opt-${idx}`)?.classList.add('!bg-green-600', '!border-green-400');
     } else {
-        if (selectedBtn) selectedBtn.classList.replace('bg-gray-800/80', 'bg-red-600');
-        if (correctBtn) correctBtn.classList.replace('bg-gray-800/80', 'bg-green-600');
+        if(idx !== -1) document.getElementById(`opt-${idx}`)?.classList.add('!bg-red-600', '!border-red-400');
+        document.getElementById(`opt-${correctIdx}`)?.classList.add('!bg-green-600', '!border-green-400');
     }
 
-    // الانتقال للسؤال التالي بعد ثانية ونصف
     setTimeout(() => {
         currentIndex++;
-        used5050InRound = false;
-        usedFreezeInRound = false;
         showQuestion();
     }, 1500);
 }
 
 function endQuiz() {
     isQuizActive = false;
-    clearInterval(timerInterval);
-    document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500">جاري حفظ النتيجة بنجاح...</p>`;
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="text-center py-10">
+            <h2 class="text-2xl font-black mb-2 text-white">عاش يا بطل! 🏁</h2>
+            <p class="text-yellow-500 font-bold text-lg mb-6">جمعت ${sessionScore} نقطة</p>
+            <p class="text-gray-400 animate-pulse text-sm">جاري تسجيل نتيجتك في اللوحة...</p>
+        </div>`;
     
-    // 🛡️ تشفير بسيط للنتيجة قبل الرفع (حماية ضد التلاعب بالـ Console)
-    const secureScore = Number(sessionScore);
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const uid = currentUser.id;
 
-    db.collection("users").doc(user.id).update({
-        score: firebase.firestore.FieldValue.increment(secureScore)
+    // تحديث النقاط + إضافة اللوج (Log)
+    db.collection("users").doc(uid).update({
+        score: firebase.firestore.FieldValue.increment(sessionScore)
     }).then(() => {
-        return db.collection("users").doc(user.id).collection("game_logs").doc(`day_${adminDay}`).set({
-            day: adminDay,
-            score: secureScore,
+        return db.collection("users").doc(uid).collection("game_logs").doc(`day_${currentDayPlaying}`).set({
+            day: currentDayPlaying,
+            score: sessionScore,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
     }).then(() => {
         window.location.reload();
     }).catch(err => {
-        console.error("Final Save Error:", err);
-        alert("حدث خطأ أثناء حفظ النتيجة، تواصل مع الإدارة.");
+        alert("حدث خطأ في الحفظ، صور الشاشة وكلم الإدارة.");
     });
 }
 
-// ... دوال use5050 و useFreeze تفضل زي ما هي مع التأكد من تحديث الـ UI ...
-    
+function closeQuizOverlay() {
+    document.getElementById('quiz-overlay').style.display = 'none';
+    isQuizActive = false;
+    clearInterval(timerInterval);
+            }
