@@ -105,7 +105,8 @@ function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
     let html = '';
-    for (let i = 1; i <= 29; i++) {
+    // تم التعديل لتشمل 30 يوم
+    for (let i = 1; i <= 30; i++) {
         let isPlayed = myLogs[i] !== undefined;
         let isActive = (i === adminDay && adminStatus === 'active');
         
