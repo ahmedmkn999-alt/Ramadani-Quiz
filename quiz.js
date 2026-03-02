@@ -1,13 +1,61 @@
+// ==========================================
+// 1. المتغيرات العامة والحالة (State)
+// ==========================================
 let currentQuestions = [], currentIndex = 0, sessionScore = 0;
-let timerInterval = null, globalTimeLeft = 15; // وقت السؤال 15 ثانية
+let timerInterval = null, globalTimeLeft = 15; 
 let isQuizActive = false;
 let used5050InRound = false, usedFreezeInRound = false;
 
 // الرصيد المجاني للكويز
 let free5050 = 1, freeFreeze = 1;
 
+// ==========================================
+// 2. نظام مكافحة الغش (Anti-Cheat System)
+// ==========================================
+
+// مراقبة الخروج من المتصفح أو تبديل التطبيقات
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden && isQuizActive) {
+        triggerAntiCheat("لقد قمت بالخروج من التطبيق! سيتم إنهاء التحدي فوراً.");
+    }
+});
+
+// مراقبة زر الرجوع في المتصفح أو الهاتف
+window.addEventListener('popstate', (event) => {
+    if (isQuizActive) {
+        triggerAntiCheat("محاولة رجوع مكتشفة! سيتم إنهاء التحدي واحتساب نقاطك الحالية.");
+    }
+});
+
+function triggerAntiCheat(reason) {
+    if (!isQuizActive) return; // لضمان عدم التكرار
+    
+    isQuizActive = false; 
+    clearInterval(timerInterval);
+    
+    // تعطيل الأزرار فوراً
+    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
+    
+    // إظهار التنبيه
+    if (window.showAlert) {
+        window.showAlert("محاولة غش! 🚨", reason, "🛑", "error");
+    } else {
+        alert("🚨 غش: " + reason);
+    }
+
+    // الانتظار قليلاً ثم الحفظ والإغلاق
+    setTimeout(() => {
+        if (window.closeCustomAlert) window.closeCustomAlert();
+        endQuiz(); 
+    }, 3500);
+}
+
+// ==========================================
+// 3. وظائف بدء وتشغيل الكويز
+// ==========================================
+
 window.openQuiz = function(day) {
-    if (myLogs[day] !== undefined) { 
+    if (myLogs && myLogs[day] !== undefined) { 
         window.showAlert("انتباه!", "أنت لعبت الجولة دي خلاص يا بطل!", "⚠️", "error"); 
         return; 
     }
@@ -31,7 +79,10 @@ window.closeQuizOverlay = function() {
 }
 
 window.startQuizFetch = function(day) {
+    // تفعيل مصيدة زر الرجوع
+    history.pushState(null, null, location.href); 
     isQuizActive = true;
+    
     document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري تجهيز ساحة المعركة...</p>`;
     
     free5050 = 1; freeFreeze = 1;
@@ -41,8 +92,11 @@ window.startQuizFetch = function(day) {
         if(doc.exists && doc.data().variations) {
             let variationsObj = doc.data().variations;
             let availableKeys = Object.keys(variationsObj); 
-            currentQuestions = variationsObj[availableKeys[Math.floor(Math.random() * availableKeys.length)]].questions;
-            currentIndex = 0; sessionScore = 0;
+            // اختيار نسخة عشوائية للمستخدم
+            let randomKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+            currentQuestions = variationsObj[randomKey].questions;
+            currentIndex = 0; 
+            sessionScore = 0;
             showQuestion();
         } else {
             window.showAlert("عفواً", "التحدي لم يجهز بعد!", "⏳", "normal");
@@ -53,8 +107,9 @@ window.startQuizFetch = function(day) {
 
 function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
+    
     let q = currentQuestions[currentIndex];
-    globalTimeLeft = 15; // وقت السؤال 15 ثانية هنا برضه
+    globalTimeLeft = 15; 
     
     let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
     let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
@@ -103,6 +158,10 @@ function showQuestion() {
     }, 1000);
 }
 
+// ==========================================
+// 4. نظام المساعدات (Powerups)
+// ==========================================
+
 window.use5050 = function() {
     let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
     if(used5050InRound || total5050 <= 0 || !isQuizActive) return;
@@ -117,6 +176,7 @@ window.use5050 = function() {
         if(topInv) topInv.innerText = window.myPowerups.fifty50;
     }
     
+    // تحديث الشكل
     let btn = document.getElementById('btn-5050');
     if(btn) {
         btn.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
@@ -174,7 +234,12 @@ window.useFreeze = function() {
     }
 }
 
+// ==========================================
+// 5. معالجة الإجابات وإنهاء الكويز
+// ==========================================
+
 window.handleAnswer = function(i) {
+    if(!isQuizActive) return;
     clearInterval(timerInterval);
     document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
     
@@ -192,8 +257,12 @@ window.handleAnswer = function(i) {
                 selectedBtn.classList.add('border-red-500', 'bg-red-900/60', 'line-through', 'opacity-80');
                 selectedBtn.innerHTML += ` <i class="fas fa-times-circle float-left mt-1 text-xl drop-shadow-[0_0_10px_rgba(239,68,68,1)]"></i>`;
             }
+            // إظهار الإجابة الصحيحة
+            let correctBtn = document.getElementById(`opt-${correctIdx}`);
+            if(correctBtn) correctBtn.classList.add('border-green-500/50', 'text-green-200');
         }
     }
+    
     setTimeout(() => { 
         currentIndex++; 
         used5050InRound = false; 
@@ -213,11 +282,14 @@ function endQuiz() {
         </div>
     `;
 
+    // تحديث النقاط وحفظ السجل في Firestore
     db.collection("users").doc(user.id).update({
         score: firebase.firestore.FieldValue.increment(sessionScore)
     }).then(() => {
         return db.collection("users").doc(user.id).collection("game_logs").doc("day_"+adminDay).set({
-            day: adminDay, score: sessionScore, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            day: adminDay, 
+            score: sessionScore, 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
     }).then(() => {
         if(window.confetti) confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, colors: ['#fbbf24', '#f59e0b', '#d97706', '#ffffff'] });
@@ -241,6 +313,9 @@ function endQuiz() {
                 </button>
             </div>
         `;
+    }).catch(err => {
+        console.error("Error saving quiz:", err);
+        alert("حدث خطأ أثناء حفظ النقاط، تأكد من الاتصال.");
     });
-    }
-                    
+                }
+            
