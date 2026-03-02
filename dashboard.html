@@ -8,15 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { background-color: #0b1120; font-family: 'Cairo', sans-serif; color: white; margin: 0; overflow-x: hidden; }
+        body { background-color: #0b1120; font-family: 'Cairo', sans-serif; color: white; margin: 0; overflow-x: hidden; touch-action: manipulation; }
         .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        
-        /* 🏮 أنيميشن الفانوس */
         @keyframes swing-mini { 0% { transform: rotate(7deg); } 50% { transform: rotate(-7deg); } 100% { transform: rotate(7deg); } }
         .fanous-mini { width: 28px; transform-origin: top center; animation: swing-mini 2.5s ease-in-out infinite; position: absolute; right: -8px; top: -12px; z-index: 20; }
-
         .tab-btn.active { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: black; font-weight: 900; }
-        .day-active { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: black; border: 2px solid #fde047; }
+        .day-active { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: black; border: 2px solid #fde047; box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -37,16 +34,16 @@
     </div>
 
     <div class="px-6 mb-8">
-        <div class="glass-card p-6 rounded-[35px] flex items-center justify-between relative">
+        <div class="glass-card p-6 rounded-[35px] flex items-center justify-between relative border-b-4 border-yellow-500/20">
             <div class="relative">
                 <img src="https://i.ibb.co/m0Ym8pL/fanous.png" class="fanous-mini">
                 <div class="w-16 h-16 rounded-full border-2 border-yellow-500 p-1 bg-gray-900">
-                    <img id="user-avatar" src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-full h-full rounded-full">
+                    <img id="user-avatar" src="https://i.postimg.cc/QN7YYDZb/1772330473684.png" class="w-full h-full rounded-full object-cover">
                 </div>
             </div>
             <div class="flex-1 mr-4">
-                <h2 id="p-name" class="font-black text-xl truncate w-32 text-white">تحميل...</h2>
-                <p id="p-group" class="text-gray-400 text-[10px] font-bold">المجموعة</p>
+                <h2 id="p-name" class="font-black text-xl truncate w-32 text-white italic">تحميل...</h2>
+                <p id="p-group" class="text-gray-500 text-[10px] font-bold tracking-widest uppercase">المجموعة</p>
             </div>
             <div class="text-center bg-black/40 px-5 py-3 rounded-2xl border border-white/5">
                 <p class="text-[9px] text-gray-400 font-black uppercase">النقاط</p>
@@ -56,20 +53,20 @@
     </div>
 
     <div class="px-6 flex gap-2 mb-6">
-        <button id="btn-arena" onclick="showTab('arena')" class="tab-btn active flex-1 py-4 rounded-2xl font-black">🗺️ الخريطة</button>
-        <button id="btn-leader" onclick="showTab('leaderboard')" class="tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400">🏆 المجموعة</button>
+        <button id="btn-arena" onclick="showTab('arena')" class="tab-btn active flex-1 py-4 rounded-2xl font-black transition-all">🗺️ الخريطة</button>
+        <button id="btn-leader" onclick="showTab('leaderboard')" class="tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400 transition-all">🏆 المجموعة</button>
     </div>
 
     <div id="view-arena" class="px-6 space-y-4">
-        </div>
+        <p class="text-center text-gray-500 animate-pulse">جاري فحص حالة الملعب...</p>
+    </div>
 
     <div id="view-leaderboard" class="px-6 hidden">
         <div id="group-list" class="space-y-2"></div>
     </div>
 
-    <div id="quiz-overlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-6">
-        <div id="quiz-content" class="w-full max-w-md">
-            </div>
+    <div id="quiz-overlay" class="fixed inset-0 bg-black/98 z-[100] hidden flex-col items-center justify-center p-6 backdrop-blur-md">
+        <div id="quiz-content" class="w-full max-w-md"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -77,24 +74,5 @@
     
     <script src="app.js"></script>
     <script src="quiz.js"></script> 
-
-    <script>
-        // دالة الدخول للجولة (تصحيح العطل)
-        window.goToQuiz = function(day) {
-            console.log("Entering Day:", day);
-            if (typeof openQuiz === 'function') {
-                openQuiz(day);
-            } else {
-                alert("خطأ: لم يتم تحميل ملف الأسئلة بعد، انتظر ثانية وحاول مجدداً.");
-            }
-        }
-
-        window.showTab = function(tab) {
-            document.getElementById('view-arena').classList.toggle('hidden', tab !== 'arena');
-            document.getElementById('view-leaderboard').classList.toggle('hidden', tab !== 'leaderboard');
-            document.getElementById('btn-arena').className = tab === 'arena' ? 'tab-btn active flex-1 py-4 rounded-2xl font-black' : 'tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400';
-            document.getElementById('btn-leader').className = tab === 'leaderboard' ? 'tab-btn active flex-1 py-4 rounded-2xl font-black' : 'tab-btn flex-1 py-4 rounded-2xl font-black bg-gray-800 text-gray-400';
-        }
-    </script>
 </body>
 </html>
