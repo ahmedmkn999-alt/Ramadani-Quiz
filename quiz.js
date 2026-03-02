@@ -1,178 +1,114 @@
-let currentQuestions = [], currentIndex = 0, sessionScore = 0;
-let timerInterval = null, globalTimeLeft = 15;
-let isQuizActive = false;
-let currentDayPlaying = 1;
+// ==========================================
+// محرك الكويز - اللاعب
+// ==========================================
+let currentQuestions = [];
+let currentIndex = 0;
+let sessionScore = 0;
+let quizTimer = null;
 
-window.openQuiz = function(day) {
-    currentDayPlaying = day;
-    // التحقق من أن اللاعب لم يلعب هذا اليوم بالفعل
-    if (window.myLogs && window.myLogs[day] !== undefined) { 
-        alert("أنت لعبت جولة النهاردة خلاص يا بطل! 🌙"); 
-        return; 
-    }
-    
-    document.getElementById('quiz-overlay').classList.remove('hidden');
-    document.getElementById('quiz-content').innerHTML = `
-        <div class="text-center p-6 bg-gray-900/50 rounded-[40px] border border-white/10">
-            <h2 class="text-3xl font-black text-white mb-3 italic">الجولة ${day} 🔥</h2>
-            <p class="text-gray-400 mb-8 font-bold">استعد للبدء، مفيش وقت للغش! 🛡️</p>
-            <button onclick="startQuizFetch(${day})" class="w-full bg-yellow-500 text-black font-black p-5 rounded-2xl shadow-lg active:scale-95 transition-all">دخول الملعب ⚔️</button>
-            <button onclick="closeQuizOverlay()" class="mt-4 text-gray-500 font-bold">تراجع</button>
-        </div>`;
-}
-
+// الدالة المسؤولة عن سحب الكويز وحل مشكلة الطرد
 window.startQuizFetch = async function(day) {
-    isQuizActive = true;
-    document.getElementById('quiz-content').innerHTML = `
-        <div class="flex flex-col items-center justify-center">
-            <div class="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p class="text-center font-bold text-yellow-500">جاري سحب الأسئلة من المخازن...</p>
-        </div>`;
-    
+    const content = document.getElementById('quiz-content');
+    content.innerHTML = `<div class="p-8 text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div><p>جاري تجهيز ساحة المعركة للجولة ${day}...</p></div>`;
+
     try {
+        // بنحاول نسحب النسخة الأولى v0 دايماً
         const doc = await db.collection("quizzes").doc(`day_${day}_v0`).get();
-
-        if (!doc.exists) {
-            alert("⚠️ الأسئلة لسه مرفعهاش الأدمن للجولة دي.");
-            closeQuizOverlay();
-            return;
-        }
-
-        const data = doc.data();
-        currentQuestions = data.questions || [];
         
-        if (currentQuestions.length === 0) {
-            alert("عفواً، لا توجد أسئلة حالياً.");
+        if (!doc.exists) {
+            alert(`⚠️ الجولة ${day} لسه مجهزش أسئلتها بالنسخة v0. كلم الإدارة يا بطل!`);
             closeQuizOverlay();
             return;
         }
 
-        currentIndex = 0; 
+        currentQuestions = doc.data().questions || [];
+        if (currentQuestions.length === 0) {
+            alert("⚠️ عذراً، الجولة دي فاضية!");
+            closeQuizOverlay();
+            return;
+        }
+
+        // لو كله تمام، بنبدأ
+        currentIndex = 0;
         sessionScore = 0;
-        showQuestion();
-    } catch (e) {
-        console.error("Quiz Fetch Error:", e);
-        alert("فشل في الاتصال بالسيرفر، حاول تاني.");
+        renderQuestion();
+
+    } catch (err) {
+        console.error("Quiz Error:", err);
+        alert("فشل الاتصال بالخادم. تأكد من إنترنتك.");
         closeQuizOverlay();
     }
 }
 
-function showQuestion() {
-    if (currentIndex >= currentQuestions.length) {
-        return endQuiz();
-    }
+function renderQuestion() {
+    const q = currentQuestions[currentIndex];
+    const content = document.getElementById('quiz-content');
     
-    let q = currentQuestions[currentIndex];
-    globalTimeLeft = 15;
-    
-    const questionText = q.text || "سؤال مفقود؟"; 
-    const options = q.options || [];
-
-    document.getElementById('quiz-content').innerHTML = `
-        <div class="flex justify-between mb-4 px-2">
-            <span class="text-[10px] font-bold text-gray-400 uppercase">سؤال ${currentIndex + 1} / ${currentQuestions.length}</span>
-            <span class="text-[10px] font-bold text-yellow-500 uppercase">نقاط الجولة: ${sessionScore}</span>
-        </div>
-        
-        <div class="glass-card p-6 rounded-[30px] mb-6 text-center border border-white/10 relative overflow-hidden">
-            <div id="timer-bar" class="absolute bottom-0 left-0 h-1 bg-yellow-500 transition-all duration-1000" style="width: 100%"></div>
-            <span id="timer" class="text-white font-black text-4xl mb-2 block">${globalTimeLeft}</span>
-            <h3 class="text-lg font-bold text-white leading-relaxed">${questionText}</h3>
-        </div>
-
-        <div class="grid grid-cols-1 gap-3">
-            ${options.map((opt, i) => `
-                <button onclick="handleAnswer(${i})" id="opt-${i}" 
-                    class="opt-btn bg-gray-800/50 p-4 w-full text-right rounded-2xl border border-white/5 font-bold text-white transition-all flex items-center hover:bg-gray-700">
-                    <span class="w-8 h-8 bg-black/30 rounded-lg text-center leading-8 ml-3 text-yellow-500 text-xs">${i+1}</span>
-                    ${opt}
-                </button>
-            `).join('')}
+    content.innerHTML = `
+        <div class="p-4 animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <span class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-bold">سؤال ${currentIndex + 1} من ${currentQuestions.length}</span>
+                <span id="quiz-timer" class="text-red-500 font-mono font-bold">15s</span>
+            </div>
+            <h3 class="text-lg font-bold mb-6 text-white leading-relaxed">${q.text}</h3>
+            <div class="grid gap-3">
+                ${q.options.map((opt, i) => `
+                    <button onclick="checkAnswer(${i})" class="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-right hover:bg-gray-700 transition-all text-sm">
+                        ${opt}
+                    </button>
+                `).join('')}
+            </div>
         </div>
     `;
-
     startTimer();
 }
 
 function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        globalTimeLeft--;
-        const timerEl = document.getElementById('timer');
-        const barEl = document.getElementById('timer-bar');
-        
-        if (timerEl) timerEl.innerText = globalTimeLeft;
-        if (barEl) barEl.style.width = (globalTimeLeft / 15 * 100) + "%";
-        
-        if (globalTimeLeft <= 0) {
-            clearInterval(timerInterval);
-            handleAnswer(-1); // الوقت خلص
+    let timeLeft = 15;
+    clearInterval(quizTimer);
+    quizTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('quiz-timer').innerText = timeLeft + "s";
+        if (timeLeft <= 0) {
+            clearInterval(quizTimer);
+            nextQuestion();
         }
     }, 1000);
 }
 
-window.handleAnswer = function(idx) {
-    clearInterval(timerInterval);
-    
-    const q = currentQuestions[currentIndex];
-    const correctIdx = parseInt(q.answer); 
-    
-    const btns = document.querySelectorAll('.opt-btn');
-    btns.forEach(b => b.disabled = true); // منع الضغط المتكرر
-
-    if (idx === correctIdx) {
-        sessionScore++;
-        document.getElementById(`opt-${idx}`).classList.add('!bg-green-600', '!border-green-400', 'scale-95');
-    } else {
-        if(idx !== -1) {
-            document.getElementById(`opt-${idx}`).classList.add('!bg-red-600', '!border-red-400', 'scale-95');
-        }
-        document.getElementById(`opt-${correctIdx}`).classList.add('!bg-green-600', '!border-green-400');
-    }
-
-    setTimeout(() => {
-        currentIndex++;
-        showQuestion();
-    }, 1500);
+window.checkAnswer = function(idx) {
+    clearInterval(quizTimer);
+    const correct = currentQuestions[currentIndex].answer;
+    if (idx == correct) sessionScore += 10;
+    nextQuestion();
 }
 
-async function endQuiz() {
-    isQuizActive = false;
-    document.getElementById('quiz-content').innerHTML = `
-        <div class="text-center py-10">
-            <div class="text-5xl mb-4">🏆</div>
-            <h2 class="text-2xl font-black mb-2 text-white">عاش يا بطل! 🏁</h2>
-            <p class="text-yellow-500 font-bold text-lg mb-6">جمعت ${sessionScore} نقطة</p>
-            <p class="text-gray-400 animate-pulse text-sm">جاري تسجيل نتيجتك في اللوحة...</p>
-        </div>`;
-    
+function nextQuestion() {
+    currentIndex++;
+    if (currentIndex < currentQuestions.length) {
+        renderQuestion();
+    } else {
+        finishQuiz();
+    }
+}
+
+async function finishQuiz() {
+    const content = document.getElementById('quiz-content');
+    content.innerHTML = `<div class="p-8 text-center"><p class="text-xl font-bold mb-4">انتهت الجولة! 🎉</p><p class="text-4xl font-black text-yellow-500 mb-6">${sessionScore}</p><p class="text-xs text-gray-400">جاري حفظ النقاط...</p></div>`;
+
     try {
-        const userRef = db.collection("users").doc(user.id);
+        const userRef = db.collection("users").doc(userData.id);
         
-        // استخدام Transaction لضمان الدقة
+        // تحديث النقاط + إضافة سجل الجولة عشان ميتلعبش تاني
         await db.runTransaction(async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            const newScore = (userDoc.data().score || 0) + sessionScore;
-            transaction.update(userRef, { score: newScore });
-            
-            const logRef = userRef.collection("game_logs").doc(`day_${currentDayPlaying}`);
-            transaction.set(logRef, {
-                day: currentDayPlaying,
-                score: sessionScore,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            transaction.update(userRef, { score: firebase.firestore.FieldValue.increment(sessionScore) });
+            const logRef = userRef.collection("game_logs").doc(`day_${activeDay}`);
+            transaction.set(logRef, { day: activeDay, score: sessionScore, time: Date.now() });
         });
 
-        window.location.reload();
+        alert("عاش يا بطل! تم حفظ نقاطك.");
+        location.reload();
     } catch (err) {
-        console.error("Save Error:", err);
-        alert("حدث خطأ في الحفظ، صور الشاشة وكلم الإدارة.");
+        alert("حصلت مشكلة في الحفظ، بس ولا يهمك سكورك متسجل عندنا!");
     }
 }
-
-window.closeQuizOverlay = function() {
-    document.getElementById('quiz-overlay').classList.add('hidden');
-    isQuizActive = false;
-    clearInterval(timerInterval);
-            }
-        
