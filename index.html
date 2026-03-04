@@ -49,7 +49,27 @@
         </div>
     </div>
 
+        <!-- 🛡️ نظام الحماية -->
+    <script>
+        // حماية أساسية على صفحة الدخول
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.keyCode === 123 || (e.ctrlKey && ['u','i','j','c','s'].includes(e.key.toLowerCase()))) {
+                e.preventDefault(); return false;
+            }
+        });
+    </script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+        <!-- 🛡️ نظام الحماية -->
+    <script>
+        // حماية أساسية على صفحة الدخول
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.keyCode === 123 || (e.ctrlKey && ['u','i','j','c','s'].includes(e.key.toLowerCase()))) {
+                e.preventDefault(); return false;
+            }
+        });
+    </script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
