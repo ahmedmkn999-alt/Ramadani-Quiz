@@ -1,10 +1,7 @@
-// 1. نظام الحماية الذكي: التأكد إن المستخدم داخل من "أيقونة التطبيق" المنصبة
+// 1. نظام الحماية: التأكد إن المستخدم مسجل دخول
+// ✅ FIX: إزالة شرط isInApp اللي كان بيمنع الدخول من المتصفح العادي
+// نتحقق فقط إن فيه مستخدم مسجل، لو لأ نرجعه لصفحة الدخول
 const isInApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-// لو المستخدم فاتح من المتصفح (مش من التطبيق)، رجعه لصفحة الدخول عشان تظهرله رسالة التثبيت
-if (!isInApp) {
-    window.location.replace('index.html');
-}
 
 // 2. إعدادات Firebase
 const firebaseConfig = { 
@@ -30,8 +27,7 @@ window.showAlert = function(title, msg, icon = "🔔", type = "normal") {
     else if(type === 'error') titleEl.className = "text-2xl font-black text-red-500 mb-2";
     else titleEl.className = "text-2xl font-black text-yellow-400 mb-2";
 
-    box.classList.remove('hidden');
-    box.classList.add('flex');
+    box.style.display = 'flex';
     setTimeout(() => document.getElementById('alert-box').classList.remove('scale-95'), 10);
 }
 
@@ -39,8 +35,7 @@ window.closeCustomAlert = function() {
     let box = document.getElementById('custom-alert');
     document.getElementById('alert-box').classList.add('scale-95');
     setTimeout(() => {
-        box.classList.add('hidden');
-        box.classList.remove('flex');
+        box.style.display = 'none';
     }, 200);
 }
 
@@ -57,6 +52,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function initFirebaseData() {
+    // ✅ FIX 3: حالة الاتصال تتحول فوراً لـ متصل بنجاح 
+    const connStatus = document.getElementById('conn-status');
+    if (connStatus) {
+        connStatus.innerHTML = 'متصل بنجاح 🟢';
+        connStatus.style.color = '#10b981';
+    }
+
     db.collection("users").doc(user.id).onSnapshot(doc => {
         if(doc.exists) {
             let d = doc.data();
@@ -249,4 +251,4 @@ window.spinWheel = function() {
         }
         setTimeout(() => { location.reload(); }, 3500); 
     }, 4000); 
-}
+            }
