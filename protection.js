@@ -279,7 +279,12 @@
     let devToolsOpen = false;
 
     function checkDevTools() {
-        const threshold = 160;
+        // على الموبايل outerHeight أكبر بكتير من innerHeight بسبب شريط المتصفح
+        // فنستخدم threshold أكبر بكتير ونتحقق إن مش على موبايل
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+        if (isMobile) return; // مش بنشغل DevTools detection على الموبايل
+
+        const threshold = 300;
         const widthDiff = window.outerWidth - window.innerWidth;
         const heightDiff = window.outerHeight - window.innerHeight;
 
@@ -315,14 +320,8 @@
     // فحص كل ثانية
     setInterval(checkDevTools, 1000);
 
-    // طريقة ثانية لكشف DevTools عبر timing attack
-    let devToolsTrap = /./;
-    devToolsTrap.toString = function() {
-        if (window.isQuizActive) {
-            handleDevToolsOpen();
-        }
-        return '';
-    };
+    // طريقة كشف DevTools عبر timing - معطّلة على الموبايل
+    // let devToolsTrap = /./; // معطّل لأنه بيسبب مشاكل
 
     // ══════════════════════════════════════════
     // 7. VISIBILITY CHANGE - كشف تبديل التطبيق
