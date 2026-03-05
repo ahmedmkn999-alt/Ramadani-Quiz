@@ -106,12 +106,16 @@ window.showTab = function(t) {
 function renderMap() {
     let container = document.getElementById('view-arena');
     if(!container) return;
+    // استخدام الرندر المحسّن الموجود في dashboard.html
+    if (typeof window.__renderMapEnhanced === 'function') {
+        window.__renderMapEnhanced(container, myLogs, adminDay, adminStatus);
+        return;
+    }
+    // fallback قديم
     let html = '';
-    // تم التعديل لتشمل 30 يوم
     for (let i = 1; i <= 30; i++) {
         let isPlayed = myLogs[i] !== undefined;
         let isActive = (i === adminDay && adminStatus === 'active');
-        
         if (isPlayed) {
             html += `<div class="glass-card p-5 rounded-2xl flex justify-between border-r-4 border-r-green-500 mb-4"><div class="flex items-center gap-4"><div class="bg-green-500/20 text-green-400 w-12 h-12 rounded-full flex justify-center items-center"><i class="fas fa-check"></i></div><p class="font-bold text-gray-300">الجولة ${i}</p></div><p class="font-black text-2xl text-green-400">${myLogs[i]}</p></div>`;
         } else if (isActive) {
@@ -251,4 +255,4 @@ window.spinWheel = function() {
         }
         setTimeout(() => { location.reload(); }, 3500); 
     }, 4000); 
-            }
+    }
