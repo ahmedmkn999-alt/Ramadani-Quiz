@@ -13,12 +13,11 @@ let free5050 = 1, freeFreeze = 1;
 // 2. نظام مكافحة الغش (Anti-Cheat System)
 // ==========================================
 
-// ✅ FIX: مراقبة الخروج - بس لما الكويز شغال فعلاً (مش أول ما overlay يتفتح)
+// ✅ مراقبة الخروج - بس لما الكويز شغال فعلاً
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
-        // تأكد إن السؤال بدأ فعلاً (مش بس شاشة "مستعد؟")
         if (currentQuestions.length > 0 && currentIndex >= 0) {
-            triggerAntiCheat("لقد قمت بالخروج من التطبيق! سيتم إنهاء التحدي فوراً.");
+            triggerAntiCheat("غادرت شاشة الكويز! اختر هل تكمل أم تخرج.");
         }
     }
 });
@@ -26,26 +25,40 @@ document.addEventListener("visibilitychange", () => {
 // ✅ FIX: popstate يتعامل معه protection.js - مش هنا عشان ميتعارضوش
 
 function triggerAntiCheat(reason) {
-    if (!isQuizActive) return; // لضمان عدم التكرار
-    
-    isQuizActive = false; 
-    clearInterval(timerInterval);
-    
-    // تعطيل الأزرار فوراً
-    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
-    
-    // إظهار التنبيه
-    if (window.showAlert) {
-        window.showAlert("محاولة غش! 🚨", reason, "🛑", "error");
-    } else {
-        alert("🚨 غش: " + reason);
-    }
+    if (!isQuizActive) return;
 
-    // الانتظار قليلاً ثم الحفظ والإغلاق
-    setTimeout(() => {
-        if (window.closeCustomAlert) window.closeCustomAlert();
-        endQuiz(); 
-    }, 3500);
+    // إيقاف مؤقت بدون إنهاء
+    clearInterval(timerInterval);
+    document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none');
+
+    // ربط دوال الاستئناف والإنهاء مع نظام التحذير الجديد
+    window._acResume = function() {
+        // إعادة تشغيل التايمر واستئناف الكويز
+        document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'auto');
+        timerInterval = setInterval(() => {
+            globalTimeLeft--;
+            let timerEl = document.getElementById('timer');
+            if(timerEl) timerEl.innerText = globalTimeLeft;
+            if(globalTimeLeft <= 0) handleAnswer(-1);
+        }, 1000);
+    };
+
+    window._acForceEnd = function() {
+        isQuizActive = false;
+        endQuiz();
+    };
+
+    // إظهار نافذة التحذير الجديدة
+    if (window.showAcWarning) {
+        window.showAcWarning(reason);
+    } else if (window.showAlert) {
+        window.showAlert("تحذير! 🚨", reason, "🛑", "error");
+        setTimeout(() => {
+            if (window.closeCustomAlert) window.closeCustomAlert();
+            isQuizActive = false;
+            endQuiz();
+        }, 3500);
+    }
 }
 
 // ==========================================
