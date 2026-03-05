@@ -13,19 +13,17 @@ let free5050 = 1, freeFreeze = 1;
 // 2. نظام مكافحة الغش (Anti-Cheat System)
 // ==========================================
 
-// مراقبة الخروج من المتصفح أو تبديل التطبيقات
+// ✅ FIX: مراقبة الخروج - بس لما الكويز شغال فعلاً (مش أول ما overlay يتفتح)
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isQuizActive) {
-        triggerAntiCheat("لقد قمت بالخروج من التطبيق! سيتم إنهاء التحدي فوراً.");
+        // تأكد إن السؤال بدأ فعلاً (مش بس شاشة "مستعد؟")
+        if (currentQuestions.length > 0 && currentIndex >= 0) {
+            triggerAntiCheat("لقد قمت بالخروج من التطبيق! سيتم إنهاء التحدي فوراً.");
+        }
     }
 });
 
-// مراقبة زر الرجوع في المتصفح أو الهاتف
-window.addEventListener('popstate', (event) => {
-    if (isQuizActive) {
-        triggerAntiCheat("محاولة رجوع مكتشفة! سيتم إنهاء التحدي واحتساب نقاطك الحالية.");
-    }
-});
+// ✅ FIX: popstate يتعامل معه protection.js - مش هنا عشان ميتعارضوش
 
 function triggerAntiCheat(reason) {
     if (!isQuizActive) return; // لضمان عدم التكرار
@@ -79,8 +77,7 @@ window.closeQuizOverlay = function() {
 }
 
 window.startQuizFetch = function(day) {
-    // تفعيل مصيدة زر الرجوع
-    history.pushState(null, null, location.href); 
+    // ✅ FIX: مش بنعمل pushState هنا عشان ميتعارضش مع protection.js
     isQuizActive = true;
     
     document.getElementById('quiz-content').innerHTML = `<p class="text-center font-bold text-yellow-500 text-lg animate-pulse">جاري تجهيز ساحة المعركة...</p>`;
