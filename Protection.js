@@ -328,44 +328,38 @@
     // 7. VISIBILITY CHANGE - كشف تبديل التطبيق
     // ══════════════════════════════════════════
     // (مضاف على الـ quiz.js الأصلي، هنا بنضيف layer تانية)
+    // ✅ FIX: visibilitychange - يشتغل بس لو الكويز شغال فعلاً (مش لما overlay بيتفتح)
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
-            // تشويش الشاشة عند العودة
-            document.body.style.filter = 'blur(20px)';
-            document.body.style.pointerEvents = 'none';
+            // بلّغ anti-cheat بس لو الكويز شغال فعلاً (مش مجرد overlay مفتوح)
+            if (window.isQuizActive) {
+                document.body.style.filter = 'blur(20px)';
+                document.body.style.pointerEvents = 'none';
+            }
         } else {
-            // عند العودة، لو الكويز مش شغال - رجّع الشاشة
+            // عند العودة، شيل الـ blur
             setTimeout(() => {
                 document.body.style.filter = '';
                 document.body.style.pointerEvents = '';
-            }, window.isQuizActive ? 3000 : 800);
+            }, 500);
         }
     });
 
     // ══════════════════════════════════════════
     // 8. BACK BUTTON LOCK - قفل زر الرجوع
     // ══════════════════════════════════════════
-    (function lockBackButton() {
-        // ادفع state جديد في كل مرة عشان الرجوع ميطلعش من الصفحة
-        function pushDummyState() {
-            history.pushState({ protected: true, t: Date.now() }, '', location.href);
-        }
-
-        // ادفع مرتين عشان يحتاج يضغط رجوع مرتين على الأقل
-        pushDummyState();
-        pushDummyState();
-
-        window.addEventListener('popstate', function(e) {
-            // لو الكويز شغال - ابلغ عن غش
-            if (window.isQuizActive) {
-                if (window.triggerAntiCheat) {
-                    window.triggerAntiCheat("محاولة الضغط على زر الرجوع أثناء الكويز!");
-                }
+    // ✅ FIX: قفل زر الرجوع - بيشتغل بس لما الكويز يبدأ فعلاً
+    // مش بنعمل pushState تلقائي عشان ميتعارضش مع quiz.js
+    window.addEventListener('popstate', function(e) {
+        if (window.isQuizActive) {
+            // الكويز شغال - امنع الرجوع وأبلغ عن غش
+            history.pushState({ quizProtected: true }, '', location.href);
+            if (window.triggerAntiCheat) {
+                window.triggerAntiCheat("محاولة الضغط على زر الرجوع أثناء الكويز!");
             }
-            // دايماً ادفع state جديد عشان نمنع الخروج
-            pushDummyState();
-        });
-    })();
+        }
+        // لو الكويز مش شغال - اسمح بالرجوع العادي
+    });
 
     // ══════════════════════════════════════════
     // 9. SCREENSHOT - Screen Capture API Block
@@ -535,92 +529,4 @@
         };
 
         // مراقبة تغيير isQuizActive لتطبيق حمايات إضافية
-        let _isQuizActive = false;
-        Object.defineProperty(window, '__quizProtected', {
-            get: () => _isQuizActive,
-            set: (v) => {
-                _isQuizActive = v;
-                if (v) {
-                    // الكويز بدأ: فعّل الحمايات الإضافية
-                    document.body.style.setProperty('-webkit-user-select', 'none', 'important');
-                    // Push state for back button lock
-                    history.pushState({ quizActive: true }, '', location.href);
-                    history.pushState({ quizActive: true }, '', location.href);
-                }
-            }
-        });
-    });
-
-    // ══════════════════════════════════════════
-    // 16. WINDOW FOCUS/BLUR - مراقبة تركيز النافذة
-    // ══════════════════════════════════════════
-    window.addEventListener('blur', function() {
-        if (window.isQuizActive) {
-            // ضبّب الشاشة فوراً لو الكويز شغال والنافذة فقدت التركيز
-            const quizContent = document.getElementById('quiz-content');
-            if (quizContent) {
-                quizContent.style.filter = 'blur(15px)';
-                quizContent.style.pointerEvents = 'none';
-            }
-        }
-    });
-
-    window.addEventListener('focus', function() {
-        const quizContent = document.getElementById('quiz-content');
-        if (quizContent && !window.isQuizActive) {
-            quizContent.style.filter = '';
-            quizContent.style.pointerEvents = '';
-        }
-    });
-
-    // ══════════════════════════════════════════
-    // 17. MUTATION OBSERVER - منع التلاعب بالـ DOM
-    // ══════════════════════════════════════════
-    window.addEventListener('DOMContentLoaded', function() {
-        // مراقبة إضافة scripts غريبة
-        const domObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.tagName === 'SCRIPT' && !node.src.includes('firebase') &&
-                        !node.src.includes('tailwind') && !node.src.includes('cdnjs') &&
-                        !node.src.includes('googleapis') && !node.src.includes('confetti') &&
-                        !node.src.includes('effectivegate') && node.src && node.id !== '__protection_styles') {
-                        // script غريب اتضاف - امسحه
-                        console.warn('Blocked suspicious script:', node.src);
-                        node.remove();
-                    }
-                });
-            });
-        });
-
-        domObserver.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
-
-        initWatermark();
-        initScreenshotWarning();
-    });
-
-    // ══════════════════════════════════════════
-    // 18. ANDROID SPECIFIC - حمايات أندرويد إضافية
-    // ══════════════════════════════════════════
-    // منع screenshot على Android Chrome (CSS trick)
-    document.documentElement.style.setProperty('--protection-active', '1');
-
-    // محاولة منع Multi-window / Split Screen
-    if (window.screen && window.screen.orientation) {
-        window.screen.orientation.addEventListener('change', function() {
-            if (window.isQuizActive) {
-                // تغيير الاتجاه أثناء الكويز - قد يكون محاولة Split Screen
-                showMiniToast('⚠️ تم كشف تغيير الاتجاه أثناء الكويز');
-            }
-        });
-    }
-
-    // ══════════════════════════════════════════
-    // ✅ INIT COMPLETE
-    // ══════════════════════════════════════════
-    console.log('%c🛡️ النظام محمي', 'background:#000;color:#10b981;font-size:16px;font-weight:bold;padding:10px 20px;border-radius:8px;');
-
-})(); // IIFE - عشان مفيش متغيرات تتسرّب للـ global scope
+      
