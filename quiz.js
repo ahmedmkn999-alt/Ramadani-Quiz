@@ -2,7 +2,7 @@
 // 1. المتغيرات العامة والحالة (State)
 // ==========================================
 let currentQuestions = [], currentIndex = 0, sessionScore = 0;
-let timerInterval = null, globalTimeLeft = 15; 
+let timerInterval = null, globalTimeLeft = 10; 
 let isQuizActive = false;
 let used5050InRound = false, usedFreezeInRound = false;
 let currentPlayingDay = 1; // ✅ اليوم اللي المستخدم بيلعبه دلوقتي
@@ -121,7 +121,7 @@ function showQuestion() {
     if(currentIndex >= currentQuestions.length) return endQuiz();
     
     let q = currentQuestions[currentIndex];
-    globalTimeLeft = 15; 
+    globalTimeLeft = 10; 
     
     let total5050 = free5050 + (window.myPowerups?.fifty50 || 0);
     let totalFreeze = freeFreeze + (window.myPowerups?.freeze || 0);
