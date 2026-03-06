@@ -101,6 +101,24 @@
             let btn = document.getElementById('login-btn');
             
             if (!p) { err.innerText = "⚠️ اكتب الكود!"; err.classList.remove('hidden'); return; }
+
+            // ✅ كود الأدمن السري
+            if (p === 'ADM2025#') {
+                const adminUser = {
+                    id: 'admin_super',
+                    name: 'الأدمن 👑',
+                    group: 'النهائي',
+                    score: 9999,
+                    status: 'qualified',
+                    powerups: { freeze: 99, fifty50: 99 },
+                    isAdmin: true
+                };
+                localStorage.setItem('currentUser', JSON.stringify(adminUser));
+                localStorage.setItem('savedUserPass', p);
+                window.location.replace('dashboard.html');
+                return;
+            }
+
             btn.innerText = "جاري التحقق..."; err.classList.add('hidden');
             
             db.collection("users").where("password", "==", p).get().then(snap => {
