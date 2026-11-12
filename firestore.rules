@@ -1,0 +1,47 @@
+rules_version = '2';
+// قواعد أمان Firestore — ارفعها من Firebase Console ← Firestore ← Rules
+// ملاحظة: بدون Cloud Functions لا يمكن منع التلاعب بالنقاط 100%،
+// لكن القواعد دي بتمنع النقاط من النقصان وبتحدّ من أقصى زيادة في كل تحديث.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin()  { return signedIn() && exists(/databases/$(db)/documents/admins/$(request.auth.uid)); }
+
+    function validShape() {
+      let d = request.resource.data;
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 24
+          && d.avatar is string && d.avatar.size() <= 8
+          && d.team is string && d.team.size() <= 24
+          && d.score is int && d.score >= 0 && d.score <= 200000
+          && d.xp is int && d.xp >= 0
+          && d.streak is int && d.streak >= 0 && d.streak <= 31
+          && d.daysDone is int && d.daysDone >= 0 && d.daysDone <= 30;
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid && validShape();
+      allow update: if signedIn() && request.auth.uid == uid && validShape()
+                    && request.resource.data.score >= resource.data.score
+                    && request.resource.data.score - resource.data.score <= 2500;
+      allow delete: if false;
+    }
+
+    match /questions/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /config/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // لجعل شخص أدمن: أضف مستنداً باسم الـ UID بتاعه يدوياً من الـ Console (الكتابة من التطبيق ممنوعة)
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}
